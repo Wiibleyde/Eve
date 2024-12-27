@@ -153,8 +153,8 @@ const halloweenPeriod: { start: Date, end: Date } = {
     end: new Date(new Date().getFullYear(), 10, 7)
 }
 const christmasPeriod: { start: Date, end: Date } = {
-    start: new Date(new Date().getFullYear(), 12, 1),
-    end: new Date(new Date().getFullYear(), 12, 31)
+    start: new Date(new Date().getFullYear(), 11, 1),
+    end: new Date(new Date().getFullYear(), 11, 31)
 }
 
 const areInPeriod = (period: { start: Date, end: Date }) => {
