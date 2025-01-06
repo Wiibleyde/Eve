@@ -39,3 +39,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
 
     await interaction.editReply({ embeds: [embed] })
 }
+
+export function switchMaintenance(): void {
+    maintenance = !maintenance
+}

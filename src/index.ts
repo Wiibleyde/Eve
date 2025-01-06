@@ -5,11 +5,19 @@ import { Logger } from "@/utils/logger"
 import { CronJob } from 'cron'
 import { prisma } from "@/utils/database"
 import { initAi } from "@/utils/intelligence"
-import { maintenance } from "@/interactions/commands/dev/maintenance"
+import { maintenance, switchMaintenance } from "@/interactions/commands/dev/maintenance"
 import { initCalendars, updateCalendars } from "./interactions/commands/calendar/createcalendar"
 import { Player } from "discord-player"
 import { YoutubeiExtractor } from "discord-player-youtubei"
 import { initMpThreads } from "./utils/mpManager"
+import { StreamRetriever } from "./utils/streamRetriever"
+import readline from "node:readline";
+
+export const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: "eve> ",
+});
 
 export const logger = new Logger()
 logger.initLevels()
@@ -231,11 +239,83 @@ process.on('SIGINT', async () => {
     await prisma.$disconnect()
     await client.destroy()
     logger.info('Déconnecté, arrêt du bot...')
+    rl.close()
     process.exit(0)
 })
+
+enum Commands {
+    EXIT = "exit",
+    QUIT = "quit",
+    HELP = "help",
+    MAINTENANCE = "maintenance",
+}
+
+const commands = Object.values(Commands);
+
+rl.on("close", () => {
+    process.exit(0);
+});
+
+rl.prompt();
+
+rl.on("line", (line) => {
+    const command = line.trim().toLowerCase();
+
+    if(command === "") {
+        rl.prompt();
+        return;
+    }
+
+    switch (command) {
+        case Commands.EXIT:
+        case Commands.QUIT:
+            process.kill(process.pid, "SIGINT");
+            break;
+        case Commands.HELP:
+            logger.info("Commandes disponibles :");
+            logger.info(`- ${Commands.EXIT} | ${Commands.QUIT} : Quitte le bot.`);
+            logger.info(`- ${Commands.MAINTENANCE} : Active ou désactive le mode maintenance.`);
+            break;
+        case Commands.MAINTENANCE:
+            switchMaintenance();
+            logger.info(`Mode maintenance ${maintenance ? "activé" : "désactivé"}.`);
+            break;
+        default:
+            logger.error(`Commande inconnue : ${command}`);
+            break;
+    }
+});
+
+rl.on("tab", (line) => {
+    const hits = commands.filter((c) => c.startsWith(line.trim().toLowerCase()));
+    if (hits.length === 1) {
+        rl.write(null, { ctrl: true, name: "u" });
+        rl.write(hits[0]);
+        rl.prompt(true);
+    } else if (hits.length > 1) {
+        logger.info("Suggestions :", hits.join(", "));
+        rl.prompt();
+    } else {
+        rl.prompt();
+    }
+});
+
+(rl as any).input.on("keypress", (char: string, key: { name: string }) => {
+    if (key && key.name === "tab") {
+        const line = rl.line.trim().toLowerCase();
+        const hits = commands.filter((c) => c.startsWith(line));
+        if (hits.length === 0) {
+            return false; // Prevent tab character if no suggestions are found
+        }
+        rl.emit("tab", rl.line);
+    }
+});
 
 initMpThreads()
 initAi()
 initCalendars()
+
+
+export const streamRetriever = new StreamRetriever("ws://localhost:8000?token=your_secure_token")
 
 client.login(config.DISCORD_TOKEN)
