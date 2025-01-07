@@ -6,22 +6,60 @@ const quoiRegexs = [
 
     // Koa
     /ko+a+[\ ?]*\?*$/,
-    /ko+a+[\ +]*\?*$/
+    /ko+a+[\ +]*\?*$/,
+
+    // Qoa
+    /q+o+a+[\ ?]*\?*$/,
+    /q+o+a+[\ +]*\?*$/,
+
+    // Koi
+    /ko+i+[\ ?]*\?*$/,
+    /ko+i+[\ +]*\?*$/,
+
+    // Kwa
+    /kw+a+[\ ?]*\?*$/,
+    /kw+a+[\ +]*\?*$/,
+
+    // Kewa
+    /ke+w+a+[\ ?]*\?*$/,
+    /ke+w+a+[\ +]*\?*$/,
+
+    // Koua
+    /ko+u+a+[\ ?]*\?*$/,
+    /ko+u+a+[\ +]*\?*$/,
+    /kou+a+[\ ?]*\?*$/,
+    /kou+a+[\ +]*\?*$/,
+
+    // Kewa
+    /ke+u+a+[\ ?]*\?*$/,
+    /ke+u+a+[\ +]*\?*$/,
+    /keu+a+[\ ?]*\?*$/,
+    /keu+a+[\ +]*\?*$/,
+
+    // Koua
+    /ko+u+a+[\ ?]*\?*$/,
+    /ko+u+a+[\ +]*\?*$/,
+    /kou+a+[\ ?]*\?*$/,
+    /kou+a+[\ +]*\?*$/,
 ]
 
 export const possibleResponses = [
     {
         response: "Feur.",
-        probability: 80
+        probability: 70
     },
     {
         response: "coubeh.",
         probability: 10
     },
     {
+        response: "la",
+        probability: 10
+    },
+    {
         response: "drilatère.",
         probability: 10
-    }
+    },
 ]
 
 
