@@ -1,5 +1,6 @@
 import { logger } from "@/index";
 import { errorEmbed, successEmbed } from "@/utils/embeds";
+import { waitTime } from "@/utils/utils";
 import { QueryType, useMainPlayer } from "discord-player";
 import { CommandInteraction, GuildMember, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
 
@@ -47,9 +48,8 @@ export async function execute(interaction: CommandInteraction) {
         })
 
         await interaction.reply({ embeds: [successEmbed(interaction, `Musique ajoutée à la file d'attente: [${track.title}](${track.url})`)] })
-        setTimeout(async () => {
-            await interaction.deleteReply()
-        }, 5000)
+        await waitTime(5000)
+        await interaction.deleteReply()
     } catch (error) {
         logger.error(error)
         await interaction.reply({ embeds: [errorEmbed(interaction, new Error("Impossible de jouer la musique."))], ephemeral: true })

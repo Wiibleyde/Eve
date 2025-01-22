@@ -1,4 +1,5 @@
 import { errorEmbed, successEmbed } from "@/utils/embeds";
+import { waitTime } from "@/utils/utils";
 import { useQueue } from "discord-player";
 import { ButtonInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js";
 
@@ -20,4 +21,6 @@ export async function back(interaction: CommandInteraction|ButtonInteraction) {
     await queue.history.back()
 
     await interaction.reply({ embeds: [successEmbed(interaction, "Musique précédente")] })
+    await waitTime(5000)
+    await interaction.deleteReply()
 }

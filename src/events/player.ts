@@ -1,6 +1,7 @@
 import { playerConfig } from "@/config";
 import { client, logger, player } from "..";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageActionRowComponentBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
+import { waitTime } from "@/utils/utils";
 
 player.events.on("audioTrackAdd", (queue, track) => {
     if(playerConfig.extraMessages) {
@@ -117,7 +118,7 @@ player.events.on("playerFinish", (queue) => {
     }
 })
 
-player.events.on("playerSkip", (queue, track) => {
+player.events.on("playerSkip", async (queue, track) => {
     if(playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
             .setTitle("Musique sautée")
@@ -127,7 +128,7 @@ player.events.on("playerSkip", (queue, track) => {
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
             .setTimestamp()
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed]}) as Message
     }
 })
 

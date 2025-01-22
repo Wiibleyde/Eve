@@ -1,6 +1,7 @@
 import { back } from "@/interactions/commands/music/back";
 import { skip } from "@/interactions/commands/music/skip";
 import { errorEmbed, successEmbed } from "@/utils/embeds";
+import { waitTime } from "@/utils/utils";
 import { QueueRepeatMode, useQueue } from "discord-player";
 import { ButtonInteraction } from "discord.js";
 
@@ -32,10 +33,15 @@ export async function resumeAndPauseButton(interaction: ButtonInteraction) {
 
     if(!resumed) {
         queue.node.pause()
-        return await interaction.reply({ embeds: [successEmbed(interaction, "Musique mise en pause")] })
+        await interaction.reply({ embeds: [successEmbed(interaction, "Musique mise en pause")] })
+        await waitTime(5000)
+        await interaction.deleteReply()
+        return
     }
 
-    await interaction.reply({ embeds: [successEmbed(interaction, "Musique reprise")], ephemeral: true })
+    await interaction.reply({ embeds: [successEmbed(interaction, "Musique reprise")] })
+    await waitTime(5000)
+    await interaction.deleteReply()
 }
 
 export function skipButton(interaction: ButtonInteraction) {
