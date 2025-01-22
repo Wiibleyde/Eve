@@ -21,26 +21,8 @@ const quoiRegexs = [
     /kw+a+[\ +]*\?*$/,
 
     // Kewa
-    /ke+w+a+[\ ?]*\?*$/,
-    /ke+w+a+[\ +]*\?*$/,
-
-    // Koua
-    /ko+u+a+[\ ?]*\?*$/,
-    /ko+u+a+[\ +]*\?*$/,
-    /kou+a+[\ ?]*\?*$/,
-    /kou+a+[\ +]*\?*$/,
-
-    // Kewa
-    /ke+u+a+[\ ?]*\?*$/,
-    /ke+u+a+[\ +]*\?*$/,
-    /keu+a+[\ ?]*\?*$/,
-    /keu+a+[\ +]*\?*$/,
-
-    // Koua
-    /ko+u+a+[\ ?]*\?*$/,
-    /ko+u+a+[\ +]*\?*$/,
-    /kou+a+[\ ?]*\?*$/,
-    /kou+a+[\ +]*\?*$/,
+    /k+e+w+a+[\ ?]*\?*$/,
+    /k+e+w+a+[\ +]*\?*$/,
 ]
 
 export const possibleResponses = [
@@ -53,7 +35,7 @@ export const possibleResponses = [
         probability: 10
     },
     {
-        response: "la",
+        response: "la 🐨",
         probability: 10
     },
     {
