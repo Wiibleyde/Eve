@@ -1,4 +1,5 @@
 import { errorEmbed, successEmbed } from "@/utils/embeds";
+import { waitTime } from "@/utils/utils";
 import { useQueue } from "discord-player";
 import { ButtonInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js";
 
@@ -18,4 +19,6 @@ export async function skip(interaction:CommandInteraction|ButtonInteraction) {
     await queue.node.skip()
 
     await interaction.reply({ embeds: [successEmbed(interaction, "Musique suivante")] })
+    await waitTime(5000)
+    await interaction.deleteReply()
 }

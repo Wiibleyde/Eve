@@ -1,6 +1,7 @@
 import { playerConfig } from "@/config";
 import { client, logger, player } from "..";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageActionRowComponentBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
+import { waitTime } from "@/utils/utils";
 
 player.events.on("audioTrackAdd", (queue, track) => {
     if(playerConfig.extraMessages) {
@@ -117,7 +118,7 @@ player.events.on("playerFinish", (queue) => {
     }
 })
 
-player.events.on("playerSkip", (queue, track) => {
+player.events.on("playerSkip", async (queue, track) => {
     if(playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
             .setTitle("Musique sautée")
@@ -127,11 +128,11 @@ player.events.on("playerSkip", (queue, track) => {
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
             .setTimestamp()
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed]}) as Message
     }
 })
 
-player.events.on("playerStart", (queue, track) => {
+player.events.on("playerStart", async (queue, track) => {
     if (!playerConfig.loopMessage && queue.repeatMode !== 0) return
 
     let emojiState = playerConfig.enableEmoji
@@ -168,11 +169,15 @@ player.events.on("playerStart", (queue, track) => {
         .setCustomId('loopButton')
         .setStyle(ButtonStyle.Danger)
 
-    // const lyrics = new ButtonBuilder() // Disabled for now
-    //     .setLabel('Lyrics')
-    //     .setCustomId('lyricsButton')
-    //     .setStyle(ButtonStyle.Secondary)
-
     const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop)
-    queue.metadata.channel.send({ embeds: [embed], components: [row] })
+
+    if (queue.metadata.playingMessage) {
+        try {
+            await queue.metadata.playingMessage.edit({ embeds: [embed], components: [row] })
+        } catch {
+            queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+        }
+    } else {
+        queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+    }
 })

@@ -1,4 +1,5 @@
 import { errorEmbed, successEmbed } from "@/utils/embeds";
+import { waitTime } from "@/utils/utils";
 import { useQueue } from "discord-player";
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 
@@ -15,4 +16,6 @@ export async function execute(interaction: CommandInteraction) {
     queue.delete()
 
     await interaction.reply({ embeds: [successEmbed(interaction, "La musique a été arrêtée.")] })
+    await waitTime(5000)
+    await interaction.deleteReply()
 }
