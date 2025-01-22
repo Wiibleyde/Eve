@@ -131,7 +131,7 @@ player.events.on("playerSkip", (queue, track) => {
     }
 })
 
-player.events.on("playerStart", (queue, track) => {
+player.events.on("playerStart", async (queue, track) => {
     if (!playerConfig.loopMessage && queue.repeatMode !== 0) return
 
     let emojiState = playerConfig.enableEmoji
@@ -168,11 +168,15 @@ player.events.on("playerStart", (queue, track) => {
         .setCustomId('loopButton')
         .setStyle(ButtonStyle.Danger)
 
-    // const lyrics = new ButtonBuilder() // Disabled for now
-    //     .setLabel('Lyrics')
-    //     .setCustomId('lyricsButton')
-    //     .setStyle(ButtonStyle.Secondary)
-
     const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop)
-    queue.metadata.channel.send({ embeds: [embed], components: [row] })
+
+    if (queue.metadata.playingMessage) {
+        try {
+            await queue.metadata.playingMessage.edit({ embeds: [embed], components: [row] })
+        } catch {
+            queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+        }
+    } else {
+        queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+    }
 })
