@@ -1,7 +1,8 @@
 import { EmbedBuilder, WebhookClient } from "discord.js"
 import { prisma } from "@/utils/database"
 import { config } from "@/config"
-import { client } from ".."
+import { client, rl } from ".."
+import readline from "node:readline";
 
 
 const resetColor = "\x1b[0m"
@@ -94,6 +95,14 @@ export class Logger {
         return messageList.join(" ").substring(0, 1950)
     }
 
+    private logWithClear(logFunction: (message: string) => void, color: string, level: string, messageList: unknown[]): void {
+        const message = this.formatMessage(messageList);
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        logFunction(color + `[${level}] ${this.getNowDate()} : ${message}` + resetColor);
+        rl.prompt(true);
+    }
+
     /**
      * Logs an informational message to the console, optionally to Discord and a database.
      *
@@ -106,7 +115,7 @@ export class Logger {
      */
     public async info(...messageList: unknown[]): Promise<void> {
         const message = this.formatMessage(messageList)
-        console.log(LogLevelColors.INFO + `[INFO] ${this.getNowDate()} ${message}` + resetColor)
+        this.logWithClear(console.log, LogLevelColors.INFO, "INFO", messageList);
         if(this.logInDiscord) {
             const embed: EmbedBuilder = new EmbedBuilder()
                 .setTitle("INFO")
@@ -148,7 +157,7 @@ export class Logger {
      */
     public async error(...messageList: unknown[]): Promise<void> {
         const message = this.formatMessage(messageList)
-        console.error(LogLevelColors.ERROR + `[ERROR] ${this.getNowDate()} ${message}` + resetColor)
+        this.logWithClear(console.error, LogLevelColors.ERROR, "ERROR", messageList);
         if(this.logInDiscord) {
             const embed: EmbedBuilder = new EmbedBuilder()
                 .setTitle("ERROR")
@@ -194,7 +203,7 @@ export class Logger {
      */
     public async warn(...messageList: unknown[]): Promise<void> {
         const message = this.formatMessage(messageList)
-        console.warn(LogLevelColors.WARN + `[WARN] ${this.getNowDate()} ${message}` + resetColor)
+        this.logWithClear(console.warn, LogLevelColors.WARN, "WARN", messageList);
         if(this.logInDiscord) {
             const embed: EmbedBuilder = new EmbedBuilder()
                 .setTitle("WARN")
@@ -235,7 +244,7 @@ export class Logger {
      */
     public async debug(...messageList: unknown[]): Promise<void> {
         const message = messageList.join(" ")
-        console.log(LogLevelColors.DEBUG + `[DEBUG] ${this.getNowDate()} ${message}` + resetColor)
+        this.logWithClear(console.log, LogLevelColors.DEBUG, "DEBUG", messageList);
         if(this.logInDiscord) {
             const embed: EmbedBuilder = new EmbedBuilder()
                 .setTitle("DEBUG")
