@@ -9,7 +9,6 @@
   "license": "GPL-2.0-only",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
     "start": "npm run build && node .",
     "build": "tsup src/index.ts --minify",
     "format": "prettier --write \"**/*.{json,ts}\"",

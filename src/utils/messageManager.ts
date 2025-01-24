@@ -44,7 +44,6 @@ export const possibleResponses = [
     },
 ]
 
-
 export function detectFeur(message: string): boolean {
     for (const regex of quoiRegexs) {
         if (regex.test(message.toLowerCase())) {

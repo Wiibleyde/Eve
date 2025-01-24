@@ -20,7 +20,18 @@ dotenv.config()
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID, EVE_HOME_GUILD, OWNER_ID, LOGS_WEBHOOK_URL, GOOGLE_API_KEY, REPORT_CHANNEL, MP_CHANNEL, BLAGUE_API_TOKEN, NASA_API_KEY } = process.env
 
 if (!DISCORD_TOKEN || !DISCORD_CLIENT_ID || !EVE_HOME_GUILD || !OWNER_ID || !LOGS_WEBHOOK_URL || !REPORT_CHANNEL || !MP_CHANNEL || !BLAGUE_API_TOKEN || !NASA_API_KEY) {
-    throw new Error("Missing environment variables")
+    const missingVars = []
+    if (!DISCORD_TOKEN) missingVars.push("DISCORD_TOKEN")
+    if (!DISCORD_CLIENT_ID) missingVars.push("DISCORD_CLIENT_ID")
+    if (!EVE_HOME_GUILD) missingVars.push("EVE_HOME_GUILD")
+    if (!OWNER_ID) missingVars.push("OWNER_ID")
+    if (!LOGS_WEBHOOK_URL) missingVars.push("LOGS_WEBHOOK_URL")
+    if (!GOOGLE_API_KEY) missingVars.push("GOOGLE_API_KEY")
+    if (!REPORT_CHANNEL) missingVars.push("REPORT_CHANNEL")
+    if (!MP_CHANNEL) missingVars.push("MP_CHANNEL")
+    if (!BLAGUE_API_TOKEN) missingVars.push("BLAGUE_API_TOKEN")
+    if (!NASA_API_KEY) missingVars.push("NASA_API_KEY")
+    throw new Error(`Missing environment variables: ${missingVars.join(", ")}`)
 }
 
 /**

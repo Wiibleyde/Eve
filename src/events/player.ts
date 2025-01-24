@@ -1,7 +1,6 @@
 import { playerConfig } from "@/config";
 import { client, logger, player } from "..";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
-import { waitTime } from "@/utils/utils";
 
 player.events.on("audioTrackAdd", (queue, track) => {
     if(playerConfig.extraMessages) {
