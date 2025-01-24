@@ -36,8 +36,8 @@ export const client = new Client({
 })
 
 
-export const player = new Player(client, {ytdlOptions: {quality: 'highestaudio', highWaterMark: 1 << 25}})
-player.extractors.register(YoutubeiExtractor, {})
+export const player = new Player(client)
+player.extractors.register(YoutubeiExtractor, {streamOptions: {highWaterMark: 1 << 25}})
 
 client.once(Events.ClientReady, async () => {
     client.user?.setPresence({
@@ -154,7 +154,7 @@ const halloweenPeriod: { start: Date, end: Date } = {
 }
 const christmasPeriod: { start: Date, end: Date } = {
     start: new Date(new Date().getFullYear(), 11, 1),
-    end: new Date(new Date().getFullYear(), 11, 31)
+    end: new Date(new Date().getFullYear(), 11, 25)
 }
 
 const areInPeriod = (period: { start: Date, end: Date }) => {
@@ -221,7 +221,7 @@ const calendarCron = new CronJob('0 0 0 * * *', async () => {
 calendarCron.start()
 
 // CronJob to update the calendar events every 10 minutes
-const calendarEventsCron = new CronJob('0 */1 * * * *', async () => {
+const calendarEventsCron = new CronJob('0 */10 * * * *', async () => {
     await updateCalendars()
 })
 calendarEventsCron.start()
