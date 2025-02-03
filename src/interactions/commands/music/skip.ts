@@ -1,24 +1,28 @@
-import { errorEmbed, successEmbed } from "@/utils/embeds";
-import { waitTime } from "@/utils/utils";
-import { useQueue } from "discord-player";
-import { ButtonInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { errorEmbed, successEmbed } from '@/utils/embeds';
+import { waitTime } from '@/utils/utils';
+import { useQueue } from 'discord-player';
+import { ButtonInteraction, CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
-    .setName("skip")
-    .setDescription("[Musique] Passer à la musique suivante")
+    .setName('skip')
+    .setDescription('[Musique] Passer à la musique suivante');
 
 export async function execute(interaction: CommandInteraction) {
-    skip(interaction)
+    skip(interaction);
 }
 
-export async function skip(interaction:CommandInteraction|ButtonInteraction) {
-    const queue = useQueue(interaction.guildId as string)
+export async function skip(interaction: CommandInteraction | ButtonInteraction) {
+    const queue = useQueue(interaction.guildId as string);
 
-    if (!queue?.isPlaying()) return await interaction.reply({ embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))], ephemeral: true })
+    if (!queue?.isPlaying())
+        return await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
+            ephemeral: true,
+        });
 
-    await queue.node.skip()
+    await queue.node.skip();
 
-    await interaction.reply({ embeds: [successEmbed(interaction, "Musique suivante")] })
-    await waitTime(5000)
-    await interaction.deleteReply()
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Musique suivante')] });
+    await waitTime(5000);
+    await interaction.deleteReply();
 }

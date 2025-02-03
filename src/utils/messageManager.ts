@@ -23,44 +23,44 @@ const quoiRegexs = [
     // Kewa
     /k+e+w+a+[\ ?]*\?*$/,
     /k+e+w+a+[\ +]*\?*$/,
-]
+];
 
 export const possibleResponses = [
     {
-        response: "Feur.",
-        probability: 70
+        response: 'Feur.',
+        probability: 70,
     },
     {
-        response: "coubeh.",
-        probability: 10
+        response: 'coubeh.',
+        probability: 10,
     },
     {
-        response: "la 🐨",
-        probability: 10
+        response: 'la 🐨',
+        probability: 10,
     },
     {
-        response: "drilatère.",
-        probability: 10
+        response: 'drilatère.',
+        probability: 10,
     },
-]
+];
 
 export function detectFeur(message: string): boolean {
     for (const regex of quoiRegexs) {
         if (regex.test(message.toLowerCase())) {
-            return true
+            return true;
         }
     }
-    return false
+    return false;
 }
 
 export function generateResponse(): string {
-    const random = Math.random() * 100
-    let cumulativeProbability = 0
+    const random = Math.random() * 100;
+    let cumulativeProbability = 0;
     for (const response of possibleResponses) {
-        cumulativeProbability += response.probability
+        cumulativeProbability += response.probability;
         if (random <= cumulativeProbability) {
-            return response.response
+            return response.response;
         }
     }
-    return "Feur."
+    return 'Feur.';
 }
