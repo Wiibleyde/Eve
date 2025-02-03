@@ -1,10 +1,10 @@
-import dotenv from "dotenv"
+import dotenv from 'dotenv';
 
 export const playerConfig = {
     extraMessages: false,
     enableEmoji: false,
     loopMessage: false,
-    emojis:{
+    emojis: {
         back: '⏪',
         skip: '⏩',
         ResumePause: '⏯️',
@@ -13,30 +13,51 @@ export const playerConfig = {
         volumeDown: '🔉',
         loop: '🔁',
     },
-}
+};
 
-dotenv.config()
+dotenv.config();
 
-const { DISCORD_TOKEN, DISCORD_CLIENT_ID, EVE_HOME_GUILD, OWNER_ID, LOGS_WEBHOOK_URL, GOOGLE_API_KEY, REPORT_CHANNEL, MP_CHANNEL, BLAGUE_API_TOKEN, NASA_API_KEY } = process.env
+const {
+    DISCORD_TOKEN,
+    DISCORD_CLIENT_ID,
+    EVE_HOME_GUILD,
+    OWNER_ID,
+    LOGS_WEBHOOK_URL,
+    GOOGLE_API_KEY,
+    REPORT_CHANNEL,
+    MP_CHANNEL,
+    BLAGUE_API_TOKEN,
+    NASA_API_KEY,
+} = process.env;
 
-if (!DISCORD_TOKEN || !DISCORD_CLIENT_ID || !EVE_HOME_GUILD || !OWNER_ID || !LOGS_WEBHOOK_URL || !REPORT_CHANNEL || !MP_CHANNEL || !BLAGUE_API_TOKEN || !NASA_API_KEY) {
-    const missingVars = []
-    if (!DISCORD_TOKEN) missingVars.push("DISCORD_TOKEN")
-    if (!DISCORD_CLIENT_ID) missingVars.push("DISCORD_CLIENT_ID")
-    if (!EVE_HOME_GUILD) missingVars.push("EVE_HOME_GUILD")
-    if (!OWNER_ID) missingVars.push("OWNER_ID")
-    if (!LOGS_WEBHOOK_URL) missingVars.push("LOGS_WEBHOOK_URL")
-    if (!GOOGLE_API_KEY) missingVars.push("GOOGLE_API_KEY")
-    if (!REPORT_CHANNEL) missingVars.push("REPORT_CHANNEL")
-    if (!MP_CHANNEL) missingVars.push("MP_CHANNEL")
-    if (!BLAGUE_API_TOKEN) missingVars.push("BLAGUE_API_TOKEN")
-    if (!NASA_API_KEY) missingVars.push("NASA_API_KEY")
-    throw new Error(`Missing environment variables: ${missingVars.join(", ")}`)
+if (
+    !DISCORD_TOKEN ||
+    !DISCORD_CLIENT_ID ||
+    !EVE_HOME_GUILD ||
+    !OWNER_ID ||
+    !LOGS_WEBHOOK_URL ||
+    !REPORT_CHANNEL ||
+    !MP_CHANNEL ||
+    !BLAGUE_API_TOKEN ||
+    !NASA_API_KEY
+) {
+    const missingVars = [];
+    if (!DISCORD_TOKEN) missingVars.push('DISCORD_TOKEN');
+    if (!DISCORD_CLIENT_ID) missingVars.push('DISCORD_CLIENT_ID');
+    if (!EVE_HOME_GUILD) missingVars.push('EVE_HOME_GUILD');
+    if (!OWNER_ID) missingVars.push('OWNER_ID');
+    if (!LOGS_WEBHOOK_URL) missingVars.push('LOGS_WEBHOOK_URL');
+    if (!GOOGLE_API_KEY) missingVars.push('GOOGLE_API_KEY');
+    if (!REPORT_CHANNEL) missingVars.push('REPORT_CHANNEL');
+    if (!MP_CHANNEL) missingVars.push('MP_CHANNEL');
+    if (!BLAGUE_API_TOKEN) missingVars.push('BLAGUE_API_TOKEN');
+    if (!NASA_API_KEY) missingVars.push('NASA_API_KEY');
+    throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
 }
 
 /**
  * Configuration object for the EVe Assistant application.
- * 
+ *
  * @property {string} DISCORD_TOKEN - The token used to authenticate with the Discord API.
  * @property {string} DISCORD_CLIENT_ID - The client ID of the Discord application.
  * @property {string} EVE_HOME_GUILD - The ID of the home guild (server) for the Eve Assistant.
@@ -58,5 +79,5 @@ export const config = {
     REPORT_CHANNEL,
     MP_CHANNEL,
     BLAGUE_API_TOKEN,
-    NASA_API_KEY
-}
+    NASA_API_KEY,
+};

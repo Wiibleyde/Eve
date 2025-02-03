@@ -1,182 +1,189 @@
-import { playerConfig } from "@/config";
-import { client, logger, player } from "..";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageActionRowComponentBuilder } from "discord.js";
+import { playerConfig } from '@/config';
+import { client, logger, player } from '..';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    EmbedBuilder,
+    Message,
+    MessageActionRowComponentBuilder,
+} from 'discord.js';
 
-player.events.on("audioTrackAdd", (queue, track) => {
-    if(playerConfig.extraMessages) {
+player.events.on('audioTrackAdd', (queue, track) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Musique ajoutée")
+            .setTitle('Musique ajoutée')
             .setDescription(`[${track.title}](${track.url}) a été ajoutée à la file d'attente.`)
             .setThumbnail(track.thumbnail)
             .setColor('Green')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
 });
 
-player.events.on("audioTracksAdd", (queue, tracks) => {
-    if(playerConfig.extraMessages) {
+player.events.on('audioTracksAdd', (queue, tracks) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Musiques ajoutées")
+            .setTitle('Musiques ajoutées')
             .setDescription(`${tracks.length} musiques ont été ajoutées à la file d'attente.`)
             .setColor('Green')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
 });
 
-player.events.on("disconnect", (queue) => {
-    if(queue.metadata.lyricsThread) {
-        queue.metadata.lyricsThread.delete()
-        queue.setMetadata({channel: queue.metadata.channel})
+player.events.on('disconnect', (queue) => {
+    if (queue.metadata.lyricsThread) {
+        queue.metadata.lyricsThread.delete();
+        queue.setMetadata({ channel: queue.metadata.channel });
     }
 
-    if(playerConfig.extraMessages) {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Déconnexion")
+            .setTitle('Déconnexion')
             .setDescription(`Déconnexion du salon vocal.`)
             .setColor('Red')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
-})
+});
 
-player.events.on("emptyChannel", (queue) => {
+player.events.on('emptyChannel', (queue) => {
     if (queue.metadata.lyricsThread) {
-        queue.metadata.lyricsThread.delete()
-        queue.setMetadata({ channel: queue.metadata.channel })
+        queue.metadata.lyricsThread.delete();
+        queue.setMetadata({ channel: queue.metadata.channel });
     }
 
-    if(playerConfig.extraMessages) {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
             .setTitle("File d'attente vide")
             .setDescription(`La file d'attente est vide, je quitte le salon vocal.`)
             .setColor('Red')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
-})
+});
 
-player.events.on("emptyQueue", (queue) => {
-    if(playerConfig.extraMessages) {
+player.events.on('emptyQueue', (queue) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
             .setTitle("File d'attente vide")
             .setDescription(`La file d'attente est vide.`)
             .setColor('Red')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
-})
+});
 
-player.events.on("error", (queue, error) => {
-    if(playerConfig.extraMessages) {
+player.events.on('error', (queue, error) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Erreur")
+            .setTitle('Erreur')
             .setDescription(`Une erreur est survenue lors de la lecture de la musique : ${error.message}`)
             .setColor('Red')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
 
-    logger.error(`An error occurred while playing music: ${error.message}`)
-})
+    logger.error(`An error occurred while playing music: ${error.message}`);
+});
 
-player.events.on("playerError", (queue, error) => {
-    if(playerConfig.extraMessages) {
+player.events.on('playerError', (queue, error) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Erreur")
+            .setTitle('Erreur')
             .setDescription(`Une erreur est survenue lors de la lecture de la musique : ${error.message}`)
             .setColor('Red')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed] })
+        queue.metadata.channel.send({ embeds: [embed] });
     }
 
-    logger.error(`An error occurred while playing music: ${error.message}`)
-})
+    logger.error(`An error occurred while playing music: ${error.message}`);
+});
 
-player.events.on("playerFinish", (queue) => {
+player.events.on('playerFinish', (queue) => {
     if (queue.metadata.lyricsThread) {
         queue.metadata.lyricsThread.delete();
         queue.setMetadata({
-            channel: queue.metadata.channel
-        })
+            channel: queue.metadata.channel,
+        });
     }
-})
+});
 
-player.events.on("playerSkip", async (queue, track) => {
-    if(playerConfig.extraMessages) {
+player.events.on('playerSkip', async (queue, track) => {
+    if (playerConfig.extraMessages) {
         const embed = new EmbedBuilder()
-            .setTitle("Musique sautée")
+            .setTitle('Musique sautée')
             .setDescription(`[${track.title}](${track.url}) a été sautée.`)
             .setThumbnail(track.thumbnail)
             .setColor('Yellow')
             .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-            .setTimestamp()
+            .setTimestamp();
 
-        queue.metadata.channel.send({ embeds: [embed]}) as Message
+        queue.metadata.channel.send({ embeds: [embed] }) as Message;
     }
-})
+});
 
-player.events.on("playerStart", async (queue, track) => {
-    if (!playerConfig.loopMessage && queue.repeatMode !== 0) return
+player.events.on('playerStart', async (queue, track) => {
+    if (!playerConfig.loopMessage && queue.repeatMode !== 0) return;
 
-    let emojiState = playerConfig.enableEmoji
+    let emojiState = playerConfig.enableEmoji;
 
-    const emojis = playerConfig.emojis
+    const emojis = playerConfig.emojis;
 
-    emojiState = emojis ? true : false
+    emojiState = emojis ? true : false;
 
     const embed = new EmbedBuilder()
-        .setTitle("Lecture en cours")
+        .setTitle('Lecture en cours')
         .setDescription(`[${track.title}](${track.url}) a commencé à jouer dans <#${queue.channel?.id}>.`)
         .setThumbnail(track.thumbnail)
         .setColor('Green')
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
-        .setTimestamp()
+        .setTimestamp();
 
     const back = new ButtonBuilder()
-        .setLabel(emojiState ? emojis.back : ('Back'))
+        .setLabel(emojiState ? emojis.back : 'Back')
         .setCustomId('backButton')
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Primary);
 
     const skip = new ButtonBuilder()
-        .setLabel(emojiState ? emojis.skip : ('Skip'))
+        .setLabel(emojiState ? emojis.skip : 'Skip')
         .setCustomId('skipButton')
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Primary);
 
     const resumepause = new ButtonBuilder()
-        .setLabel(emojiState ? emojis.ResumePause : ('Resume/Pause'))
+        .setLabel(emojiState ? emojis.ResumePause : 'Resume/Pause')
         .setCustomId('resumeAndPauseButton')
-        .setStyle(ButtonStyle.Danger)
+        .setStyle(ButtonStyle.Danger);
 
     const loop = new ButtonBuilder()
-        .setLabel(emojiState ? emojis.loop : ('Loop'))
+        .setLabel(emojiState ? emojis.loop : 'Loop')
         .setCustomId('loopButton')
-        .setStyle(ButtonStyle.Danger)
+        .setStyle(ButtonStyle.Danger);
 
-    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop)
+    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop);
 
     if (queue.metadata.playingMessage) {
         try {
-            await queue.metadata.playingMessage.edit({ embeds: [embed], components: [row] })
+            await queue.metadata.playingMessage.edit({ embeds: [embed], components: [row] });
         } catch {
-            queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+            queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] });
         }
     } else {
-        queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] })
+        queue.metadata.playingMessage = await queue.metadata.channel.send({ embeds: [embed], components: [row] });
     }
-})
+});

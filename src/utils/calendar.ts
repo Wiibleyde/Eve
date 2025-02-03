@@ -1,33 +1,33 @@
-import { EmbedBuilder, TextChannel } from "discord.js"
-import { CalendarComponent, CalendarResponse } from "node-ical"
-import { client } from ".."
-import { prisma } from "./database"
+import { EmbedBuilder, TextChannel } from 'discord.js';
+import { CalendarComponent, CalendarResponse } from 'node-ical';
+import { client } from '..';
+import { prisma } from './database';
 
-const exemptedEvents = ["Férié", "Vacances", "Jour férié"]
+const exemptedEvents = ['Férié', 'Vacances', 'Jour férié'];
 
 export type MCalendarComponent = CalendarComponent & {
     summary?: {
-        val: string
-    },
-    start: string | Date,
-    end: string | Date,
-}
+        val: string;
+    };
+    start: string | Date;
+    end: string | Date;
+};
 
 export function findNextEvent(calendar: CalendarResponse): MCalendarComponent | null {
-    let nextEvent: CalendarComponent | null = null
-    let nextEventTime: number = Infinity
-    const now = new Date().getTime()
-    Object.keys(calendar).forEach(key => {
-        const event = calendar[key] as MCalendarComponent
-        const eventStart = new Date(event.start).getTime()
+    let nextEvent: CalendarComponent | null = null;
+    let nextEventTime: number = Infinity;
+    const now = new Date().getTime();
+    Object.keys(calendar).forEach((key) => {
+        const event = calendar[key] as MCalendarComponent;
+        const eventStart = new Date(event.start).getTime();
         if (event.summary?.val && !exemptedEvents.includes(event.summary.val)) {
             if (eventStart > now && eventStart < nextEventTime) {
-                nextEvent = event
-                nextEventTime = eventStart
+                nextEvent = event;
+                nextEventTime = eventStart;
             }
         }
-    })
-    return nextEvent
+    });
+    return nextEvent;
 }
 
 // function areInEvent(calendar: CalendarResponse): MCalendarComponent | null {
@@ -49,40 +49,52 @@ export function findNextEvent(calendar: CalendarResponse): MCalendarComponent | 
 // }
 
 function prepareEmbed(nextEvent: MCalendarComponent | null): EmbedBuilder {
-    if(!nextEvent) {
+    if (!nextEvent) {
         return new EmbedBuilder()
-            .setTitle("Prochain événement")
-            .setColor(0xFF0000)
+            .setTitle('Prochain événement')
+            .setColor(0xff0000)
             .setDescription(`Aucun événement à venir.`)
             .setTimestamp()
-            .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
+            .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() });
     }
     return new EmbedBuilder()
-        .setTitle("Prochain événement")
-        .setColor(0x00FF00)
+        .setTitle('Prochain événement')
+        .setColor(0x00ff00)
         .setDescription(`**${nextEvent.summary?.val}**`)
-        .addFields({
-            name: "Début",
-            value: `<t:${Math.floor(new Date(nextEvent.start).getTime() / 1000)}:R>`, 
-            inline: true
-        }, {
-            name: "Fin",
-            value: `<t:${Math.floor(new Date(nextEvent.end).getTime() / 1000)}:R>`,
-            inline: true
-        })
+        .addFields(
+            {
+                name: 'Début',
+                value: `<t:${Math.floor(new Date(nextEvent.start).getTime() / 1000)}:R>`,
+                inline: true,
+            },
+            {
+                name: 'Fin',
+                value: `<t:${Math.floor(new Date(nextEvent.end).getTime() / 1000)}:R>`,
+                inline: true,
+            }
+        )
         .setTimestamp()
-        .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() })
+        .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: client.user?.displayAvatarURL() });
 }
 
-export async function upsertCalendarMessage(guildId: string, channelId: string, messageId: string | null, nextEvent: MCalendarComponent | null): Promise<void> {
+export async function upsertCalendarMessage(
+    guildId: string,
+    channelId: string,
+    messageId: string | null,
+    nextEvent: MCalendarComponent | null
+): Promise<void> {
     if (messageId) {
-        const message = await client.channels.fetch(channelId).then(channel => (channel as TextChannel).messages.fetch(messageId))
-        await message.edit({ embeds: [prepareEmbed(nextEvent)] })
+        const message = await client.channels
+            .fetch(channelId)
+            .then((channel) => (channel as TextChannel).messages.fetch(messageId));
+        await message.edit({ embeds: [prepareEmbed(nextEvent)] });
     } else {
-        const message = await client.channels.fetch(channelId).then(channel => (channel as TextChannel).send({ embeds: [prepareEmbed(nextEvent)] }))
+        const message = await client.channels
+            .fetch(channelId)
+            .then((channel) => (channel as TextChannel).send({ embeds: [prepareEmbed(nextEvent)] }));
         await prisma.guildData.update({
             where: {
-                guildId
+                guildId,
             },
             data: {
                 CalendarMessageData: {
@@ -90,10 +102,10 @@ export async function upsertCalendarMessage(guildId: string, channelId: string, 
                         guildId: guildId,
                         channelId: channelId,
                         messageId: message.id,
-                    }
-                }
-            }
-        })
+                    },
+                },
+            },
+        });
     }
 }
 

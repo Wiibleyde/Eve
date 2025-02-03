@@ -1,17 +1,18 @@
-import { errorEmbed, successEmbed } from "@/utils/embeds";
-import { creatEmbedForRadio } from "@/utils/hope/radio";
-import { hasPermission } from "@/utils/permissionTester";
-import { SlashCommandOptionsOnlyBuilder, SlashCommandBuilder, CommandInteraction, TextChannel, PermissionFlagsBits } from "discord.js";
+import { errorEmbed, successEmbed } from '@/utils/embeds';
+import { creatEmbedForRadio } from '@/utils/hope/radio';
+import { hasPermission } from '@/utils/permissionTester';
+import {
+    SlashCommandOptionsOnlyBuilder,
+    SlashCommandBuilder,
+    CommandInteraction,
+    TextChannel,
+    PermissionFlagsBits,
+} from 'discord.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
-    .setName("createradio")
-    .setDescription("Créer un message pour la radio")
-    .addStringOption(option =>
-        option
-            .setName("nom")
-            .setDescription("Nom du service")
-            .setRequired(true)
-    )
+    .setName('createradio')
+    .setDescription('Créer un message pour la radio')
+    .addStringOption((option) => option.setName('nom').setDescription('Nom du service').setRequired(true));
 
 /**
  * Executes the command to create or update a radio configuration.
@@ -28,18 +29,25 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * 6. Sends a success reply to the interaction.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    if (!await hasPermission(interaction, [PermissionFlagsBits.Administrator], false)) {
-        await interaction.editReply({ embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission de changer la configuration."))] })
-        return
+    if (!(await hasPermission(interaction, [PermissionFlagsBits.Administrator], false))) {
+        await interaction.editReply({
+            embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission de changer la configuration."))],
+        });
+        return;
     }
-    const serviceName = interaction.options.get("nom")?.value as string
-    const channel = interaction.channel as TextChannel
+    const serviceName = interaction.options.get('nom')?.value as string;
+    const channel = interaction.channel as TextChannel;
 
-    const { embed, actionRow, files } = creatEmbedForRadio(interaction, serviceName, [{name: serviceName, frequency: "0.0"}])
+    const { embed, actionRow, files } = creatEmbedForRadio(interaction, serviceName, [
+        { name: serviceName, frequency: '0.0' },
+    ]);
 
-    await channel.send({ embeds: [embed], components: [actionRow], files: files })
+    await channel.send({ embeds: [embed], components: [actionRow], files: files });
 
-    await interaction.reply({ embeds: [successEmbed(interaction, `La radio du ${serviceName} a été créée avec succès !`)], ephemeral: true })
+    await interaction.reply({
+        embeds: [successEmbed(interaction, `La radio du ${serviceName} a été créée avec succès !`)],
+        ephemeral: true,
+    });
 }
 
 /** Trucs à faire pour Hope :

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
+import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 
 interface Formation {
     title: string;
@@ -7,67 +7,51 @@ interface Formation {
 
 const MARSFormations: Formation[] = [
     {
-        title: "Information générale",
+        title: 'Information générale',
         subFormations: [
-            "Permis voiture",
-            "Permis moto",
-            "Permis poids lourd",
-            "Licence hélicoptère",
+            'Permis voiture',
+            'Permis moto',
+            'Permis poids lourd',
+            'Licence hélicoptère',
             "Permis de port d'arme",
-            "Visite hopital",
-        ]
+            'Visite hopital',
+        ],
     },
     {
-        title: "Formation principale",
+        title: 'Formation principale',
         subFormations: [
-            "Appel coma",
-            "Opération",
-            "Rédaction des rapports",
-            "Bobologie",
-            "Don du sang",
-            "Rappel / Parachute",
-            "Natation / Plongée",
-            "Intervention pompier",
-        ]
+            'Appel coma',
+            'Opération',
+            'Rédaction des rapports',
+            'Bobologie',
+            'Don du sang',
+            'Rappel / Parachute',
+            'Natation / Plongée',
+            'Intervention pompier',
+        ],
     },
     {
-        title: "Formation secondaire",
-        subFormations: [
-            "Secret médical",
-            "Matériel",
-            "Communication radio",
-        ]
-    }
-]
+        title: 'Formation secondaire',
+        subFormations: ['Secret médical', 'Matériel', 'Communication radio'],
+    },
+];
 
-const CompaniesFormations: Map<string, Formation[]> = new Map([
-    ["MARS", MARSFormations]
-])
+const CompaniesFormations: Map<string, Formation[]> = new Map([['MARS', MARSFormations]]);
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
-    .setName("createemployee")
-    .setDescription("Créer une fiche employé")
-    .addStringOption(option =>
+    .setName('createemployee')
+    .setDescription('Créer une fiche employé')
+    .addStringOption((option) =>
         option
-            .setName("company")
+            .setName('company')
             .setDescription("Nom de l'entreprise")
             .setRequired(true)
             .addChoices(
-                Array.from(CompaniesFormations.keys()).map(company => ({
+                Array.from(CompaniesFormations.keys()).map((company) => ({
                     name: company,
-                    value: company
+                    value: company,
                 }))
             )
     )
-    .addStringOption(option =>
-        option
-            .setName("name")
-            .setDescription("Nom de l'employé")
-            .setRequired(true)
-    )
-    .addStringOption(option =>
-        option
-            .setName("firstname")
-            .setDescription("Prénom de l'employé")
-            .setRequired(true)
-    )
+    .addStringOption((option) => option.setName('name').setDescription("Nom de l'employé").setRequired(true))
+    .addStringOption((option) => option.setName('firstname').setDescription("Prénom de l'employé").setRequired(true));

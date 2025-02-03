@@ -1,11 +1,11 @@
-import { errorEmbed } from "@/utils/embeds"
-import { CommandInteraction, SlashCommandBuilder } from "discord.js"
+import { errorEmbed } from '@/utils/embeds';
+import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
-const catImgUrl = "https://api.thecatapi.com/v1/images/search"
+const catImgUrl = 'https://api.thecatapi.com/v1/images/search';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
-    .setName("cat")
-    .setDescription("Affiche une image de chat")
+    .setName('cat')
+    .setDescription('Affiche une image de chat');
 
 /**
  * Executes the command to fetch and send a random cat image.
@@ -17,14 +17,22 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
  * If an error occurs during the fetch or if the image URL is not found, an error message is sent instead.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    const response = await fetch(catImgUrl)
-    const data = await response.json()
-    const catImg = data[0].url
+    const response = await fetch(catImgUrl);
+    const data = await response.json();
+    const catImg = data[0].url;
 
-    if(!catImg) {
-        await interaction.reply({ embeds: [errorEmbed(interaction, new Error("Une erreur est survenue lors de la récupération de l'image de chat."))], ephemeral: true })
-        return
+    if (!catImg) {
+        await interaction.reply({
+            embeds: [
+                errorEmbed(
+                    interaction,
+                    new Error("Une erreur est survenue lors de la récupération de l'image de chat.")
+                ),
+            ],
+            ephemeral: true,
+        });
+        return;
     }
 
-    await interaction.reply({ files: [catImg], ephemeral: true })
+    await interaction.reply({ files: [catImg], ephemeral: true });
 }

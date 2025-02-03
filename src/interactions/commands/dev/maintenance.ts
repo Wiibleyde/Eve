@@ -1,19 +1,19 @@
-import { CommandInteraction, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js"
-import { errorEmbed } from "@/utils/embeds"
-import { hasPermission } from "@/utils/permissionTester"
+import { CommandInteraction, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { errorEmbed } from '@/utils/embeds';
+import { hasPermission } from '@/utils/permissionTester';
 
-export let maintenance: boolean = false
+export let maintenance: boolean = false;
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
-    .setName("maintenance")
-    .setDescription("Passer le bot en mode maintenance")
+    .setName('maintenance')
+    .setDescription('Passer le bot en mode maintenance');
 
 /**
  * Executes the maintenance command, toggling the maintenance mode of the bot.
- * 
+ *
  * @param interaction - The command interaction that triggered this execution.
  * @returns A promise that resolves when the command execution is complete.
- * 
+ *
  * The command performs the following steps:
  * 1. Defers the reply to the interaction, making it ephemeral and fetching the reply.
  * 2. Checks if the user has the necessary permissions (Administrator) to execute the command.
@@ -23,19 +23,21 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
  * 5. Edits the reply with the embed message.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true })
-    if(!await hasPermission(interaction, [PermissionFlagsBits.Administrator], true)) {
-        await interaction.editReply({ embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission d'utiliser cette commande."))] })
-        return
+    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    if (!(await hasPermission(interaction, [PermissionFlagsBits.Administrator], true))) {
+        await interaction.editReply({
+            embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission d'utiliser cette commande."))],
+        });
+        return;
     }
-    maintenance = !maintenance
-    const color: number = maintenance ? 0xff0000 : 0x00ff00
+    maintenance = !maintenance;
+    const color: number = maintenance ? 0xff0000 : 0x00ff00;
     const embed = new EmbedBuilder()
-        .setTitle("Maintenance")
-        .setDescription(`Le bot est maintenant en mode ${maintenance ? "maintenance" : "normal"}`)
+        .setTitle('Maintenance')
+        .setDescription(`Le bot est maintenant en mode ${maintenance ? 'maintenance' : 'normal'}`)
         .setColor(color)
         .setTimestamp()
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() });
 
-    await interaction.editReply({ embeds: [embed] })
+    await interaction.editReply({ embeds: [embed] });
 }

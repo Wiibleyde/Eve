@@ -1,11 +1,11 @@
-import { logger } from "@/index";
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { logger } from '@/index';
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 
-const url = `https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/previsions_pont_chaban/exports/json?lang=fr&timezone=Europe%2FBerlin`
+const url = `https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/previsions_pont_chaban/exports/json?lang=fr&timezone=Europe%2FBerlin`;
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
-    .setName("chaban")
-    .setDescription("Informations sur le pont Chaban-Delmas");
+    .setName('chaban')
+    .setDescription('Informations sur le pont Chaban-Delmas');
 
 /**
  * Executes the command to check the current status of the Pont Chaban-Delmas.
@@ -18,18 +18,23 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
 export async function execute(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true, fetchReply: true });
     const data = await downloadJsonFile(url);
-    const sortedData = data.sort((a: { date_passage: string | number | Date; }, b: { date_passage: string | number | Date; }) => new Date(a.date_passage).getTime() - new Date(b.date_passage).getTime()).reverse();
+    const sortedData = data
+        .sort(
+            (a: { date_passage: string | number | Date }, b: { date_passage: string | number | Date }) =>
+                new Date(a.date_passage).getTime() - new Date(b.date_passage).getTime()
+        )
+        .reverse();
     const record = sortedData[0];
 
-    const [endHour, endMinute] = record.re_ouverture_a_la_circulation.split(":");
-    const [startHour, startMinute] = record.fermeture_a_la_circulation.split(":");
+    const [endHour, endMinute] = record.re_ouverture_a_la_circulation.split(':');
+    const [startHour, startMinute] = record.fermeture_a_la_circulation.split(':');
 
     const closureStart = new Date(record.date_passage);
     closureStart.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
 
     const closureEnd = new Date(record.date_passage);
     closureEnd.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
-    if(closureEnd < closureStart) {
+    if (closureEnd < closureStart) {
         closureEnd.setDate(closureEnd.getDate() + 1);
     }
 
@@ -38,32 +43,32 @@ export async function execute(interaction: CommandInteraction) {
     const isNextClosureToday = closureStart.getDate() === now.getDate() && closureStart > now;
 
     const embed = new EmbedBuilder()
-        .setTitle("Pont Chaban-Delmas")
-        .setDescription(`Le pont est actuellement ${isClosedNow ? "fermé" : "ouvert"}.`);
+        .setTitle('Pont Chaban-Delmas')
+        .setDescription(`Le pont est actuellement ${isClosedNow ? 'fermé' : 'ouvert'}.`);
 
     if (isClosedNow) {
-        embed.setColor("Red");
+        embed.setColor('Red');
         embed.addFields({
-            name: "Ouverture",
-            value: `<t:${Math.floor(closureEnd.getTime() / 1000)}:R>`
+            name: 'Ouverture',
+            value: `<t:${Math.floor(closureEnd.getTime() / 1000)}:R>`,
         });
     } else if (isNextClosureToday) {
-        embed.setColor("Yellow");
+        embed.setColor('Yellow');
         embed.addFields({
-            name: "Prochaine fermeture",
-            value: `<t:${Math.floor(closureStart.getTime() / 1000)}:R>`
+            name: 'Prochaine fermeture',
+            value: `<t:${Math.floor(closureStart.getTime() / 1000)}:R>`,
         });
     } else {
-        embed.setColor("Green");
+        embed.setColor('Green');
         if (closureStart.getTime() > now.getTime()) {
             embed.addFields({
-                name: "Prochaine fermeture",
-                value: `<t:${Math.floor(closureStart.getTime() / 1000)}:R>`
+                name: 'Prochaine fermeture',
+                value: `<t:${Math.floor(closureStart.getTime() / 1000)}:R>`,
             });
         } else {
             embed.addFields({
-                name: "Prochaine fermeture",
-                value: "Aucune fermeture prévue."
+                name: 'Prochaine fermeture',
+                value: 'Aucune fermeture prévue.',
             });
         }
     }

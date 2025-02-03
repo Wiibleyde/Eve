@@ -1,12 +1,21 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonInteraction, ButtonStyle, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
+import {
+    ActionRowBuilder,
+    APIEmbedField,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    CommandInteraction,
+    EmbedBuilder,
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
+} from 'discord.js';
 
-export const radioImage = "./assets/img/radio.png"
+export const radioImage = './assets/img/radio.png';
 
 export interface RadioFrequencies {
-    name: string
-    frequency: string
+    name: string;
+    frequency: string;
 }
-
 
 /**
  * Formats a given service name into an internal name.
@@ -16,7 +25,7 @@ export interface RadioFrequencies {
  * @returns The formatted internal name.
  */
 export function formatInternalName(serviceName: string): string {
-    return serviceName.toLowerCase().replace(" ", "_")
+    return serviceName.toLowerCase().replace(' ', '_');
 }
 
 /**
@@ -26,13 +35,13 @@ export function formatInternalName(serviceName: string): string {
  * @returns An array of APIEmbedField objects with the radio name and frequency.
  */
 function createFieldsForRadios(radios: RadioFrequencies[]): APIEmbedField[] {
-    return radios.map(radio => {
+    return radios.map((radio) => {
         return {
             name: `Radio ${radio.name}`,
             value: `Fréquence : ${radio.frequency}`,
-            inline: true
-        }
-    })
+            inline: true,
+        };
+    });
 }
 
 /**
@@ -43,11 +52,14 @@ function createFieldsForRadios(radios: RadioFrequencies[]): APIEmbedField[] {
  */
 function createButtonsForRadios(radios: RadioFrequencies[]): ButtonBuilder[] {
     const buttons = radios.map((radio) => {
-        return new ButtonBuilder().setCustomId(`changeRadio--${radio.name}`).setLabel(`Changer la radio ${radio.name}`).setStyle(ButtonStyle.Primary)
-    })
-    buttons.push(new ButtonBuilder().setCustomId("handleAddRadio").setLabel("+").setStyle(ButtonStyle.Success))
-    buttons.push(new ButtonBuilder().setCustomId("handleRemoveRadio").setLabel("-").setStyle(ButtonStyle.Danger))
-    return buttons
+        return new ButtonBuilder()
+            .setCustomId(`changeRadio--${radio.name}`)
+            .setLabel(`Changer la radio ${radio.name}`)
+            .setStyle(ButtonStyle.Primary);
+    });
+    buttons.push(new ButtonBuilder().setCustomId('handleAddRadio').setLabel('+').setStyle(ButtonStyle.Success));
+    buttons.push(new ButtonBuilder().setCustomId('handleRemoveRadio').setLabel('-').setStyle(ButtonStyle.Danger));
+    return buttons;
 }
 
 /**
@@ -58,23 +70,27 @@ function createButtonsForRadios(radios: RadioFrequencies[]): ButtonBuilder[] {
  * @param radio - An array of radio frequencies.
  * @returns An object containing the embed, action row, and optional files.
  */
-export function creatEmbedForRadio(interaction: CommandInteraction|ButtonInteraction|ModalSubmitInteraction|StringSelectMenuInteraction, name: string, radio: RadioFrequencies[]): { embed: EmbedBuilder, actionRow: ActionRowBuilder<ButtonBuilder>, files?:  { attachment: string, name: string }[] } {
+export function creatEmbedForRadio(
+    interaction: CommandInteraction | ButtonInteraction | ModalSubmitInteraction | StringSelectMenuInteraction,
+    name: string,
+    radio: RadioFrequencies[]
+): { embed: EmbedBuilder; actionRow: ActionRowBuilder<ButtonBuilder>; files?: { attachment: string; name: string }[] } {
     const embed = new EmbedBuilder()
         .setTitle(`Radio du ${name}`)
         .setDescription('Voici les radios disponibles')
-        .setColor("Aqua")
+        .setColor('Aqua')
         .setTimestamp()
-        .setThumbnail("attachment://radio.png")
+        .setThumbnail('attachment://radio.png')
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() });
 
-    const fields: APIEmbedField[] = createFieldsForRadios(radio)
-    embed.addFields(fields)
+    const fields: APIEmbedField[] = createFieldsForRadios(radio);
+    embed.addFields(fields);
 
-    const buttons = createButtonsForRadios(radio)
+    const buttons = createButtonsForRadios(radio);
 
-    const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)
+    const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 
-    const files = [{ attachment: radioImage, name: "radio.png" }]
+    const files = [{ attachment: radioImage, name: 'radio.png' }];
 
-    return { embed, actionRow, files }
+    return { embed, actionRow, files };
 }

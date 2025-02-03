@@ -1,4 +1,4 @@
-import { EmbedBuilder, CommandInteraction, ButtonInteraction, ModalSubmitInteraction, CacheType } from "discord.js"
+import { EmbedBuilder, CommandInteraction, ButtonInteraction, ModalSubmitInteraction, CacheType } from 'discord.js';
 
 /**
  * Creates an error embed message for a Discord interaction.
@@ -7,13 +7,16 @@ import { EmbedBuilder, CommandInteraction, ButtonInteraction, ModalSubmitInterac
  * @param error - The error object containing the error message to be displayed.
  * @returns An EmbedBuilder instance representing the error message.
  */
-export function errorEmbed(interaction: CommandInteraction|ButtonInteraction<CacheType>|ModalSubmitInteraction, error: Error): EmbedBuilder {
+export function errorEmbed(
+    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction,
+    error: Error
+): EmbedBuilder {
     return new EmbedBuilder()
-        .setTitle("Erreur :warning:")
+        .setTitle('Erreur :warning:')
         .setDescription(error.message)
-        .setColor(0xFF0000)
+        .setColor(0xff0000)
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() })
-        .setTimestamp()
+        .setTimestamp();
 }
 
 /**
@@ -23,11 +26,14 @@ export function errorEmbed(interaction: CommandInteraction|ButtonInteraction<Cac
  * @param message - The success message to be displayed in the embed.
  * @returns An instance of `EmbedBuilder` configured with a success message.
  */
-export function successEmbed(interaction: CommandInteraction|ButtonInteraction<CacheType>|ModalSubmitInteraction, message: string): EmbedBuilder {
+export function successEmbed(
+    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction,
+    message: string
+): EmbedBuilder {
     return new EmbedBuilder()
-        .setTitle("Succès !")
+        .setTitle('Succès !')
         .setDescription(message)
-        .setColor(0x00FF00)
+        .setColor(0x00ff00)
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() })
-        .setTimestamp()
+        .setTimestamp();
 }
