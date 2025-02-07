@@ -267,7 +267,7 @@ process.on('SIGINT', async () => {
 initMpThreads();
 initAi();
 initCalendars();
-export const streamRetriever = new StreamRetrieverConnector("ws://localhost:8000?token=your_secure_token");
+export const streamRetriever = new StreamRetrieverConnector(config.STREAM_WS_URL);
 
 rl.on('line', (line) => {
     const command = line.trim().toLowerCase();
