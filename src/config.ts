@@ -28,6 +28,7 @@ const {
     MP_CHANNEL,
     BLAGUE_API_TOKEN,
     NASA_API_KEY,
+    STREAM_WS_URL,
 } = process.env;
 
 if (
@@ -39,7 +40,8 @@ if (
     !REPORT_CHANNEL ||
     !MP_CHANNEL ||
     !BLAGUE_API_TOKEN ||
-    !NASA_API_KEY
+    !NASA_API_KEY ||
+    !STREAM_WS_URL
 ) {
     const missingVars = [];
     if (!DISCORD_TOKEN) missingVars.push('DISCORD_TOKEN');
@@ -52,6 +54,7 @@ if (
     if (!MP_CHANNEL) missingVars.push('MP_CHANNEL');
     if (!BLAGUE_API_TOKEN) missingVars.push('BLAGUE_API_TOKEN');
     if (!NASA_API_KEY) missingVars.push('NASA_API_KEY');
+    if (!STREAM_WS_URL) missingVars.push('STREAM_WS_URL');
     throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
 }
 
@@ -80,4 +83,5 @@ export const config = {
     MP_CHANNEL,
     BLAGUE_API_TOKEN,
     NASA_API_KEY,
+    STREAM_WS_URL,
 };
