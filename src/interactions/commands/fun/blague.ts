@@ -5,6 +5,7 @@ import {
     ColorResolvable,
     CommandInteraction,
     EmbedBuilder,
+    MessageFlags,
     SlashCommandBuilder,
     SlashCommandOptionsOnlyBuilder,
 } from 'discord.js';
@@ -52,7 +53,7 @@ function randomEmbedColor(): ColorResolvable {
 }
 
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const type = interaction.options.get('type')?.value as Category;
     const joke = await blagues.randomCategorized(type);
 

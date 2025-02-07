@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, TextChannel } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, TextChannel } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { successEmbed, errorEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
@@ -35,7 +35,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * If the author is not found, the function replies with an error message.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const quote = interaction.options.get('citation')?.value as string;
     const author = interaction.options.get('auteur')?.user;
     const context = interaction.options.get('contexte')?.value as string;

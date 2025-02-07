@@ -8,6 +8,8 @@ import * as help from './general/help';
 
 import * as config from './config/config';
 import * as rename from './config/rename';
+import * as addstreamer from './config/addstreamer';
+import * as removestreamer from './config/removestreamer';
 
 import * as cat from './fun/cat';
 import * as dog from './fun/dog';
@@ -65,6 +67,8 @@ export const commands = {
     chaban,
     apod,
     motus,
+    addstreamer,
+    removestreamer,
 
     // Calendar commands
     createcalendar,

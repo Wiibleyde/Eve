@@ -1,5 +1,6 @@
 import {
     CommandInteraction,
+    MessageFlags,
     PermissionFlagsBits,
     SlashCommandBuilder,
     SlashCommandOptionsOnlyBuilder,
@@ -30,7 +31,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * 6. Finally, edits the reply to indicate that the message was sent successfully.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
 
     if (!(await hasPermission(interaction, [PermissionFlagsBits.ManageMessages], false))) {
         await interaction.editReply({

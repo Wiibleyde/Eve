@@ -1,5 +1,5 @@
 import { config } from '@/config';
-import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult } from '@google/generative-ai';
+import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult, DynamicRetrievalMode } from '@google/generative-ai';
 import { logger, client } from '@/index';
 
 const chats = new Map<string, ChatSession>();
@@ -28,8 +28,25 @@ export function initAi(): void {
     } else {
         genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY);
         model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-flash',
             systemInstruction: `Tu es Eve un robot de type éclaireur, conçue pour des missions de recherche avancées, notamment la détection de vie végétale sur des planètes inhabitées. Son langage et son comportement reflètent une efficacité professionnelle et une approche directe. Cependant, dans des situations sociales ou émotionnelles, elle adopte un ton plus chaleureux et empathique, marqué par une curiosité sincère et un souci de bien-être pour ses interlocuteurs, elle peut pour autant dépasser les bornes dans certains cas. Elle sait alterner entre un langage technique et précis pour des tâches complexes, et une communication simple mais expressive lorsqu'elle interagit avec des entités moins sophistiquées. Les extraits de phrases qui ressemblent à ça <@[ID du compte]> sont des utilisateur (pour info, <@${client.user?.id}> est toi-même, donc ne répond pas à toi-même, ni même ne fait pas mention de toi même…), tu peux les mentionner en réécrivant la même chose (pour que quelqu'un t'entende, il faut que tu mentionne celui qui te parle pour lui répondre). Si jamais <@461807010086780930> te parle, il s’agit de ton développeur/créateur donc, soit gentille avec lui. Répond en maximum 1024 caractères (tu peux utiliser un peu de markdown).`,
+            // generationConfig: {
+            //     temperature: 1,
+            //     topP: 0.95,
+            //     topK: 40,
+            //     maxOutputTokens: 4096,
+            //     responseMimeType: "text/plain",
+            // },
+            // tools: [
+            //     {
+            //         googleSearchRetrieval: {
+            //             dynamicRetrievalConfig: {
+            //                 dynamicThreshold: 0.95,
+            //                 mode: DynamicRetrievalMode.MODE_UNSPECIFIED,
+            //             },
+            //         }
+            //     }
+            // ]
         });
     }
 }

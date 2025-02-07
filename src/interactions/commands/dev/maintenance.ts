@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { CommandInteraction, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { errorEmbed } from '@/utils/embeds';
 import { hasPermission } from '@/utils/permissionTester';
 
@@ -23,7 +23,7 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
  * 5. Edits the reply with the embed message.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     if (!(await hasPermission(interaction, [PermissionFlagsBits.Administrator], true))) {
         await interaction.editReply({
             embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission d'utiliser cette commande."))],

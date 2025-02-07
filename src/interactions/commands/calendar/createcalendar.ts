@@ -5,6 +5,7 @@ import { errorEmbed } from '@/utils/embeds';
 import { hasPermission } from '@/utils/permissionTester';
 import {
     CommandInteraction,
+    MessageFlags,
     PermissionFlagsBits,
     SlashCommandBuilder,
     SlashCommandOptionsOnlyBuilder,
@@ -19,7 +20,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .addStringOption((option) => option.setName('url').setDescription('URL du calendrier').setRequired(true));
 
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
 
     if (!(await hasPermission(interaction, [PermissionFlagsBits.ManageEvents], false))) {
         await interaction.editReply({

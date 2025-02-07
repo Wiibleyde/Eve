@@ -1,5 +1,5 @@
 import { logger } from '@/index';
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const url = `https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/previsions_pont_chaban/exports/json?lang=fr&timezone=Europe%2FBerlin`;
 
@@ -16,7 +16,7 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
  * @returns {Promise<void>} A promise that resolves when the reply has been edited.
  */
 export async function execute(interaction: CommandInteraction) {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const data = await downloadJsonFile(url);
     const sortedData = data
         .sort(

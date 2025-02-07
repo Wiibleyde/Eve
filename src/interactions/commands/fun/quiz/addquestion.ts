@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { successEmbed, errorEmbed } from '@/utils/embeds';
 import { logger } from '@/index';
@@ -47,7 +47,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * Will also send an error message if there is an issue with adding the question to the database.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const question = interaction.options.get('question')?.value as string;
     const answer = interaction.options.get('answer')?.value as string;
     const badAnswer1 = interaction.options.get('bad1')?.value as string;

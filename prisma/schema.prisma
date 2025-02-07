@@ -47,12 +47,12 @@ model Config {
 }
 
 model GuildData {
-    uuid        String  @id @default(uuid())
-    guildId     String  @unique
-    debugRoleId String?
-    calendarUrl String? @db.MediumText
-    calendarMessageId String?
-    CalendarMessageData BotMessageData? @relation(fields: [CalendarMessageDatauuid], references: [uuid])
+    uuid                    String          @id @default(uuid())
+    guildId                 String          @unique
+    debugRoleId             String?
+    calendarUrl             String?         @db.MediumText
+    calendarMessageId       String?
+    CalendarMessageData     BotMessageData? @relation(fields: [CalendarMessageDatauuid], references: [uuid])
     CalendarMessageDatauuid String?
 
     @@index([guildId])
@@ -90,22 +90,33 @@ model QuizQuestions {
 }
 
 model BotMessageData {
-    uuid      String   @id @default(uuid())
+    uuid      String      @id @default(uuid())
     guildId   String
     channelId String
-    messageId String   @unique
-    createdAt DateTime @default(now())
+    messageId String      @unique
+    createdAt DateTime    @default(now())
+    GuildData GuildData[]
 
     @@index([guildId])
-    GuildData GuildData[]
 }
 
 model MpThreads {
     uuid      String          @id @default(uuid())
     userUuid  String
     user      GlobalUserData? @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
-    threadId  String         @unique
+    threadId  String          @unique
     createdAt DateTime        @default(now())
 
     @@index([userUuid], map: "MpThreads_userUuid_fkey")
+}
+
+model Stream {
+    uuid              String  @id @default(uuid())
+    guildId           String
+    channelId         String
+    roleId            String?
+    messageId         String?
+    twitchChannelName String
+
+    @@index([guildId])
 }

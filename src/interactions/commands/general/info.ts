@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { backSpace } from '@/utils/textUtils';
 
@@ -38,7 +38,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * - default: Responds with "Section inconnue" if the section is not recognized.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
 
     switch (interaction.options.get('section')?.value) {
         case 'bot': {
