@@ -11,6 +11,10 @@ import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import { initMpThreads } from './utils/mpManager';
 import readline from 'node:readline';
+import { StreamRetrieverConnector } from './utils/streams';
+
+export const logger = new Logger();
+logger.initLevels();
 
 export const rl = readline.createInterface({
     input: process.stdin,
@@ -31,9 +35,6 @@ enum Commands {
 }
 
 const commands = Object.values(Commands);
-
-export const logger = new Logger();
-logger.initLevels();
 
 export const client = new Client({
     intents: [
@@ -74,6 +75,8 @@ client.once(Events.ClientReady, async () => {
     // Load events
     import('./events/player');
     import('./events/discord');
+
+    streamRetriever.start();
 });
 
 /**
@@ -264,6 +267,7 @@ process.on('SIGINT', async () => {
 initMpThreads();
 initAi();
 initCalendars();
+export const streamRetriever = new StreamRetrieverConnector("ws://localhost:8000?token=your_secure_token");
 
 rl.on('line', (line) => {
     const command = line.trim().toLowerCase();
@@ -319,3 +323,4 @@ rl.on('tab', (line) => {
 );
 
 client.login(config.DISCORD_TOKEN);
+

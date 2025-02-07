@@ -5,16 +5,16 @@ import {
     ApplicationCommandType,
     ContextMenuCommandBuilder,
     MessageContextMenuCommandInteraction,
+    MessageFlags,
     TextChannel,
 } from 'discord.js';
 
 export const data: ContextMenuCommandBuilder = new ContextMenuCommandBuilder()
     .setName('Créer un citation')
-    //@ts-expect-error - This is a valid type
     .setType(ApplicationCommandType.Message);
 
 export async function execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
 
     const quote = interaction.targetMessage?.content;
     const author = interaction.targetMessage?.author;

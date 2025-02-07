@@ -1,5 +1,6 @@
 import {
     CommandInteraction,
+    MessageFlags,
     PermissionFlagsBits,
     Role,
     SlashCommandBuilder,
@@ -30,7 +31,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * - The command provides feedback to the user about the current debug mode status.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     if (!(await hasPermission(interaction, [PermissionFlagsBits.Administrator], true))) {
         await interaction.editReply({
             embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission d'utiliser cette commande."))],

@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('ping')
@@ -21,7 +21,7 @@ const pingImage = './assets/img/ping.png';
  * @returns A promise that resolves when the reply has been edited with the ping information.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    const firstResponse = await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    const firstResponse = await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     let status: string;
     let color: number;
 

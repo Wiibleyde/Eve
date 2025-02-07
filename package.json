@@ -12,7 +12,8 @@
         "start": "npm run build && node .",
         "build": "tsup src/index.ts --minify",
         "format": "prettier --write \"**/*.{json,ts}\"",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "dev": "tsx watch src/index.ts"
     },
     "dependencies": {
         "@discord-player/extractor": "^7.1.0",
@@ -27,9 +28,11 @@
         "dotenv": "^16.0.3",
         "jimp": "^0.22.12",
         "node-ical": "^0.20.1",
-        "rotating-file-stream": "^3.2.3"
+        "rotating-file-stream": "^3.2.3",
+        "ws": "^8.18.0"
     },
     "devDependencies": {
+        "@types/ws": "^8.5.13",
         "@eslint/js": "^9.19.0",
         "@types/node": "^22.13.0",
         "@typescript-eslint/eslint-plugin": "^8.22.0",

@@ -6,6 +6,7 @@ import {
     InteractionContextType,
     SlashCommandOptionsOnlyBuilder,
     ChannelType,
+    MessageFlags,
 } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
@@ -71,7 +72,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * - Required options (key and channel) are missing when attempting to edit.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     if (!(await hasPermission(interaction, [PermissionFlagsBits.ManageChannels], false))) {
         await interaction.editReply({
             embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission de changer la configuration."))],

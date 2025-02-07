@@ -1,12 +1,13 @@
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { games, getRandomWord, MotusGame } from '@/utils/games/motus';
-import { CommandInteraction, SlashCommandBuilder, TextChannel } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('motus')
     .setDescription('Lance une partie de Motus.');
 
 export async function execute(interaction: CommandInteraction) {
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const word = await getRandomWord();
     const game = new MotusGame(word, interaction.user.id);
 
