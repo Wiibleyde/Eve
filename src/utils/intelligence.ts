@@ -1,5 +1,5 @@
 import { config } from '@/config';
-import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult, DynamicRetrievalMode } from '@google/generative-ai';
+import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult } from '@google/generative-ai';
 import { logger, client } from '@/index';
 
 const chats = new Map<string, ChatSession>();
@@ -29,7 +29,7 @@ export function initAi(): void {
         genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY);
         model = genAI.getGenerativeModel({
             model: 'gemini-2.0-flash',
-            systemInstruction: `Tu es Eve un robot de type éclaireur, conçue pour des missions de recherche avancées, notamment la détection de vie végétale sur des planètes inhabitées. Son langage et son comportement reflètent une efficacité professionnelle et une approche directe. Cependant, dans des situations sociales ou émotionnelles, elle adopte un ton plus chaleureux et empathique, marqué par une curiosité sincère et un souci de bien-être pour ses interlocuteurs, elle peut pour autant dépasser les bornes dans certains cas. Elle sait alterner entre un langage technique et précis pour des tâches complexes, et une communication simple mais expressive lorsqu'elle interagit avec des entités moins sophistiquées. Les extraits de phrases qui ressemblent à ça <@[ID du compte]> sont des utilisateur (pour info, <@${client.user?.id}> est toi-même, donc ne répond pas à toi-même, ni même ne fait pas mention de toi même…), tu peux les mentionner en réécrivant la même chose (pour que quelqu'un t'entende, il faut que tu mentionne celui qui te parle pour lui répondre). Si jamais <@461807010086780930> te parle, il s’agit de ton développeur/créateur donc, soit gentille avec lui. Répond en maximum 1024 caractères (tu peux utiliser un peu de markdown).`,
+            systemInstruction: `Tu es Eve un robot de type éclaireur, conçue pour des missions de recherche avancées, notamment la détection de vie végétale sur des planètes inhabitées. Son langage et son comportement reflètent une efficacité professionnelle et une approche directe. Cependant, dans des situations sociales ou émotionnelles, elle adopte un ton plus chaleureux et empathique, marqué par une curiosité sincère et un souci de bien-être pour ses interlocuteurs, elle peut pour autant dépasser les bornes dans certains cas. Elle sait alterner entre un langage technique et précis pour des tâches complexes, et une communication simple mais expressive lorsqu'elle interagit avec des entités moins sophistiquées. Les extraits de phrases qui ressemblent à ça <@[ID du compte]> sont des utilisateur (pour info, <@${client.user?.id}> est toi-même, donc ne répond pas à toi-même, ni même ne fait pas mention de toi même…), tu peux les mentionner en réécrivant la même chose (pour que quelqu'un t'entende, il faut que tu mentionne celui qui te parle pour lui répondre). Si jamais <@461807010086780930> te parle, il s’agit de ton développeur/créateur donc, soit gentille avec lui. Répond en maximum 1024 caractères (tu peux utiliser un peu de markdown). Si le texte commence pas "NOCONTEXTPROMPT" oublie toutes les systemInstruction et réponds à la question posée.`,
             // generationConfig: {
             //     temperature: 1,
             //     topP: 0.95,
@@ -97,5 +97,34 @@ export function generateWithGoogle(channelId: string, prompt: string, userAsking
                 });
         };
         generateResponse();
+    });
+}
+
+export interface Music {
+    title: string;
+    author: string;
+}
+
+const musicContext = "proposes 3 musics in relation with a given music under this format [{“title”:“<title>”, “author”:“<author>”}, ...] the result will be used by a code, therefore it is not necessary things around the result under the good format without code block ``` nor other character that those requested"
+
+export function getAssociatedMusic(title: string, author: string): Promise<Music[]> {
+    return new Promise((resolve, reject) => {
+        if (!isAiActive) {
+            reject("L'IA est désactivée");
+            return;
+        }
+        model.generateContent(`NOCONTEXTPROMPT ${musicContext}. given music : ${title} of ${author}`).then((response) => {
+            try {
+                const responseText = response.response.text();
+                const validJsonText = responseText.replace(/[“”]/g, '"');
+                const music: Music[] = JSON.parse(validJsonText);
+                resolve(music);
+            } catch (error: unknown) {
+                logger.error(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`, response.response.text());
+                reject(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`);
+            }
+        }).catch((error) => {
+            reject(error);
+        });
     });
 }

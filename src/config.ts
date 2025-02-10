@@ -12,6 +12,7 @@ export const playerConfig = {
         volumeUp: '🔊',
         volumeDown: '🔉',
         loop: '🔁',
+        ia: '✨',
     },
 };
 

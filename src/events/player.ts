@@ -175,6 +175,11 @@ player.events.on('playerStart', async (queue, track) => {
         .setCustomId('loopButton')
         .setStyle(ButtonStyle.Danger);
 
+    // const ia = new ButtonBuilder()
+    //     .setLabel(emojiState ? emojis.ia : 'IA')
+    //     .setCustomId('iaButton')
+    //     .setStyle(ButtonStyle.Primary);
+
     const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop);
 
     if (queue.metadata.playingMessage) {
