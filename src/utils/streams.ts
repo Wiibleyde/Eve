@@ -117,7 +117,7 @@ function generateEmbed(online: boolean, stream: StreamData, offlineData: Offline
     let embed: EmbedBuilder;
     if(online) {
         embed = new EmbedBuilder()
-            .setTitle(stream.user_name)
+            .setTitle(offlineData.display_name)
             .setDescription(stream.title)
             .setAuthor({
                 name: stream.user_name,
@@ -144,7 +144,7 @@ function generateEmbed(online: boolean, stream: StreamData, offlineData: Offline
             .setTimestamp();
     } else {
         embed = new EmbedBuilder()
-            .setTitle(stream.user_name)
+            .setTitle(offlineData.display_name)
             .setDescription("Le stream est hors-ligne.")
             .setAuthor({
                 name: stream.user_name,
