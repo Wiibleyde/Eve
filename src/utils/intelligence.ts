@@ -1,5 +1,11 @@
 import { config } from '@/config';
-import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult, DynamicRetrievalMode } from '@google/generative-ai';
+import {
+    ChatSession,
+    GenerativeModel,
+    GoogleGenerativeAI,
+    GenerateContentResult,
+    // DynamicRetrievalMode,
+} from '@google/generative-ai';
 import { logger, client } from '@/index';
 
 const chats = new Map<string, ChatSession>();
