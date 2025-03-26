@@ -1,3 +1,4 @@
+import { config } from '@/config';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
 import { useQueue } from 'discord-player';
@@ -8,6 +9,13 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setDescription('[Musique] Reprendre la musique');
 
 export async function execute(interaction: CommandInteraction) {
+    if (config.MUSIC_MODULE !== true) {
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error("Module de musique désactivé."))],
+            ephemeral: true,
+        });
+        return;
+    }
     const queue = useQueue(interaction.guildId as string);
 
     if (!queue?.isPlaying())

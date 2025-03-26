@@ -31,6 +31,8 @@ const {
     STREAM_WS_URL,
 } = process.env;
 
+const { MUSIC_MODULE: MUSIC_MODULE_STRING } = process.env;
+
 if (
     !DISCORD_TOKEN ||
     !DISCORD_CLIENT_ID ||
@@ -58,6 +60,8 @@ if (
     throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
 }
 
+const MUSIC_MODULE = MUSIC_MODULE_STRING?.toLowerCase() === 'true' ? true : false;
+
 /**
  * Configuration object for the EVe Assistant application.
  *
@@ -71,6 +75,8 @@ if (
  * @property {string} MP_CHANNEL - The ID of the channel where MPs are sent.
  * @property {string} BLAGUE_API_TOKEN - The token used to authenticate with the Blague API.
  * @property {string} NASA_API_KEY - The API key used to authenticate with the NASA API.
+ * @property {string} STREAM_WS_URL - The URL of the WebSocket stream.
+ * @property {boolean} MUSIC_MODULE - Flag indicating whether the music module is enabled.
  */
 export const config = {
     DISCORD_TOKEN,
@@ -84,4 +90,5 @@ export const config = {
     BLAGUE_API_TOKEN,
     NASA_API_KEY,
     STREAM_WS_URL,
+    MUSIC_MODULE
 };

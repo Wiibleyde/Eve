@@ -1,3 +1,4 @@
+import { config } from '@/config';
 import { logger } from '@/index';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { useMainPlayer, useQueue } from 'discord-player';
@@ -8,6 +9,13 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setDescription('[Musique] Afficher les paroles synchronisées de la musique en cours de lecture');
 
 export async function execute(interaction: CommandInteraction) {
+    if (config.MUSIC_MODULE !== true) {
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error("Module de musique désactivé."))],
+            ephemeral: true,
+        });
+        return;
+    }
     const player = useMainPlayer();
     const queue = useQueue(interaction.guildId as string);
 

@@ -1,3 +1,4 @@
+import { config } from '@/config';
 import { logger } from '@/index';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
@@ -10,6 +11,13 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .addStringOption((option) => option.setName('musique').setDescription('Nom de la musique').setRequired(true));
 
 export async function execute(interaction: CommandInteraction) {
+    if (config.MUSIC_MODULE !== true) {
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error("Module de musique désactivé."))],
+            ephemeral: true,
+        });
+        return;
+    }
     const player = useMainPlayer();
 
     const song = interaction.options.get('musique')?.value as string;
