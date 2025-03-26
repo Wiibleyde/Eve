@@ -15,7 +15,7 @@ export async function execute(interaction: CommandInteraction) {
 export async function back(interaction: CommandInteraction | ButtonInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
-            embeds: [errorEmbed(interaction, new Error("Module de musique désactivé."))],
+            embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
             ephemeral: true,
         });
         return;

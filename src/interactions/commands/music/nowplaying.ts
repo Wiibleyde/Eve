@@ -19,7 +19,7 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
 export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
-            embeds: [errorEmbed(interaction, new Error("Module de musique désactivé."))],
+            embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
             ephemeral: true,
         });
         return;

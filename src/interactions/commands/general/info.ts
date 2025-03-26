@@ -1,4 +1,10 @@
-import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import {
+    CommandInteraction,
+    EmbedBuilder,
+    MessageFlags,
+    SlashCommandBuilder,
+    SlashCommandOptionsOnlyBuilder,
+} from 'discord.js';
 import { prisma } from '@/utils/database';
 import { backSpace } from '@/utils/textUtils';
 
