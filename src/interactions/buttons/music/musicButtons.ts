@@ -5,7 +5,15 @@ import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { getAssociatedMusic } from '@/utils/intelligence';
 import { waitTime } from '@/utils/utils';
 import { QueryType, QueueRepeatMode, useQueue } from 'discord-player';
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, GuildMember, MessageActionRowComponentBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    EmbedBuilder,
+    GuildMember,
+    MessageActionRowComponentBuilder,
+} from 'discord.js';
 
 export function backButton(interaction: ButtonInteraction) {
     back(interaction);
@@ -24,7 +32,7 @@ export async function loopButton(interaction: ButtonInteraction) {
     if (queue.repeatMode === QueueRepeatMode.QUEUE) {
         queue.setRepeatMode(QueueRepeatMode.OFF);
     } else {
-        queue.setRepeatMode(queue.repeatMode + 1 as QueueRepeatMode);
+        queue.setRepeatMode((queue.repeatMode + 1) as QueueRepeatMode);
     }
 
     return await interaction.reply({
@@ -76,11 +84,14 @@ export async function iaButton(interaction: ButtonInteraction) {
         const musics = await getAssociatedMusic(nowPlaying.cleanTitle, nowPlaying.author);
 
         const embed = new EmbedBuilder()
-            .setTitle('L\'IA vous propose')
+            .setTitle("L'IA vous propose")
             .setDescription("Les musiques suivantes sont proposées par l'IA elles peuvent ne pas être exactes.")
             .setColor('Blue')
             .setTimestamp()
-            .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() });
+            .setFooter({
+                text: `Eve – Toujours prête à vous aider.`,
+                iconURL: interaction.client.user.displayAvatarURL(),
+            });
 
         const fields = musics.map((music, index) => {
             return {
@@ -96,14 +107,16 @@ export async function iaButton(interaction: ButtonInteraction) {
                 .setLabel('Ajouter n°' + (index + 1))
                 .setCustomId('addTrackButton--' + index)
                 .setStyle(ButtonStyle.Primary);
-        }
+        };
 
-        const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(musics.map((_, index) => button(index)));
+        const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+            musics.map((_, index) => button(index))
+        );
 
         await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
     } else {
         await interaction.reply({
-            embeds: [errorEmbed(interaction, new Error("Impossible de récupérer les informations de la musique."))],
+            embeds: [errorEmbed(interaction, new Error('Impossible de récupérer les informations de la musique.'))],
             ephemeral: true,
         });
     }
@@ -139,30 +152,39 @@ export async function addTrackButton(interaction: ButtonInteraction) {
             }
 
             const userVoiceChannel = (interaction.member as GuildMember)?.voice.channel;
-                if (!userVoiceChannel) {
-                    return await interaction.reply({
-                        embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
-                        ephemeral: true,
-                    });
-                }
+            if (!userVoiceChannel) {
+                return await interaction.reply({
+                    embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
+                    ephemeral: true,
+                });
+            }
 
             try {
                 logger.debug(`Adding track ${musics[index].title} ${musics[index].author} to queue`);
-                const { track } = await player.play(userVoiceChannel, `${musics[index].title} ${musics[index].author}`, {
-                    nodeOptions: {
-                        metadata: {
-                            channel: interaction.channel,
+                const { track } = await player.play(
+                    userVoiceChannel,
+                    `${musics[index].title} ${musics[index].author}`,
+                    {
+                        nodeOptions: {
+                            metadata: {
+                                channel: interaction.channel,
+                            },
+                            volume: 100,
+                            leaveOnEmpty: true,
+                            leaveOnEmptyCooldown: 60000,
+                            leaveOnEnd: true,
+                            leaveOnEndCooldown: 60000,
                         },
-                        volume: 100,
-                        leaveOnEmpty: true,
-                        leaveOnEmptyCooldown: 60000,
-                        leaveOnEnd: true,
-                        leaveOnEndCooldown: 60000,
-                    },
-                });
-        
+                    }
+                );
+
                 await interaction.reply({
-                    embeds: [successEmbed(interaction, `Musique ajoutée à la file d'attente: [${track.title}](${track.url})`)],
+                    embeds: [
+                        successEmbed(
+                            interaction,
+                            `Musique ajoutée à la file d'attente: [${track.title}](${track.url})`
+                        ),
+                    ],
                 });
                 await waitTime(5000);
                 await interaction.deleteReply();
@@ -175,13 +197,13 @@ export async function addTrackButton(interaction: ButtonInteraction) {
             }
         } else {
             await interaction.reply({
-                embeds: [errorEmbed(interaction, new Error("Impossible de récupérer les informations de la musique."))],
+                embeds: [errorEmbed(interaction, new Error('Impossible de récupérer les informations de la musique.'))],
                 ephemeral: true,
             });
         }
     } else {
         await interaction.reply({
-            embeds: [errorEmbed(interaction, new Error("Impossible de récupérer les informations de la musique."))],
+            embeds: [errorEmbed(interaction, new Error('Impossible de récupérer les informations de la musique.'))],
             ephemeral: true,
         });
     }

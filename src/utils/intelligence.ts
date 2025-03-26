@@ -105,7 +105,8 @@ export interface Music {
     author: string;
 }
 
-const musicContext = "proposes 3 musics in relation with a given music under this format [{“title”:“<title>”, “author”:“<author>”}, ...] the result will be used by a code, therefore it is not necessary things around the result under the good format without code block ``` nor other character that those requested"
+const musicContext =
+    'proposes 3 musics in relation with a given music under this format [{“title”:“<title>”, “author”:“<author>”}, ...] the result will be used by a code, therefore it is not necessary things around the result under the good format without code block ``` nor other character that those requested';
 
 export function getAssociatedMusic(title: string, author: string): Promise<Music[]> {
     return new Promise((resolve, reject) => {
@@ -113,18 +114,24 @@ export function getAssociatedMusic(title: string, author: string): Promise<Music
             reject("L'IA est désactivée");
             return;
         }
-        model.generateContent(`NOCONTEXTPROMPT ${musicContext}. given music : ${title} of ${author}`).then((response) => {
-            try {
-                const responseText = response.response.text();
-                const validJsonText = responseText.replace(/[“”]/g, '"');
-                const music: Music[] = JSON.parse(validJsonText);
-                resolve(music);
-            } catch (error: unknown) {
-                logger.error(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`, response.response.text());
-                reject(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`);
-            }
-        }).catch((error) => {
-            reject(error);
-        });
+        model
+            .generateContent(`NOCONTEXTPROMPT ${musicContext}. given music : ${title} of ${author}`)
+            .then((response) => {
+                try {
+                    const responseText = response.response.text();
+                    const validJsonText = responseText.replace(/[“”]/g, '"');
+                    const music: Music[] = JSON.parse(validJsonText);
+                    resolve(music);
+                } catch (error: unknown) {
+                    logger.error(
+                        `Erreur lors de l'analyse du JSON : ${(error as Error).message}`,
+                        response.response.text()
+                    );
+                    reject(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`);
+                }
+            })
+            .catch((error) => {
+                reject(error);
+            });
     });
 }

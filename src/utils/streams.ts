@@ -65,7 +65,7 @@ function generateEmbed(online: boolean, stream: StreamData | null, offlineData: 
     } else {
         embed = new EmbedBuilder()
             .setTitle(offlineData.display_name)
-            .setDescription("Le stream est hors-ligne.")
+            .setDescription('Le stream est hors-ligne.')
             .setAuthor({
                 name: offlineData.display_name,
                 url: `https://twitch.tv/${offlineData.login}`,
