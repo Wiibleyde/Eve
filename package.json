@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@discord-player/extractor": "^7.1.0",
-        "@discordjs/opus": "github:discordjs/opus",
+        "@discordjs/opus": "^0.10.0",
         "@google/generative-ai": "^0.21.0",
         "@prisma/client": "^6.3.0",
         "blagues-api": "^2.1.1",
@@ -32,9 +32,9 @@
         "ws": "^8.18.0"
     },
     "devDependencies": {
-        "@types/ws": "^8.5.13",
         "@eslint/js": "^9.19.0",
         "@types/node": "^22.13.0",
+        "@types/ws": "^8.5.13",
         "@typescript-eslint/eslint-plugin": "^8.22.0",
         "@typescript-eslint/parser": "^8.22.0",
         "eslint": "^9.19.0",

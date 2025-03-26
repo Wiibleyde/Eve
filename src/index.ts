@@ -11,7 +11,7 @@ import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import { initMpThreads } from './utils/mpManager';
 import readline from 'node:readline';
-import { StreamRetrieverConnector } from './utils/streams';
+import { TwitchService } from './utils/twitch';
 
 export const logger = new Logger();
 logger.initLevels();
@@ -53,7 +53,7 @@ export const client = new Client({
 });
 
 export const player = new Player(client);
-player.extractors.register(YoutubeiExtractor, { streamOptions: { highWaterMark: 1 << 25 } });
+player.extractors.register(YoutubeiExtractor, {});
 
 client.once(Events.ClientReady, async () => {
     client.user?.setPresence({
@@ -76,7 +76,7 @@ client.once(Events.ClientReady, async () => {
     import('./events/player');
     import('./events/discord');
 
-    streamRetriever.start();
+    new TwitchService();
 });
 
 /**
@@ -89,13 +89,6 @@ client.once(Events.ClientReady, async () => {
  * 4. For each user with a birthday, checks if the user is a member of each guild.
  * 5. If the user is a member of the guild, retrieves the guild's configuration to find the birthday channel.
  * 6. Sends a birthday message to the configured channel in the guild.
- *
- * The birthday message includes:
- * - A title "Joyeux anniversaire !"
- * - A description mentioning the user and their age (if birth date is available)
- * - A color set to white
- * - A timestamp
- * - A footer with the bot's name and avatar
  *
  * Logs errors if:
  * - The user is not found in the guild
@@ -267,7 +260,6 @@ process.on('SIGINT', async () => {
 initMpThreads();
 initAi();
 initCalendars();
-export const streamRetriever = new StreamRetrieverConnector(config.STREAM_WS_URL);
 
 rl.on('line', (line) => {
     const command = line.trim().toLowerCase();
@@ -323,4 +315,3 @@ rl.on('tab', (line) => {
 );
 
 client.login(config.DISCORD_TOKEN);
-
