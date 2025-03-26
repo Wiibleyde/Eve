@@ -1,3 +1,4 @@
+import { config } from '@/config';
 import { errorEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
 import { useQueue } from 'discord-player';
@@ -8,6 +9,13 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setDescription("[Musique] Afficher la file d'attente");
 
 export async function execute(interaction: CommandInteraction) {
+    if (config.MUSIC_MODULE !== true) {
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
+            ephemeral: true,
+        });
+        return;
+    }
     const queue = useQueue(interaction.guildId as string);
 
     if (!queue?.isPlaying())

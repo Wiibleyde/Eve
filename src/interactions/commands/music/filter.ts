@@ -1,3 +1,4 @@
+import { config } from '@/config';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { capitalizeFirstLetter } from '@/utils/textUtils';
 import { AudioFilters, QueueFilters, useQueue } from 'discord-player';
@@ -19,6 +20,13 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     );
 
 export async function execute(interaction: CommandInteraction) {
+    if (config.MUSIC_MODULE !== true) {
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
+            ephemeral: true,
+        });
+        return;
+    }
     const queue = useQueue(interaction.guildId as string);
 
     if (!queue?.isPlaying())

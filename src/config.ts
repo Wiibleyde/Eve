@@ -29,8 +29,11 @@ const {
     MP_CHANNEL,
     BLAGUE_API_TOKEN,
     NASA_API_KEY,
-    STREAM_WS_URL,
+    TWITCH_CLIENT_ID,
+    TWITCH_CLIENT_SECRET,
 } = process.env;
+
+const { MUSIC_MODULE: MUSIC_MODULE_STRING } = process.env;
 
 if (
     !DISCORD_TOKEN ||
@@ -42,7 +45,8 @@ if (
     !MP_CHANNEL ||
     !BLAGUE_API_TOKEN ||
     !NASA_API_KEY ||
-    !STREAM_WS_URL
+    !TWITCH_CLIENT_ID ||
+    !TWITCH_CLIENT_SECRET
 ) {
     const missingVars = [];
     if (!DISCORD_TOKEN) missingVars.push('DISCORD_TOKEN');
@@ -55,9 +59,12 @@ if (
     if (!MP_CHANNEL) missingVars.push('MP_CHANNEL');
     if (!BLAGUE_API_TOKEN) missingVars.push('BLAGUE_API_TOKEN');
     if (!NASA_API_KEY) missingVars.push('NASA_API_KEY');
-    if (!STREAM_WS_URL) missingVars.push('STREAM_WS_URL');
+    if (!TWITCH_CLIENT_ID) missingVars.push('TWITCH_CLIENT_ID');
+    if (!TWITCH_CLIENT_SECRET) missingVars.push('TWITCH_CLIENT_SECRET');
     throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
 }
+
+const MUSIC_MODULE = MUSIC_MODULE_STRING?.toLowerCase() === 'true' ? true : false;
 
 /**
  * Configuration object for the EVe Assistant application.
@@ -72,6 +79,9 @@ if (
  * @property {string} MP_CHANNEL - The ID of the channel where MPs are sent.
  * @property {string} BLAGUE_API_TOKEN - The token used to authenticate with the Blague API.
  * @property {string} NASA_API_KEY - The API key used to authenticate with the NASA API.
+ * @property {boolean} MUSIC_MODULE - Flag indicating whether the music module is enabled.
+ * @property {string} TWITCH_CLIENT_ID - The client ID for Twitch API authentication.
+ * @property {string} TWITCH_CLIENT_SECRET - The client secret for Twitch API authentication.
  */
 export const config = {
     DISCORD_TOKEN,
@@ -84,5 +94,7 @@ export const config = {
     MP_CHANNEL,
     BLAGUE_API_TOKEN,
     NASA_API_KEY,
-    STREAM_WS_URL,
+    MUSIC_MODULE,
+    TWITCH_CLIENT_ID,
+    TWITCH_CLIENT_SECRET,
 };
