@@ -5,9 +5,7 @@ import { handleMotusTry } from './motus/handleMotusTry';
 import { handleQuizButton } from './quiz/handleQuizButton';
 import { reportQuestionButton } from './quiz/reportQuestionButton';
 import {
-    addTrackButton,
     backButton,
-    iaButton,
     loopButton,
     resumeAndPauseButton,
     skipButton,
@@ -25,6 +23,4 @@ export const buttons = {
     resumeAndPauseButton,
     skipButton,
     loopButton,
-    iaButton,
-    addTrackButton,
 };
