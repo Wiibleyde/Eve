@@ -1,4 +1,4 @@
-import { removeRadio } from './hope/removeRadio';
+import { removeRadio } from './rp/removeRadio';
 
 export const selectMenus = {
     removeRadio,

@@ -1,4 +1,4 @@
-import { RadioFrequencies } from '@/utils/hope/radio';
+import { RadioFrequencies } from '@/utils/rp/radio';
 import {
     ActionRowBuilder,
     ButtonInteraction,

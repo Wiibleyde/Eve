@@ -1,5 +1,5 @@
 import { errorEmbed, successEmbed } from '@/utils/embeds';
-import { creatEmbedForRadio } from '@/utils/hope/radio';
+import { creatEmbedForRadio } from '@/utils/rp/radio';
 import { hasPermission } from '@/utils/permissionTester';
 import {
     SlashCommandOptionsOnlyBuilder,
@@ -49,8 +49,3 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         ephemeral: true,
     });
 }
-
-/** Trucs à faire pour Hope :
- * Effectif
- * Dossier formation
- */

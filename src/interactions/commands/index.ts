@@ -23,7 +23,7 @@ import * as leaderboard from './fun/quiz/leaderboard';
 
 import * as motus from './fun/motus';
 
-import * as createradio from './hope/createradio';
+import * as createradio from './rp/createradio';
 
 import * as createcalendar from './calendar/createcalendar';
 
@@ -73,7 +73,7 @@ export const commands = {
     // Calendar commands
     createcalendar,
 
-    // Hope commands
+    // Rp commands
     createradio,
 
     // Music commands

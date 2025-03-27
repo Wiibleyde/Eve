@@ -1,6 +1,6 @@
 import { addBirthdayModal } from './birthday/addBirthdayModal';
-import { addRadioModal } from './hope/addRadioModal';
-import { changeRadioModal } from './hope/changeRadioModal';
+import { addRadioModal } from './rp/addRadioModal';
+import { changeRadioModal } from './rp/changeRadioModal';
 import { handleMotusTryModal } from './motus/handleMotusTryModal';
 import { reportQuestionModal } from './quiz/reportQuestionModal';
 

@@ -1,4 +1,4 @@
-import { creatEmbedForRadio, RadioFrequencies } from '@/utils/hope/radio';
+import { creatEmbedForRadio, RadioFrequencies } from '@/utils/rp/radio';
 import { StringSelectMenuInteraction, TextChannel } from 'discord.js';
 
 export async function removeRadio(interaction: StringSelectMenuInteraction): Promise<void> {
