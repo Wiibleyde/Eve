@@ -1,13 +1,19 @@
-import { errorEmbed, successEmbed } from '@/utils/embeds';
-import { creatEmbedForRadio, RadioFrequencies } from '@/utils/hope/radio';
+import { successEmbed } from '@/utils/embeds';
+import { creatEmbedForRadio, RadioFrequencies } from '@/utils/rp/radio';
 import { ModalSubmitInteraction, TextChannel } from 'discord.js';
 
-export async function addRadioModal(interaction: ModalSubmitInteraction): Promise<void> {
-    const name = interaction.fields.getTextInputValue('name');
+/**
+ * Handles the submission of a modal to change the radio frequency.
+ *
+ * @param interaction - The interaction object representing the modal submission.
+ * @returns A promise that resolves when the radio frequency has been successfully changed and the user has been notified.
+ */
+export async function changeRadioModal(interaction: ModalSubmitInteraction) {
     const frequency = interaction.fields.getTextInputValue('frequency');
-    const newFrequency: RadioFrequencies = { name: name, frequency: frequency };
     const messageId = interaction.customId.split('--')[1];
+    const radioIndex = parseInt(interaction.customId.split('--')[2]);
 
+    // Fetch message from database
     const channel = interaction.channel as TextChannel;
     const message = await channel.messages.fetch(messageId);
     if (!message) {
@@ -32,21 +38,22 @@ export async function addRadioModal(interaction: ModalSubmitInteraction): Promis
         }
     }
 
-    for (const radio of radioFrequencies) {
-        if (radio.name === name) {
-            await interaction.reply({
-                embeds: [errorEmbed(interaction, new Error('Nom déjà utilisé'))],
-                ephemeral: true,
-            });
-            return;
-        }
+    if (radioIndex === -1) {
+        await interaction.reply({ content: "La radio demandée n'existe pas.", ephemeral: true });
+        return;
     }
 
-    radioFrequencies.push(newFrequency);
+    if (radioFrequencies.length === 0) {
+        await interaction.reply({ content: "Aucune fréquence n'a été trouvée.", ephemeral: true });
+        return;
+    }
+
+    const radio = radioFrequencies[radioIndex];
+    radio.frequency = frequency;
 
     const { embed: newEmbed, actionRow, files } = creatEmbedForRadio(interaction, companyName, radioFrequencies);
 
     await message.edit({ embeds: [newEmbed], components: [actionRow], files: files });
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Radio ajoutée')], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Fréquence modifiée')], ephemeral: true });
 }

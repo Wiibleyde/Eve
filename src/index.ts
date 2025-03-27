@@ -10,19 +10,10 @@ import { initCalendars, updateCalendars } from './interactions/commands/calendar
 import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import { initMpThreads } from './utils/mpManager';
-import readline from 'node:readline';
 import { TwitchService } from './utils/twitch';
 
 export const logger = new Logger();
 logger.initLevels();
-
-enum Commands {
-    EXIT = 'exit',
-    QUIT = 'quit',
-    HELP = 'help',
-}
-
-const commands = Object.values(Commands);
 
 export const client = new Client({
     intents: [
@@ -142,8 +133,8 @@ birthdayCron.start();
 const possibleStatus: { name: string; type: ActivityType }[] = [
     { name: `les merveilles de ce monde.`, type: ActivityType.Watching },
     { name: `vos instructions.`, type: ActivityType.Listening },
-    { name: `les anomalies environnementales.`, type: ActivityType.Competing },
     { name: `les données de mission.`, type: ActivityType.Watching },
+    { name: `les étoiles.`, type: ActivityType.Watching },
 ];
 const possibleHalloweenStatus: { name: string; type: ActivityType }[] = [
     { name: `la préparation des citrouilles. 🎃`, type: ActivityType.Competing },
@@ -225,6 +216,7 @@ const statusCron = new CronJob('0,10,20,30,40,50 * * * * *', () => {
 });
 statusCron.start();
 
+// CronJob to initialize the calendars every day at midnight
 const calendarCron = new CronJob('0 0 0 * * *', async () => {
     await initCalendars();
 });

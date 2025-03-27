@@ -1,13 +1,11 @@
-import { changeRadio } from './hope/changeRadio';
-import { handleAddRadio } from './hope/handleAddRadio';
-import { handleRemoveRadio } from './hope/handleRemoveRadio';
+import { changeRadio } from './rp/changeRadio';
+import { handleAddRadio } from './rp/handleAddRadio';
+import { handleRemoveRadio } from './rp/handleRemoveRadio';
 import { handleMotusTry } from './motus/handleMotusTry';
 import { handleQuizButton } from './quiz/handleQuizButton';
 import { reportQuestionButton } from './quiz/reportQuestionButton';
 import {
-    addTrackButton,
     backButton,
-    iaButton,
     loopButton,
     resumeAndPauseButton,
     skipButton,
@@ -25,6 +23,4 @@ export const buttons = {
     resumeAndPauseButton,
     skipButton,
     loopButton,
-    iaButton,
-    addTrackButton,
 };

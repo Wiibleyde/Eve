@@ -5,7 +5,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheT
 
 export const quizes: Map<string, QuizType> = new Map();
 
-export const maxTime = 18000000; // 5 hours
+export const maxTime = 28800000; // 8 hours
 
 /**
  * Handles the interaction when a user clicks a quiz button.
@@ -84,7 +84,6 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
     }
 
     if (quiz.createdAt + maxTime < Date.now()) {
-        // 1 hour
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Quiz expiré (la réponse était: ||' + quiz.answer + '||)'))],
             ephemeral: true,

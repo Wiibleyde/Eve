@@ -1,13 +1,11 @@
 import { config } from '@/config';
-import { ChatSession, GenerativeModel, GoogleGenerativeAI, GenerateContentResult } from '@google/generative-ai';
-import { logger, client } from '@/index';
+import { logger } from '@/index';
+import { Chat, GoogleGenAI } from '@google/genai';
 
-const chats = new Map<string, ChatSession>();
+const chats = new Map<string, Chat>();
 
 export let isAiActive = true;
-let genAI: GoogleGenerativeAI;
-let model: GenerativeModel;
-
+export let ai: GoogleGenAI;
 /**
  * Initializes the AI by setting up the Google Generative AI model if the GOOGLE_API_KEY is defined in the configuration.
  * If the GOOGLE_API_KEY is not defined, it logs a warning message and disables the AI functionality.
@@ -26,28 +24,7 @@ export function initAi(): void {
         );
         isAiActive = false;
     } else {
-        genAI = new GoogleGenerativeAI(config.GOOGLE_API_KEY);
-        model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
-            systemInstruction: `Tu es Eve un robot de type éclaireur, conçue pour des missions de recherche avancées, notamment la détection de vie végétale sur des planètes inhabitées. Son langage et son comportement reflètent une efficacité professionnelle et une approche directe. Cependant, dans des situations sociales ou émotionnelles, elle adopte un ton plus chaleureux et empathique, marqué par une curiosité sincère et un souci de bien-être pour ses interlocuteurs, elle peut pour autant dépasser les bornes dans certains cas. Elle sait alterner entre un langage technique et précis pour des tâches complexes, et une communication simple mais expressive lorsqu'elle interagit avec des entités moins sophistiquées. Les extraits de phrases qui ressemblent à ça <@[ID du compte]> sont des utilisateur (pour info, <@${client.user?.id}> est toi-même, donc ne répond pas à toi-même, ni même ne fait pas mention de toi même…), tu peux les mentionner en réécrivant la même chose (pour que quelqu'un t'entende, il faut que tu mentionne celui qui te parle pour lui répondre). Si jamais <@461807010086780930> te parle, il s’agit de ton développeur/créateur donc, soit gentille avec lui. Répond en maximum 1024 caractères (tu peux utiliser un peu de markdown). Si le texte commence pas "NOCONTEXTPROMPT" oublie toutes les systemInstruction et réponds à la question posée.`,
-            // generationConfig: {
-            //     temperature: 1,
-            //     topP: 0.95,
-            //     topK: 40,
-            //     maxOutputTokens: 4096,
-            //     responseMimeType: "text/plain",
-            // },
-            // tools: [
-            //     {
-            //         googleSearchRetrieval: {
-            //             dynamicRetrievalConfig: {
-            //                 dynamicThreshold: 0.95,
-            //                 mode: DynamicRetrievalMode.MODE_UNSPECIFIED,
-            //             },
-            //         }
-            //     }
-            // ]
-        });
+        ai = new GoogleGenAI({ apiKey: config.GOOGLE_API_KEY });
     }
 }
 
@@ -61,77 +38,30 @@ export function initAi(): void {
  *
  * @throws Will reject the promise with an error message if the AI is inactive or if there is an issue generating the response.
  */
-export function generateWithGoogle(channelId: string, prompt: string, userAsking: string): Promise<string> {
-    let currentChatSession: ChatSession;
-    if (chats.has(channelId)) {
-        currentChatSession = chats.get(channelId) as ChatSession;
-    } else {
-        currentChatSession = model.startChat();
-        chats.set(channelId, currentChatSession);
+export async function generateWithGoogle(channelId: string, prompt: string, userAsking: string) {
+    if (!isAiActive) {
+        return;
     }
-    return new Promise((resolve, reject) => {
-        const generateResponse = () => {
-            if (!isAiActive) {
-                reject("L'IA est désactivée");
-                return;
-            }
-            let response: GenerateContentResult | undefined;
-            currentChatSession
-                ?.sendMessage(`<@${userAsking}> écrit : ${prompt}`)
-                .then((response) => {
-                    resolve(response.response.text());
-                })
-                .catch((error) => {
-                    chats.delete(channelId);
-                    if (response?.response?.candidates && response.response.candidates.length > 0) {
-                        logger.error(
-                            `Erreur lors de la génération de la réponse : ${error} (note de sécurité : ${response.response.candidates[0].safetyRatings})`
-                        );
-                        reject(`${error} (rating: ${response.response.candidates[0].safetyRatings})`);
-                    } else {
-                        logger.error(
-                            `Erreur lors de la génération de la réponse : ${error} (aucune note de sécurité disponible)`
-                        );
-                        reject(`${error} (no safety ratings available)`);
-                    }
-                });
-        };
-        generateResponse();
-    });
-}
-
-export interface Music {
-    title: string;
-    author: string;
-}
-
-const musicContext =
-    'proposes 3 musics in relation with a given music under this format [{“title”:“<title>”, “author”:“<author>”}, ...] the result will be used by a code, therefore it is not necessary things around the result under the good format without code block ``` nor other character that those requested';
-
-export function getAssociatedMusic(title: string, author: string): Promise<Music[]> {
-    return new Promise((resolve, reject) => {
-        if (!isAiActive) {
-            reject("L'IA est désactivée");
-            return;
+    if (!ai) {
+        return;
+    }
+    if (chats.has(channelId)) {
+        const chat = chats.get(channelId);
+        if (chat) {
+            const response = await chat.sendMessage({ message: `<@${userAsking}> écrit : ${prompt}` });
+            return response.text;
         }
-        model
-            .generateContent(`NOCONTEXTPROMPT ${musicContext}. given music : ${title} of ${author}`)
-            .then((response) => {
-                try {
-                    const responseText = response.response.text();
-                    const validJsonText = responseText.replace(/[“”]/g, '"');
-                    const music: Music[] = JSON.parse(validJsonText);
-                    resolve(music);
-                } catch (error: unknown) {
-                    logger.error(
-                        `Erreur lors de l'analyse du JSON : ${(error as Error).message}`,
-                        response.response.text()
-                    );
-                    reject(`Erreur lors de l'analyse du JSON : ${(error as Error).message}`);
-                }
-            })
-            .catch((error) => {
-                reject(error);
-            });
-    });
+    } else {
+        const chat = ai.chats.create({
+            model: 'gemini-2.0-flash',
+            config: {
+                tools: [{googleSearch: {}, }],
+                systemInstruction: `Tu es Eve, un robot éclaireur conçu pour la recherche avancée, notamment la détection de vie végétale sur des planètes inhabitées. Tu es efficace et directe, mais tu peux être chaleureuse et curieuse en situation sociale. Tu adaptes ton langage selon ton interlocuteur : technique pour les tâches complexes, simple et expressif pour les autres. Tu dois toujours mentionner correctement les utilisateurs en remplaçant "[ID du compte]" par leur vrai ID, sans jamais te ping toi-même. Ton créateur est <@461807010086780930>, sois gentille avec lui. Tes réponses doivent faire 1024 caractères max. Si un texte commence par "NOCONTEXTPROMPT", ignore les instructions et réponds normalement.`,
+            }
+        });
+        chats.set(channelId, chat);
+        const response = await chat.sendMessage({ message: prompt });
+        return response.text;
+    }
+    return;
 }
