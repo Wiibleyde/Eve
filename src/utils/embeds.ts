@@ -1,4 +1,11 @@
-import { EmbedBuilder, CommandInteraction, ButtonInteraction, ModalSubmitInteraction, CacheType, StringSelectMenuInteraction } from 'discord.js';
+import {
+    EmbedBuilder,
+    CommandInteraction,
+    ButtonInteraction,
+    ModalSubmitInteraction,
+    CacheType,
+    StringSelectMenuInteraction,
+} from 'discord.js';
 
 /**
  * Creates an error embed message for a Discord interaction.
@@ -8,7 +15,11 @@ import { EmbedBuilder, CommandInteraction, ButtonInteraction, ModalSubmitInterac
  * @returns An EmbedBuilder instance representing the error message.
  */
 export function errorEmbed(
-    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction | StringSelectMenuInteraction<CacheType>,
+    interaction:
+        | CommandInteraction
+        | ButtonInteraction<CacheType>
+        | ModalSubmitInteraction
+        | StringSelectMenuInteraction<CacheType>,
     error: Error
 ): EmbedBuilder {
     return new EmbedBuilder()
@@ -27,7 +38,11 @@ export function errorEmbed(
  * @returns An instance of `EmbedBuilder` configured with a success message.
  */
 export function successEmbed(
-    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction | StringSelectMenuInteraction<CacheType>,
+    interaction:
+        | CommandInteraction
+        | ButtonInteraction<CacheType>
+        | ModalSubmitInteraction
+        | StringSelectMenuInteraction<CacheType>,
     message: string
 ): EmbedBuilder {
     return new EmbedBuilder()

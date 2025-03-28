@@ -1,4 +1,16 @@
-import { ButtonInteraction, CacheType, CommandInteraction, Events, Message, MessageContextMenuCommandInteraction, MessageType, ModalSubmitInteraction, OmitPartialGroupDMChannel, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from 'discord.js';
+import {
+    ButtonInteraction,
+    CacheType,
+    CommandInteraction,
+    Events,
+    Message,
+    MessageContextMenuCommandInteraction,
+    MessageType,
+    ModalSubmitInteraction,
+    OmitPartialGroupDMChannel,
+    StringSelectMenuInteraction,
+    UserContextMenuCommandInteraction,
+} from 'discord.js';
 import { client, logger } from '..';
 import { maintenance } from '@/interactions/commands/dev/maintenance';
 import { hasPermission } from '@/utils/permissionTester';
@@ -14,7 +26,9 @@ import { modals } from '@/interactions/modals';
 import { buttons } from '@/interactions/buttons';
 import { selectMenus } from '@/interactions/selectMenus';
 
-function handleContextMenu(interaction: MessageContextMenuCommandInteraction<CacheType> | UserContextMenuCommandInteraction<CacheType>) {
+function handleContextMenu(
+    interaction: MessageContextMenuCommandInteraction<CacheType> | UserContextMenuCommandInteraction<CacheType>
+) {
     try {
         if (interaction.isMessageContextMenuCommand()) {
             const commandName = interaction.commandName as keyof typeof contextMessageMenus;
@@ -150,7 +164,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isContextMenuCommand()) {
         handleContextMenu(interaction);
     } else if (interaction.isCommand()) {
-        await handleCommand(interaction)
+        await handleCommand(interaction);
     } else if (interaction.isModalSubmit()) {
         handleModal(interaction);
     } else if (interaction.isButton()) {

@@ -40,7 +40,7 @@ export async function insertQuestionInDB(): Promise<void> {
                     guildId: '0',
                 },
             });
-            logger.debug(`Question de quiz insérée dans la base de données : ${quiz.question} - ${quiz.answer}`)
+            logger.debug(`Question de quiz insérée dans la base de données : ${quiz.question} - ${quiz.answer}`);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: Error | any) {
             if (error.code === 'P2002') {
