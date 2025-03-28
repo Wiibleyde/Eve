@@ -25,7 +25,7 @@ const quoiRegexs = [
     /k+e+w+a+[\ +]*\?*$/,
 ];
 
-export const possibleResponses = [
+const possibleFeurResponses = [
     {
         response: 'Feur.',
         probability: 70,
@@ -53,10 +53,10 @@ export function detectFeur(message: string): boolean {
     return false;
 }
 
-export function generateResponse(): string {
+export function generateFeurResponse(): string {
     const random = Math.random() * 100;
     let cumulativeProbability = 0;
-    for (const response of possibleResponses) {
+    for (const response of possibleFeurResponses) {
         cumulativeProbability += response.probability;
         if (random <= cumulativeProbability) {
             return response.response;

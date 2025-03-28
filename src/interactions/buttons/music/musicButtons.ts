@@ -3,9 +3,7 @@ import { skip } from '@/interactions/commands/music/skip';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
 import { QueueRepeatMode, useQueue } from 'discord-player';
-import {
-    ButtonInteraction,
-} from 'discord.js';
+import { ButtonInteraction } from 'discord.js';
 
 export function backButton(interaction: ButtonInteraction) {
     back(interaction);
