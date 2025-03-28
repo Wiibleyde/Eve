@@ -29,6 +29,17 @@ export function initAi(): void {
 }
 
 /**
+ * Replaces placeholders like "<@ID du compte>" with the actual user ID in the AI's response.
+ *
+ * @param response - The raw response from the AI.
+ * @param userId - The actual user ID to replace the placeholder.
+ * @returns The processed response with placeholders replaced.
+ */
+function replacePlaceholders(response: string, userId: string): string {
+    return response.replace(/<@ID du compte>/g, `<@${userId}>`);
+}
+
+/**
  * Generates a response using Google's AI model based on the provided prompt.
  *
  * @param channelId - The unique identifier for the chat channel.
@@ -49,7 +60,7 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
         const chat = chats.get(channelId);
         if (chat) {
             const response = await chat.sendMessage({ message: `<@${userAsking}> écrit : ${prompt}` });
-            return response.text;
+            return replacePlaceholders(response.text as string, userAsking);
         }
     } else {
         const chat = ai.chats.create({
@@ -61,7 +72,7 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
         });
         chats.set(channelId, chat);
         const response = await chat.sendMessage({ message: prompt });
-        return response.text;
+        return replacePlaceholders(response.text as string, userAsking);
     }
     return;
 }
