@@ -231,8 +231,6 @@ calendarEventsCron.start();
 
 // QuizJob to insert a quiz question into the database every minutes
 const quizJob = new CronJob('0 */1 * * * *', async () => {
-    const nbOfQuestions = await prisma.quizQuestions.count();
-    logger.debug('Lancement du script de repopulation de quiz... (' + nbOfQuestions + ' questions déjà présentes)');
     await insertQuestionInDB();
 });
 quizJob.start();
