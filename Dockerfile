@@ -1,13 +1,22 @@
-# Discord bot Dockerfile
-FROM node:22
+# Stage 1: Build
+FROM node:22 AS builder
 WORKDIR /app
 
 COPY . .
 
 RUN apt-get update && apt-get install -y ffmpeg
-RUN yarn install
-COPY . .
-
+RUN yarn install --production
 RUN yarn build
 
-CMD ["sh", "-c", "yarn prisma migrate deploy && yarn start"]
+# Stage 2: Final image
+FROM node:22-slim
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y ffmpeg && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+
+CMD ["sh", "-c", "yarn prisma migrate deploy && node dist/index.js"]
