@@ -104,6 +104,53 @@ export class Logger {
         logFunction(formattedMessage);
     }
 
+    private async logToDiscord(level: string, message: string, color: number): Promise<void> {
+        const embed: EmbedBuilder = new EmbedBuilder()
+            .setTitle(level)
+            .setDescription(message)
+            .setTimestamp()
+            .setColor(color)
+            .setFooter({ text: `Eve - Webhook log`, iconURL: client.user?.displayAvatarURL() });
+
+        await webhookClient.send({
+            username: `Eve ${level}`,
+            avatarURL: client.user?.displayAvatarURL(),
+            embeds: [embed],
+        });
+    }
+
+    private async logToDatabase(level: string, message: string): Promise<void> {
+        await prisma.logs.create({
+            data: {
+                message,
+                level: {
+                    connect: {
+                        name: level,
+                    },
+                },
+            },
+        });
+    }
+
+    private async handleLog(
+        logFunction: (message: string) => void,
+        color: string,
+        level: string,
+        colorCode: number,
+        messageList: unknown[]
+    ): Promise<void> {
+        const message = this.formatMessage(messageList);
+        this.logWithClear(logFunction, color, level, messageList);
+
+        if (this.logInDiscord) {
+            await this.logToDiscord(level, message, colorCode);
+        }
+
+        if (this.logInDb) {
+            await this.logToDatabase(level, message);
+        }
+    }
+
     /**
      * Logs an informational message to the console, optionally to Discord and a database.
      *
@@ -115,33 +162,7 @@ export class Logger {
      * If `logInDb` is true, stores the log message in the database.
      */
     public async info(...messageList: unknown[]): Promise<void> {
-        const message = this.formatMessage(messageList);
-        this.logWithClear(console.log, LogLevelColors.INFO, 'INFO', messageList);
-        if (this.logInDiscord) {
-            const embed: EmbedBuilder = new EmbedBuilder()
-                .setTitle('INFO')
-                .setDescription(message)
-                .setTimestamp()
-                .setColor(0x00ff00)
-                .setFooter({ text: `Eve - Webhook log`, iconURL: client.user?.displayAvatarURL() });
-            webhookClient.send({
-                username: 'Eve INFO',
-                avatarURL: client.user?.displayAvatarURL(),
-                embeds: [embed],
-            });
-        }
-        if (this.logInDb) {
-            await prisma.logs.create({
-                data: {
-                    message,
-                    level: {
-                        connect: {
-                            name: 'INFO',
-                        },
-                    },
-                },
-            });
-        }
+        await this.handleLog(console.log, LogLevelColors.INFO, 'INFO', 0x00ff00, messageList);
     }
 
     /**
@@ -157,33 +178,7 @@ export class Logger {
      * - If `logInDb` is true, the message is stored in a database using Prisma.
      */
     public async error(...messageList: unknown[]): Promise<void> {
-        const message = this.formatMessage(messageList);
-        this.logWithClear(console.error, LogLevelColors.ERROR, 'ERROR', messageList);
-        if (this.logInDiscord) {
-            const embed: EmbedBuilder = new EmbedBuilder()
-                .setTitle('ERROR')
-                .setDescription(message)
-                .setTimestamp()
-                .setColor(0xff0000)
-                .setFooter({ text: `Eve - Webhook log`, iconURL: client.user?.displayAvatarURL() });
-            webhookClient.send({
-                username: 'Eve ERROR',
-                avatarURL: client.user?.displayAvatarURL(),
-                embeds: [embed],
-            });
-        }
-        if (this.logInDb) {
-            await prisma.logs.create({
-                data: {
-                    message,
-                    level: {
-                        connect: {
-                            name: 'ERROR',
-                        },
-                    },
-                },
-            });
-        }
+        await this.handleLog(console.error, LogLevelColors.ERROR, 'ERROR', 0xff0000, messageList);
     }
 
     /**
@@ -203,33 +198,7 @@ export class Logger {
      * ```
      */
     public async warn(...messageList: unknown[]): Promise<void> {
-        const message = this.formatMessage(messageList);
-        this.logWithClear(console.warn, LogLevelColors.WARN, 'WARN', messageList);
-        if (this.logInDiscord) {
-            const embed: EmbedBuilder = new EmbedBuilder()
-                .setTitle('WARN')
-                .setDescription(message)
-                .setTimestamp()
-                .setColor(0xffa500)
-                .setFooter({ text: `Eve - Webhook log`, iconURL: client.user?.displayAvatarURL() });
-            webhookClient.send({
-                username: 'Eve WARN',
-                avatarURL: client.user?.displayAvatarURL(),
-                embeds: [embed],
-            });
-        }
-        if (this.logInDb) {
-            await prisma.logs.create({
-                data: {
-                    message,
-                    level: {
-                        connect: {
-                            name: 'WARN',
-                        },
-                    },
-                },
-            });
-        }
+        await this.handleLog(console.warn, LogLevelColors.WARN, 'WARN', 0xffa500, messageList);
     }
 
     /**
@@ -244,32 +213,6 @@ export class Logger {
      * - If `logInDb` is true, the message is logged into a database.
      */
     public async debug(...messageList: unknown[]): Promise<void> {
-        const message = messageList.join(' ');
-        this.logWithClear(console.log, LogLevelColors.DEBUG, 'DEBUG', messageList);
-        if (this.logInDiscord) {
-            const embed: EmbedBuilder = new EmbedBuilder()
-                .setTitle('DEBUG')
-                .setDescription(message)
-                .setTimestamp()
-                .setColor(0x0000ff)
-                .setFooter({ text: `Eve - Webhook log`, iconURL: client.user?.displayAvatarURL() });
-            webhookClient.send({
-                username: 'Eve DEBUG',
-                avatarURL: client.user?.displayAvatarURL(),
-                embeds: [embed],
-            });
-        }
-        if (this.logInDb) {
-            await prisma.logs.create({
-                data: {
-                    message,
-                    level: {
-                        connect: {
-                            name: 'DEBUG',
-                        },
-                    },
-                },
-            });
-        }
+        await this.handleLog(console.log, LogLevelColors.DEBUG, 'DEBUG', 0x0000ff, messageList);
     }
 }

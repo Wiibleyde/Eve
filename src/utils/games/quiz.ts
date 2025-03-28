@@ -6,12 +6,6 @@ const quizApiUrl = 'https://quizzapi.jomoreschi.fr/api/v1/quiz?limit=50';
 /**
  * Fetches a quiz question from an external API and inserts it into the database.
  *
- * This function performs the following steps:
- * 1. Fetches quiz data from a predefined API URL.
- * 2. Parses the response to extract the first quiz question.
- * 3. Constructs a `QuizType` object from the extracted data.
- * 4. Attempts to insert the quiz question into the database using Prisma.
- *
  * If a unique constraint violation occurs (error code "P2002"), the function will silently return.
  * Any other errors encountered during the database insertion will be logged.
  *
