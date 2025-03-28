@@ -26,18 +26,8 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
  * @throws {Error} If no quiz questions are found in the database.
  * @throws {Error} If an error occurs while retrieving the quiz question.
  * @throws {Error} If an error occurs while sending the quiz question to the channel.
- *
- * @remarks
- * - The function fetches a random quiz question from the database using Prisma.
- * - It constructs an embedded message with the quiz question and possible answers.
- * - The answers are shuffled to ensure randomness.
- * - The embedded message includes metadata such as category, difficulty, and expiration time.
- * - Interactive buttons are added to the message for the user to select an answer or report an error.
- * - The quiz question's last usage time is updated in the database.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    // const response = await fetch(quizApiUrl)
-    // const data = await response.json()
     const questionCount = await prisma.quizQuestions.count();
     if (questionCount === 0) {
         await interaction.reply({

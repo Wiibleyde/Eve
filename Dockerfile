@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY . .
 
+RUN apt-get update && apt-get install -y ffmpeg
 RUN yarn install
 COPY . .
 

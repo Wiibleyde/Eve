@@ -1,7 +1,7 @@
 import { logger } from '@/index';
 import { prisma } from '../database';
 
-const quizApiUrl = 'https://quizzapi.jomoreschi.fr/api/v1/quiz?limit=1';
+const quizApiUrl = 'https://quizzapi.jomoreschi.fr/api/v1/quiz?limit=50';
 
 /**
  * Fetches a quiz question from an external API and inserts it into the database.
@@ -22,37 +22,40 @@ const quizApiUrl = 'https://quizzapi.jomoreschi.fr/api/v1/quiz?limit=1';
 export async function insertQuestionInDB(): Promise<void> {
     const response = await fetch(quizApiUrl);
     const data = await response.json();
-    const quizJson = data.quizzes[0];
-    const quiz: QuizType = {
-        question: quizJson.question,
-        answer: quizJson.answer,
-        badAnswers: quizJson.badAnswers,
-        category: quizJson.category,
-        difficulty: quizJson.difficulty,
-        createdAt: Date.now(),
-    };
+    const quizzesJson = data.quizzes;
 
-    try {
-        await prisma.quizQuestions.create({
-            data: {
-                question: quiz.question,
-                answer: quiz.answer,
-                badAnswer1: quiz.badAnswers[0],
-                badAnswer2: quiz.badAnswers[1],
-                badAnswer3: quiz.badAnswers[2],
-                category: quiz.category,
-                difficulty: quiz.difficulty,
-                guildId: '0',
-            },
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: Error | any) {
-        if (error.code === 'P2002') {
-            return;
-        } else {
-            logger.error(
-                `Erreur lors de l'insertion de la question de quiz dans la base de données : ${error.message}`
-            );
+    for (const quizJson of quizzesJson) {
+        const quiz: QuizType = {
+            question: quizJson.question,
+            answer: quizJson.answer,
+            badAnswers: quizJson.badAnswers,
+            category: quizJson.category,
+            difficulty: quizJson.difficulty,
+            createdAt: Date.now(),
+        };
+        try {
+            await prisma.quizQuestions.create({
+                data: {
+                    question: quiz.question,
+                    answer: quiz.answer,
+                    badAnswer1: quiz.badAnswers[0],
+                    badAnswer2: quiz.badAnswers[1],
+                    badAnswer3: quiz.badAnswers[2],
+                    category: quiz.category,
+                    difficulty: quiz.difficulty,
+                    guildId: '0',
+                },
+            });
+            logger.debug(`Question de quiz insérée dans la base de données : ${quiz.question} - ${quiz.answer}`)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: Error | any) {
+            if (error.code === 'P2002') {
+                return;
+            } else {
+                logger.error(
+                    `Erreur lors de l'insertion de la question de quiz dans la base de données : ${error.message}`
+                );
+            }
         }
     }
 }
