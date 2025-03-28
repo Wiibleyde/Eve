@@ -2,7 +2,6 @@ import { EmbedBuilder, WebhookClient } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { config } from '@/config';
 import { client } from '..';
-import readline from 'node:readline';
 
 const resetColor = '\x1b[0m';
 
@@ -103,10 +102,6 @@ export class Logger {
         const message = this.formatMessage(messageList);
         const formattedMessage = `${color}${this.getNowDate()} [${level}] ${message}${resetColor}`;
         logFunction(formattedMessage);
-        if (messageList.length > 0) {
-            readline.clearLine(process.stdout, 0);
-            readline.cursorTo(process.stdout, 0);
-        }
     }
 
     /**

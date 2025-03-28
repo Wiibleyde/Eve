@@ -11,6 +11,7 @@ import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import { initMpThreads } from './utils/mpManager';
 import { TwitchService } from './utils/twitch';
+import { insertQuestionInDB } from './utils/games/quiz';
 
 export const logger = new Logger();
 logger.initLevels();
@@ -227,6 +228,14 @@ const calendarEventsCron = new CronJob('0 */10 * * * *', async () => {
     await updateCalendars();
 });
 calendarEventsCron.start();
+
+// QuizJob to insert a quiz question into the database every minutes
+const quizJob = new CronJob('0 */1 * * * *', async () => {
+    const nbOfQuestions = await prisma.quizQuestions.count();
+    logger.debug('Lancement du script de repopulation de quiz... (' + nbOfQuestions + ' questions déjà présentes)');
+    await insertQuestionInDB();
+});
+quizJob.start();
 
 process.on('SIGINT', async () => {
     logger.info('Ctrl-C détécté, déconnexion...');
