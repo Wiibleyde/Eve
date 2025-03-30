@@ -20,4 +20,8 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/assets ./assets
 
+ENV TZ=France/Paris
+
+STOPSIGNAL SIGTERM
+
 CMD ["sh", "-c", "yarn prisma migrate deploy && node dist/index.js"]
