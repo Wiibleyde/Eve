@@ -55,5 +55,8 @@ export async function changeRadioModal(interaction: ModalSubmitInteraction) {
 
     await message.edit({ embeds: [newEmbed], components: [actionRow], files: files });
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Fréquence modifiée')], flags: [MessageFlags.Ephemeral] });
+    await interaction.reply({
+        embeds: [successEmbed(interaction, 'Fréquence modifiée')],
+        flags: [MessageFlags.Ephemeral],
+    });
 }

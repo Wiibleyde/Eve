@@ -82,5 +82,8 @@ export async function reportQuestionModal(interaction: ModalSubmitInteraction) {
     }
 
     await channel.send({ content: `<@${config.OWNER_ID}>, report de : <@${user.id}>`, embeds: [embed] });
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Question signalée')], flags: [MessageFlags.Ephemeral] });
+    await interaction.reply({
+        embeds: [successEmbed(interaction, 'Question signalée')],
+        flags: [MessageFlags.Ephemeral],
+    });
 }

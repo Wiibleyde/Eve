@@ -1,3 +1,4 @@
+import { logger } from '@/index';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { games, getRandomWord, MotusGame } from '@/utils/games/motus';
 import { CommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel } from 'discord.js';
@@ -15,7 +16,8 @@ export async function execute(interaction: CommandInteraction) {
 
     const channel = interaction.channel as TextChannel;
     if (!channel) {
-        return await interaction.reply({
+        logger.warn('Impossible de trouver le salon de jeu.');
+        return await interaction.followUp({
             embeds: [errorEmbed(interaction, new Error('Impossible de trouver le salon de jeu.'))],
             ephemeral: true,
         });
@@ -29,5 +31,8 @@ export async function execute(interaction: CommandInteraction) {
 
     games.set(message.id, game);
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Partie de Motus lancée.')], flags: [MessageFlags.Ephemeral] });
+    await interaction.followUp({
+        embeds: [successEmbed(interaction, 'Partie de Motus lancée.')],
+        flags: [MessageFlags.Ephemeral],
+    });
 }

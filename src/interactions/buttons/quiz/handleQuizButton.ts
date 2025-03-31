@@ -92,7 +92,10 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
     }
 
     if (quiz.rightUsers && quiz.rightUsers.includes(interaction.user.id)) {
-        await interaction.reply({ content: 'Vous avez déjà répondu correctement à cette question !', flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({
+            content: 'Vous avez déjà répondu correctement à cette question !',
+            flags: [MessageFlags.Ephemeral],
+        });
         return;
     }
     if (quiz.wrongUsers && quiz.wrongUsers.includes(interaction.user.id)) {

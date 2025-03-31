@@ -62,7 +62,10 @@ export async function execute(interaction: CommandInteraction) {
 
             queue.setRepeatMode(QueueRepeatMode.OFF);
 
-            await interaction.reply({ embeds: [successEmbed(interaction, 'Boucle désactivée')], flags: [MessageFlags.Ephemeral] });
+            await interaction.reply({
+                embeds: [successEmbed(interaction, 'Boucle désactivée')],
+                flags: [MessageFlags.Ephemeral],
+            });
             break;
         }
         case 'enable_loop_song': {

@@ -21,20 +21,29 @@ export async function addBirthdayModal(interaction: ModalSubmitInteraction): Pro
     const birthdayDateText = interaction.fields.getTextInputValue('birthday');
     const dateParts = birthdayDateText.split('/');
     if (dateParts.length !== 3) {
-        await interaction.reply({ embeds: [errorEmbed(interaction, new Error('Date invalide'))], flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Date invalide'))],
+            flags: [MessageFlags.Ephemeral],
+        });
         return;
     }
     const day = parseInt(dateParts[0]) + 1;
     const month = parseInt(dateParts[1]) - 1;
     const year = parseInt(dateParts[2]);
     if (isNaN(day) || isNaN(month) || isNaN(year)) {
-        await interaction.reply({ embeds: [errorEmbed(interaction, new Error('Date invalide'))], flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Date invalide'))],
+            flags: [MessageFlags.Ephemeral],
+        });
         return;
     }
     const birthdayDate = new Date(year, month, day);
     birthdayDate.setHours(0, 0, 0, 0);
     if (isNaN(birthdayDate.getTime())) {
-        await interaction.reply({ embeds: [errorEmbed(interaction, new Error('Date invalide'))], flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Date invalide'))],
+            flags: [MessageFlags.Ephemeral],
+        });
         return;
     }
     const birthday = await prisma.globalUserData.findFirst({
@@ -59,5 +68,8 @@ export async function addBirthdayModal(interaction: ModalSubmitInteraction): Pro
             },
         });
     }
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Anniversaire ajouté')], flags: [MessageFlags.Ephemeral] });
+    await interaction.reply({
+        embeds: [successEmbed(interaction, 'Anniversaire ajouté')],
+        flags: [MessageFlags.Ephemeral],
+    });
 }

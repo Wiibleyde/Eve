@@ -28,16 +28,6 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * @param interaction - The command interaction object containing the user's input.
  * @returns A promise that resolves when the command execution is complete.
  *
- * The function performs the following steps:
- * 1. Defers the reply to the interaction.
- * 2. Retrieves the quote, author, context, and date from the interaction options.
- * 3. Determines the channel where the quote should be posted.
- * 4. Processes the author's profile picture and overlays it on a background image.
- * 5. Creates a new quote record in the database.
- * 6. Composites additional images and text onto the background image.
- * 7. Sends the final image to the determined channel.
- * 8. Edits the original interaction reply with a success message.
- *
  * If the author is not found, the function replies with an error message.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {

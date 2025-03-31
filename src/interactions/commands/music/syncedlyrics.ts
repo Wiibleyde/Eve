@@ -40,7 +40,10 @@ export async function execute(interaction: CommandInteraction) {
         })
         .catch(async (error) => {
             logger.error(error);
-            return await interaction.reply({ embeds: [errorEmbed(interaction, error)], flags: [MessageFlags.Ephemeral] });
+            return await interaction.reply({
+                embeds: [errorEmbed(interaction, error)],
+                flags: [MessageFlags.Ephemeral],
+            });
         });
 
     const lyrics = Array.isArray(result) ? result[0] : null;

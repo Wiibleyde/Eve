@@ -8,6 +8,7 @@ import {
     TextInputStyle,
     ModalActionRowComponentBuilder,
     SlashCommandOptionsOnlyBuilder,
+    MessageFlags,
 } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { client } from '@/index';
@@ -120,7 +121,7 @@ async function addBirthday(interaction: CommandInteraction): Promise<void> {
  * @returns A promise that resolves when the operation is complete.
  */
 async function removeBirthday(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const user = interaction.user;
     const birthday = await prisma.globalUserData.findFirst({
         where: {
@@ -151,7 +152,7 @@ async function removeBirthday(interaction: CommandInteraction): Promise<void> {
  * @returns A promise that resolves when the interaction reply is edited.
  */
 async function viewBirthday(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const user = interaction.user;
     const birthday = await prisma.globalUserData.findFirst({
         where: {
@@ -189,7 +190,7 @@ async function viewBirthday(interaction: CommandInteraction): Promise<void> {
  * @returns A promise that resolves when the interaction reply is edited.
  */
 async function listBirthday(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true, fetchReply: true });
+    await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     if (!interaction.guildId) {
         await interaction.editReply({ content: 'Impossible de récupérer les anniversaires' });
         return;

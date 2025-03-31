@@ -1,4 +1,10 @@
-import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import {
+    CommandInteraction,
+    EmbedBuilder,
+    MessageFlags,
+    SlashCommandBuilder,
+    SlashCommandOptionsOnlyBuilder,
+} from 'discord.js';
 import { prisma } from '@/utils/database';
 import { client } from '@/index';
 
@@ -7,10 +13,10 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .setDescription('Affiche le classement du quiz')
     .addStringOption((option) =>
         option.setName('type').setDescription('Type de classement').setRequired(true).addChoices(
-            /*{
-                name: "Ratio",
-                value: "ratio"
-            },*/
+            {
+                name: 'Ratio',
+                value: 'ratio',
+            },
             {
                 name: 'Bonnes réponses',
                 value: 'good',
@@ -46,10 +52,9 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     switch (type) {
         case 'ratio':
             users.sort((a, b) => {
-                return (
-                    b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers) -
-                    a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers)
-                );
+                const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers);
+                const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers);
+                return ratioB - ratioA;
             });
             break;
         case 'good':
