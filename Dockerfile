@@ -22,7 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
+    && apt-get install -y npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g yarn
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
