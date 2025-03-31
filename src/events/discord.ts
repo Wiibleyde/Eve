@@ -162,6 +162,18 @@ function handleSelectMenu(interaction: StringSelectMenuInteraction<CacheType>) {
 }
 
 client.on(Events.InteractionCreate, async (interaction) => {
+    if (maintenance && !(await hasPermission(interaction, [], false))) {
+        if (interaction.isRepliable()) {
+            await interaction.reply({
+                embeds: [
+                    errorEmbed(interaction, new Error('Le bot est en maintenance, veuillez réessayer plus tard.')),
+                ],
+                ephemeral: true,
+            });
+        }
+        return;
+    }
+
     if (interaction.isContextMenuCommand()) {
         handleContextMenu(interaction);
     } else if (interaction.isCommand()) {
@@ -191,6 +203,11 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
 
     if (!guildId || !channelId) {
         logger.error(`Guild ou channel non trouvé pour le message de <@${message.author.id}>`);
+        return;
+    }
+
+    if (maintenance) {
+        logger.info(`Message ignoré pendant la maintenance de <@${message.author.id}> dans <#${channelId}>`);
         return;
     }
 

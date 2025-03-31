@@ -3,6 +3,5 @@ node_modules
 dist
 
 .vscode
-yarn.lock
 Dockerfile
 .dockerignore

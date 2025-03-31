@@ -5,6 +5,7 @@ import {
     ModalSubmitInteraction,
     CacheType,
     StringSelectMenuInteraction,
+    Interaction,
 } from 'discord.js';
 
 /**
@@ -19,7 +20,8 @@ export function errorEmbed(
         | CommandInteraction
         | ButtonInteraction<CacheType>
         | ModalSubmitInteraction
-        | StringSelectMenuInteraction<CacheType>,
+        | StringSelectMenuInteraction<CacheType>
+        | Interaction<CacheType>,
     error: Error
 ): EmbedBuilder {
     return new EmbedBuilder()
