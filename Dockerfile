@@ -14,18 +14,19 @@ RUN yarn build
 FROM debian:11
 WORKDIR /app
 
-# Installer Node.js et les dépendances nécessaires
+# Installer les dépendances nécessaires
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ffmpeg \
     libopus-dev \
     python3 \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get install -y npm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g yarn
+# Copy Node.js and npm from the builder stage
+COPY --from=builder /usr/local/bin/node /usr/local/bin/node
+COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=builder /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=builder /usr/local/bin/yarn /usr/local/bin/yarn
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
