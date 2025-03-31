@@ -25,4 +25,4 @@ ENV TZ=France/Paris
 
 STOPSIGNAL SIGTERM
 
-CMD ["sh", "-c", "yarn prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "yarn prisma generate && yarn prisma migrate deploy && node dist/index.js"]
