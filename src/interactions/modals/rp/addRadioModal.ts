@@ -1,6 +1,6 @@
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { creatEmbedForRadio, RadioFrequencies } from '@/utils/rp/radio';
-import { ModalSubmitInteraction, TextChannel } from 'discord.js';
+import { MessageFlags, ModalSubmitInteraction, TextChannel } from 'discord.js';
 
 export async function addRadioModal(interaction: ModalSubmitInteraction): Promise<void> {
     const name = interaction.fields.getTextInputValue('name');
@@ -11,14 +11,14 @@ export async function addRadioModal(interaction: ModalSubmitInteraction): Promis
     const channel = interaction.channel as TextChannel;
     const message = await channel.messages.fetch(messageId);
     if (!message) {
-        await interaction.reply({ content: 'Message introuvable', ephemeral: true });
+        await interaction.reply({ content: 'Message introuvable', flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     const embed = message.embeds[0];
     const companyName = embed.title?.split(' du ')[1];
     if (!companyName) {
-        await interaction.reply({ content: "Nom de l'entreprise introuvable", ephemeral: true });
+        await interaction.reply({ content: "Nom de l'entreprise introuvable", flags: [MessageFlags.Ephemeral] });
         return;
     }
     const radioFrequencies: RadioFrequencies[] = [];
@@ -48,5 +48,5 @@ export async function addRadioModal(interaction: ModalSubmitInteraction): Promis
 
     await message.edit({ embeds: [newEmbed], components: [actionRow], files: files });
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Radio ajoutée')], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Radio ajoutée')], flags: [MessageFlags.Ephemeral] });
 }

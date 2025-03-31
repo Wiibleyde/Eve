@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { client } from '@/index';
 
@@ -78,5 +78,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         });
     });
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
 }

@@ -9,6 +9,7 @@ import {
     CommandInteraction,
     EmbedBuilder,
     MessageActionRowComponentBuilder,
+    MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js';
 
@@ -78,5 +79,5 @@ export async function execute(interaction: CommandInteraction) {
     //     .setStyle(ButtonStyle.Secondary)
 
     const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop);
-    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+    await interaction.reply({ embeds: [embed], components: [row], flags: [MessageFlags.Ephemeral] });
 }

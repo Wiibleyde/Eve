@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { prisma } from '@/utils/database';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
-import { EmbedBuilder, ModalSubmitInteraction, TextChannel } from 'discord.js';
+import { EmbedBuilder, MessageFlags, ModalSubmitInteraction, TextChannel } from 'discord.js';
 
 export async function reportQuestionModal(interaction: ModalSubmitInteraction) {
     const user = interaction.user;
@@ -82,5 +82,5 @@ export async function reportQuestionModal(interaction: ModalSubmitInteraction) {
     }
 
     await channel.send({ content: `<@${config.OWNER_ID}>, report de : <@${user.id}>`, embeds: [embed] });
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Question signalée')], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Question signalée')], flags: [MessageFlags.Ephemeral] });
 }

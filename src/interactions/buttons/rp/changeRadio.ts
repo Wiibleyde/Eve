@@ -3,6 +3,7 @@ import {
     ActionRowBuilder,
     ButtonInteraction,
     CacheType,
+    MessageFlags,
     ModalActionRowComponentBuilder,
     ModalBuilder,
     TextInputBuilder,
@@ -41,12 +42,12 @@ export async function changeRadio(interaction: ButtonInteraction<CacheType>): Pr
     }
 
     if (radioIndex === -1) {
-        await interaction.reply({ content: "La radio demandée n'existe pas.", ephemeral: true });
+        await interaction.reply({ content: "La radio demandée n'existe pas.", flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     if (radioFrequencies.length === 0) {
-        await interaction.reply({ content: "Aucune fréquence n'a été trouvée.", ephemeral: true });
+        await interaction.reply({ content: "Aucune fréquence n'a été trouvée.", flags: [MessageFlags.Ephemeral] });
         return;
     }
 

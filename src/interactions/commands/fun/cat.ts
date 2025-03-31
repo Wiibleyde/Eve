@@ -1,5 +1,5 @@
 import { errorEmbed } from '@/utils/embeds';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const catImgUrl = 'https://api.thecatapi.com/v1/images/search';
 
@@ -34,5 +34,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         return;
     }
 
-    await interaction.reply({ files: [catImg], ephemeral: true });
+    await interaction.reply({ files: [catImg], flags: [MessageFlags.Ephemeral] });
 }

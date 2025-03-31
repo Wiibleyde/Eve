@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { prisma } from '@/utils/database';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
@@ -23,13 +23,13 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         },
     });
     if (!userData) {
-        await interaction.reply({ content: "Vous n'avez pas encore joué au quiz", ephemeral: true });
+        await interaction.reply({ content: "Vous n'avez pas encore joué au quiz", flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     const nbQuestions = userData.quizGoodAnswers + userData.quizBadAnswers;
     if (nbQuestions === 0) {
-        await interaction.reply({ content: "Vous n'avez pas encore joué au quiz", ephemeral: true });
+        await interaction.reply({ content: "Vous n'avez pas encore joué au quiz", flags: [MessageFlags.Ephemeral] });
         return;
     }
     const ratio = (userData.quizGoodAnswers / nbQuestions) * 100;
@@ -63,5 +63,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         embed.setColor('#00FF00');
     }
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
 }

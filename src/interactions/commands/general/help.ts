@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { commands } from '@/interactions/commands/index';
 import { backSpace } from '@/utils/textUtils';
 
@@ -36,5 +36,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         .setTimestamp()
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() });
 
-    await interaction.reply({ embeds: [helpEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [helpEmbed], flags: [MessageFlags.Ephemeral] });
 }
