@@ -4,6 +4,7 @@ import {
     ModalSubmitInteraction,
     CacheType,
     PermissionFlagsBits,
+    Interaction,
 } from 'discord.js';
 import { config } from '@/config';
 
@@ -16,7 +17,7 @@ import { config } from '@/config';
  * @returns A promise that resolves to a boolean indicating whether the user has the required permissions.
  */
 export async function hasPermission(
-    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction,
+    interaction: CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction | Interaction<CacheType>,
     permissionsToTests: bigint[],
     exact: boolean
 ): Promise<boolean> {
