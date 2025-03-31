@@ -22,15 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy Node.js and npm from the builder stage
+# Copy Node.js, npm, and yarn from the builder stage
 COPY --from=builder /usr/local/bin/node /usr/local/bin/node
 COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=builder /usr/local/bin/npm /usr/local/bin/npm
-COPY --from=builder /usr/local/bin/yarn /usr/local/bin/yarn
-COPY --from=builder /usr/local/lib/node_modules/yarn/bin/yarn.js /usr/local/bin/yarn.js
-
-# Ensure the yarn binary is linked correctly
-RUN ln -sf /usr/local/bin/yarn.js /usr/local/bin/yarn
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
