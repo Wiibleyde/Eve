@@ -13,7 +13,8 @@
         "build": "tsup src/index.ts --minify",
         "format": "prettier --write \"**/*.{json,ts}\"",
         "lint": "eslint .",
-        "dev": "tsx watch src/index.ts"
+        "dev": "tsx watch src/index.ts",
+        "check:opus": "node -e \"require('@discordjs/opus'); console.log('Opus loaded successfully!')\""
     },
     "dependencies": {
         "@discord-player/extractor": "^7.1.0",
