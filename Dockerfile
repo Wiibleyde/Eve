@@ -27,6 +27,10 @@ COPY --from=builder /usr/local/bin/node /usr/local/bin/node
 COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=builder /usr/local/bin/npm /usr/local/bin/npm
 COPY --from=builder /usr/local/bin/yarn /usr/local/bin/yarn
+COPY --from=builder /usr/local/lib/node_modules/yarn/bin/yarn.js /usr/local/bin/yarn.js
+
+# Ensure the yarn binary is linked correctly
+RUN ln -sf /usr/local/bin/yarn.js /usr/local/bin/yarn
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
