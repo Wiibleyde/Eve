@@ -243,6 +243,14 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
+process.on('SIGTERM', async () => {
+    logger.info('SIGTERM détecté, déconnexion...');
+    await prisma.$disconnect();
+    await client.destroy();
+    logger.info('Déconnecté, arrêt du bot...');
+    process.exit(0);
+});
+
 initMpThreads();
 initAi();
 initCalendars();

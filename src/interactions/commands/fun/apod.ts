@@ -1,5 +1,6 @@
 import { config } from '@/config';
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { logger } from '@/index';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const url = 'https://api.nasa.gov/planetary/apod';
 
@@ -22,6 +23,8 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     const response = await fetch(`${url}?api_key=${config.NASA_API_KEY}`);
     const data: ApodResponse = await response.json();
 
+    logger.debug('apod', JSON.stringify(data));
+
     const embed = new EmbedBuilder()
         .setTitle(data.title)
         .setImage(data.hdurl)
@@ -34,5 +37,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed, secondEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [embed, secondEmbed], flags: [MessageFlags.Ephemeral] });
 }

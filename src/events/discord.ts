@@ -5,6 +5,7 @@ import {
     Events,
     Message,
     MessageContextMenuCommandInteraction,
+    MessageFlags,
     MessageType,
     ModalSubmitInteraction,
     OmitPartialGroupDMChannel,
@@ -45,7 +46,7 @@ function handleContextMenu(
         if (interaction.replied) {
             interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }

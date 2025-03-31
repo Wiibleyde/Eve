@@ -1,6 +1,6 @@
 import { successEmbed } from '@/utils/embeds';
 import { creatEmbedForRadio, RadioFrequencies } from '@/utils/rp/radio';
-import { ModalSubmitInteraction, TextChannel } from 'discord.js';
+import { MessageFlags, ModalSubmitInteraction, TextChannel } from 'discord.js';
 
 /**
  * Handles the submission of a modal to change the radio frequency.
@@ -17,14 +17,14 @@ export async function changeRadioModal(interaction: ModalSubmitInteraction) {
     const channel = interaction.channel as TextChannel;
     const message = await channel.messages.fetch(messageId);
     if (!message) {
-        await interaction.reply({ content: 'Message introuvable', ephemeral: true });
+        await interaction.reply({ content: 'Message introuvable', flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     const embed = message.embeds[0];
     const companyName = embed.title?.split(' du ')[1];
     if (!companyName) {
-        await interaction.reply({ content: "Nom de l'entreprise introuvable", ephemeral: true });
+        await interaction.reply({ content: "Nom de l'entreprise introuvable", flags: [MessageFlags.Ephemeral] });
         return;
     }
     const radioFrequencies: RadioFrequencies[] = [];
@@ -39,12 +39,12 @@ export async function changeRadioModal(interaction: ModalSubmitInteraction) {
     }
 
     if (radioIndex === -1) {
-        await interaction.reply({ content: "La radio demandée n'existe pas.", ephemeral: true });
+        await interaction.reply({ content: "La radio demandée n'existe pas.", flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     if (radioFrequencies.length === 0) {
-        await interaction.reply({ content: "Aucune fréquence n'a été trouvée.", ephemeral: true });
+        await interaction.reply({ content: "Aucune fréquence n'a été trouvée.", flags: [MessageFlags.Ephemeral] });
         return;
     }
 
@@ -55,5 +55,5 @@ export async function changeRadioModal(interaction: ModalSubmitInteraction) {
 
     await message.edit({ embeds: [newEmbed], components: [actionRow], files: files });
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Fréquence modifiée')], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Fréquence modifiée')], flags: [MessageFlags.Ephemeral] });
 }

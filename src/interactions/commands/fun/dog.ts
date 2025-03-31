@@ -1,5 +1,5 @@
 import { errorEmbed } from '@/utils/embeds';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const dogImgUrl = 'https://dog.ceo/api/breeds/image/random';
 
@@ -34,5 +34,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         return;
     }
 
-    await interaction.reply({ files: [dogImg], ephemeral: true });
+    await interaction.reply({ files: [dogImg], flags: [MessageFlags.Ephemeral] });
 }

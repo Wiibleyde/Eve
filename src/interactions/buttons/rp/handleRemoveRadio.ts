@@ -4,6 +4,7 @@ import {
     ButtonInteraction,
     CacheType,
     EmbedBuilder,
+    MessageFlags,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
 } from 'discord.js';
@@ -13,7 +14,7 @@ export async function handleRemoveRadio(interaction: ButtonInteraction<CacheType
     const embed = message.embeds[0];
     const companyName = embed.title?.split(' du ')[1];
     if (!companyName) {
-        await interaction.reply({ content: "Nom de l'entreprise introuvable", ephemeral: true });
+        await interaction.reply({ content: "Nom de l'entreprise introuvable", flags: [MessageFlags.Ephemeral] });
         return;
     }
     const radioFrequencies: RadioFrequencies[] = [];
@@ -47,5 +48,5 @@ export async function handleRemoveRadio(interaction: ButtonInteraction<CacheType
 
     const actionRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(names);
 
-    await interaction.reply({ embeds: [responseEmbed], components: [actionRow], ephemeral: true });
+    await interaction.reply({ embeds: [responseEmbed], components: [actionRow], flags: [MessageFlags.Ephemeral] });
 }

@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('chill')
@@ -12,5 +12,5 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: false });
+    await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
 }

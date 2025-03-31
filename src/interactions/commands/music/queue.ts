@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { errorEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
 import { useQueue } from 'discord-player';
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('queue')
@@ -43,5 +43,5 @@ export async function execute(interaction: CommandInteraction) {
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user?.displayAvatarURL() })
         .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
 }

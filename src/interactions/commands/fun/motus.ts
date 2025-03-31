@@ -29,5 +29,5 @@ export async function execute(interaction: CommandInteraction) {
 
     games.set(message.id, game);
 
-    await interaction.reply({ embeds: [successEmbed(interaction, 'Partie de Motus lancée.')], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed(interaction, 'Partie de Motus lancée.')], flags: [MessageFlags.Ephemeral] });
 }

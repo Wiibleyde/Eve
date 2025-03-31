@@ -9,6 +9,7 @@ import {
     ButtonStyle,
     ActionRowBuilder,
     TextChannel,
+    MessageFlags,
 } from 'discord.js';
 import { maxTime, quizes } from '@/interactions/buttons/quiz/handleQuizButton';
 
@@ -122,7 +123,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
 
     quizes.set(messageResponse.id, quiz);
 
-    await interaction.reply({ content: 'Question de quiz envoyée !', ephemeral: true });
+    await interaction.reply({ content: 'Question de quiz envoyée !', flags: [MessageFlags.Ephemeral] });
 
     await prisma.quizQuestions.update({
         where: {

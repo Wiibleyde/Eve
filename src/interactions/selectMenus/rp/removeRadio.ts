@@ -1,5 +1,5 @@
 import { creatEmbedForRadio, RadioFrequencies } from '@/utils/rp/radio';
-import { StringSelectMenuInteraction, TextChannel } from 'discord.js';
+import { MessageFlags, StringSelectMenuInteraction, TextChannel } from 'discord.js';
 
 export async function removeRadio(interaction: StringSelectMenuInteraction): Promise<void> {
     const selectedValues = interaction.values;
@@ -8,14 +8,14 @@ export async function removeRadio(interaction: StringSelectMenuInteraction): Pro
     const channel = interaction.channel as TextChannel;
     const message = await channel.messages.fetch(messageId);
     if (!message) {
-        await interaction.reply({ content: 'Message introuvable', ephemeral: true });
+        await interaction.reply({ content: 'Message introuvable', flags: [MessageFlags.Ephemeral] });
         return;
     }
 
     const embed = message.embeds[0];
     const companyName = embed.title?.split(' du ')[1];
     if (!companyName) {
-        await interaction.reply({ content: "Nom de l'entreprise introuvable", ephemeral: true });
+        await interaction.reply({ content: "Nom de l'entreprise introuvable", flags: [MessageFlags.Ephemeral] });
         return;
     }
     const radioFrequencies: RadioFrequencies[] = [];
@@ -40,5 +40,5 @@ export async function removeRadio(interaction: StringSelectMenuInteraction): Pro
 
     await message.edit({ embeds: [newEmbed], components: [actionRow], files: files });
 
-    await interaction.reply({ content: 'Radio(s) supprimée(s)', ephemeral: true });
+    await interaction.reply({ content: 'Radio(s) supprimée(s)', flags: [MessageFlags.Ephemeral] });
 }

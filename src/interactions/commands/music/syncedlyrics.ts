@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { logger } from '@/index';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { useMainPlayer, useQueue } from 'discord-player';
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('syncedlyrics')
@@ -40,7 +40,7 @@ export async function execute(interaction: CommandInteraction) {
         })
         .catch(async (error) => {
             logger.error(error);
-            return await interaction.reply({ embeds: [errorEmbed(interaction, error)], ephemeral: true });
+            return await interaction.reply({ embeds: [errorEmbed(interaction, error)], flags: [MessageFlags.Ephemeral] });
         });
 
     const lyrics = Array.isArray(result) ? result[0] : null;

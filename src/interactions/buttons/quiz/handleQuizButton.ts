@@ -1,7 +1,7 @@
 import { prisma } from '@/utils/database';
 import { errorEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CacheType, MessageFlags } from 'discord.js';
 
 export const quizes: Map<string, QuizType> = new Map();
 
@@ -92,7 +92,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
     }
 
     if (quiz.rightUsers && quiz.rightUsers.includes(interaction.user.id)) {
-        await interaction.reply({ content: 'Vous avez déjà répondu correctement à cette question !', ephemeral: true });
+        await interaction.reply({ content: 'Vous avez déjà répondu correctement à cette question !', flags: [MessageFlags.Ephemeral] });
         return;
     }
     if (quiz.wrongUsers && quiz.wrongUsers.includes(interaction.user.id)) {
@@ -133,7 +133,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
 
     if (userAnswer === answer) {
         quiz.rightUsers = quiz.rightUsers ? [...quiz.rightUsers, interaction.user.id] : [interaction.user.id];
-        await interaction.reply({ content: 'Bonne réponse !', ephemeral: true });
+        await interaction.reply({ content: 'Bonne réponse !', flags: [MessageFlags.Ephemeral] });
         const messageFields = message.embeds[0].fields;
         let found = false;
         for (const field of messageFields) {
