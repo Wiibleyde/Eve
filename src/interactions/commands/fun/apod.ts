@@ -1,5 +1,4 @@
 import { config } from '@/config';
-import { logger } from '@/index';
 import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const url = 'https://api.nasa.gov/planetary/apod';
@@ -22,8 +21,6 @@ export const data: SlashCommandBuilder = new SlashCommandBuilder()
 export async function execute(interaction: CommandInteraction): Promise<void> {
     const response = await fetch(`${url}?api_key=${config.NASA_API_KEY}`);
     const data: ApodResponse = await response.json();
-
-    logger.debug('apod', JSON.stringify(data));
 
     const embed = new EmbedBuilder()
         .setTitle(data.title)

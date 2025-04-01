@@ -1,20 +1,19 @@
 {
     "name": "eve",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "description": "Eve",
-    "author": {
-        "email": "nathan@bonnell.fr",
-        "name": "Wiibleyde"
-    },
     "license": "GPL-2.0-only",
+    "author": {
+        "name": "Wiibleyde",
+        "email": "nathan@bonnell.fr"
+    },
     "main": "dist/index.js",
     "scripts": {
-        "start": "npm run build && node .",
         "build": "tsup src/index.ts --minify",
+        "dev": "tsx watch src/index.ts",
         "format": "prettier --write \"**/*.{json,ts}\"",
         "lint": "eslint .",
-        "dev": "tsx watch src/index.ts",
-        "check:opus": "node -e \"require('@discordjs/opus'); console.log('Opus loaded successfully!')\""
+        "start": "npm run build && node ."
     },
     "dependencies": {
         "@discord-player/extractor": "^7.1.0",

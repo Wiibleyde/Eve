@@ -33,7 +33,11 @@ export const client = new Client({
 });
 
 export const player = new Player(client);
-player.extractors.register(YoutubeiExtractor, {});
+player.extractors.register(YoutubeiExtractor, {
+    streamOptions: {
+        highWaterMark: 1 << 25,
+    },
+});
 
 client.once(Events.ClientReady, async () => {
     client.user?.setPresence({

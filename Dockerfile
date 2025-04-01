@@ -10,30 +10,24 @@ COPY . .
 
 RUN yarn build
 
-# Stage 2: Runtime
-FROM debian:11
+FROM node:22-slim
 WORKDIR /app
 
-# Installer les dépendances nécessaires
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ffmpeg \
-    libopus-dev \
-    python3 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY package.json yarn.lock ./
 
-# Copy Node.js, npm, and yarn from the builder stage
-COPY --from=builder /usr/local/bin/node /usr/local/bin/node
-COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=builder /usr/local/bin/npm /usr/local/bin/npm
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential python3 libopus-dev ffmpeg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/assets ./assets
+RUN yarn install
 
-ENV TZ=France/Paris
+COPY . .
+
+RUN yarn build
+
+ENV TZ=Europe/Paris
+ENV PATH="/usr/bin:$PATH"
 
 STOPSIGNAL SIGTERM
 

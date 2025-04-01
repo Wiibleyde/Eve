@@ -97,7 +97,7 @@ player.events.on('error', (queue, error) => {
         queue.metadata.channel.send({ embeds: [embed] });
     }
 
-    logger.error(`An error occurred while playing music: ${error.message}`);
+    logger.error(`An error occurred while playing music (global): ${error.message}`);
 });
 
 player.events.on('playerError', (queue, error) => {
@@ -112,7 +112,7 @@ player.events.on('playerError', (queue, error) => {
         queue.metadata.channel.send({ embeds: [embed] });
     }
 
-    logger.error(`An error occurred while playing music: ${error.message}`);
+    logger.error(`An error occurred while playing music (player): ${error.message} ${error.name}`);
 });
 
 player.events.on('playerFinish', (queue) => {
