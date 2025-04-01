@@ -255,6 +255,22 @@ process.on('SIGTERM', async () => {
     process.exit(0);
 });
 
+process.on('unhandledRejection', async (reason) => {
+    logger.error('Une promesse rejetée non gérée a été détectée :', reason);
+    await prisma.$disconnect();
+    await client.destroy();
+    logger.info('Déconnecté, arrêt du bot...');
+    process.exit(1);
+});
+
+process.on('uncaughtException', async (error) => {
+    logger.error('Une exception non interceptée a été détectée :', error.name);
+    await prisma.$disconnect();
+    await client.destroy();
+    logger.info('Déconnecté, arrêt du bot...');
+    process.exit(1);
+});
+
 initMpThreads();
 initAi();
 initCalendars();

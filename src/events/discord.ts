@@ -27,16 +27,16 @@ import { modals } from '@/interactions/modals';
 import { buttons } from '@/interactions/buttons';
 import { selectMenus } from '@/interactions/selectMenus';
 
-function handleContextMenu(
+async function handleContextMenu(
     interaction: MessageContextMenuCommandInteraction<CacheType> | UserContextMenuCommandInteraction<CacheType>
 ) {
     try {
         if (interaction.isMessageContextMenuCommand()) {
             const commandName = interaction.commandName as keyof typeof contextMessageMenus;
-            contextMessageMenus[commandName]?.execute(interaction);
+            await contextMessageMenus[commandName]?.execute(interaction);
         } else if (interaction.isUserContextMenuCommand()) {
             const commandName = interaction.commandName as keyof typeof contextUserMenus;
-            contextUserMenus[commandName]?.execute(interaction);
+            await contextUserMenus[commandName]?.execute(interaction);
         }
         logger.info(
             `Commande contextuelle </${interaction.commandName}:${interaction.commandId}> par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}>`
@@ -44,13 +44,13 @@ function handleContextMenu(
     } catch (error) {
         logger.error(`Erreur lors de l'exécution d'une commande contextuelle: ${error}`);
         if (interaction.replied) {
-            interaction.followUp({
+            await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
                 flags: [MessageFlags.Ephemeral],
             });
             return;
         }
-        interaction.reply({
+        await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
             ephemeral: true,
         });
@@ -70,8 +70,8 @@ async function handleCommand(interaction: CommandInteraction) {
         }
 
         const { commandName } = interaction;
-        commands[commandName as keyof typeof commands]?.execute(interaction);
-        devCommands[commandName as keyof typeof devCommands]?.execute(interaction);
+        await commands[commandName as keyof typeof commands]?.execute(interaction);
+        await devCommands[commandName as keyof typeof devCommands]?.execute(interaction);
 
         logger.info(
             `Commande </${commandName}:${interaction.commandId}> par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}>`
@@ -92,69 +92,69 @@ async function handleCommand(interaction: CommandInteraction) {
     }
 }
 
-function handleModal(interaction: ModalSubmitInteraction) {
+async function handleModal(interaction: ModalSubmitInteraction) {
     try {
         const customId = interaction.customId.split('--')[0];
-        modals[customId as keyof typeof modals]?.(interaction);
+        await modals[customId as keyof typeof modals]?.(interaction);
         logger.info(
             `Modal soumis par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId})`
         );
     } catch (error) {
         logger.error(`Erreur lors de la soumission d'un modal: ${error}`);
         if (interaction.replied) {
-            interaction.followUp({
+            await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
                 ephemeral: true,
             });
             return;
         }
-        interaction.reply({
+        await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
             ephemeral: true,
         });
     }
 }
 
-function handleButton(interaction: ButtonInteraction) {
+async function handleButton(interaction: ButtonInteraction) {
     try {
         const customId = interaction.customId.split('--')[0];
-        buttons[customId as keyof typeof buttons]?.(interaction);
+        await buttons[customId as keyof typeof buttons]?.(interaction);
         logger.info(
             `Bouton cliqué par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId})`
         );
     } catch (error) {
         logger.error(`Erreur lors du clic sur un bouton: ${error}`);
         if (interaction.replied) {
-            interaction.followUp({
+            await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
                 ephemeral: true,
             });
             return;
         }
-        interaction.reply({
+        await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
             ephemeral: true,
         });
     }
 }
 
-function handleSelectMenu(interaction: StringSelectMenuInteraction<CacheType>) {
+async function handleSelectMenu(interaction: StringSelectMenuInteraction<CacheType>) {
     try {
         const customId = interaction.customId.split('--')[0];
-        selectMenus[customId as keyof typeof selectMenus]?.(interaction);
+        await selectMenus[customId as keyof typeof selectMenus]?.(interaction);
         logger.info(
             `Menu déroulant par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId})`
         );
     } catch (error) {
         logger.error(`Erreur lors de l'utilisation d'un menu déroulant: ${error}`);
         if (interaction.replied) {
-            interaction.followUp({
+            await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
                 ephemeral: true,
             });
             return;
         }
-        interaction.reply({
+        await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
             ephemeral: true,
         });
@@ -175,15 +175,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (interaction.isContextMenuCommand()) {
-        handleContextMenu(interaction);
+        await handleContextMenu(interaction);
     } else if (interaction.isCommand()) {
         await handleCommand(interaction);
     } else if (interaction.isModalSubmit()) {
-        handleModal(interaction);
+        await handleModal(interaction);
     } else if (interaction.isButton()) {
-        handleButton(interaction);
+        await handleButton(interaction);
     } else if (interaction.isStringSelectMenu()) {
-        handleSelectMenu(interaction);
+        await handleSelectMenu(interaction);
     } else {
         logger.error(
             `Interaction inconnue par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}>`
