@@ -1,5 +1,4 @@
 import { config } from '@/config';
-import { logger } from '@/index';
 import { CommandInteraction, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 const url = 'https://api.nasa.gov/planetary/apod';
