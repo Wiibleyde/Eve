@@ -35,6 +35,8 @@ export async function execute(interaction: CommandInteraction) {
         searchEngine: QueryType.AUTO,
     });
 
+    logger.debug(JSON.stringify(res, null, 2));
+
     if (!res?.tracks.length) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucun résultat trouvé.'))],
