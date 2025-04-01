@@ -23,8 +23,6 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     const response = await fetch(`${url}?api_key=${config.NASA_API_KEY}`);
     const data: ApodResponse = await response.json();
 
-    logger.debug('apod', JSON.stringify(data));
-
     const embed = new EmbedBuilder()
         .setTitle(data.title)
         .setImage(data.hdurl)
