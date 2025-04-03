@@ -14,6 +14,16 @@ export async function createQuote(
     date?: string,
     userProfilePicture?: string
 ): Promise<Buffer> {
+    if (!quote) {
+        throw new Error('Quote cannot be empty');
+    }
+    if (quote.length > 200) {
+        throw new Error('Quote cannot exceed 200 characters');
+    }
+    if (context && context.length > 200) {
+        throw new Error('Context cannot exceed 200 characters');
+    }
+    quote = await fixMessage(interaction, quote);
     const image = await Jimp.read(background);
     const jimpQuoteFont = await Jimp.loadFont(fontPath);
     const otherThingsFont = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
@@ -70,4 +80,84 @@ export async function createQuote(
     });
 
     return buffer;
+}
+
+async function fixMessage(interaction: CommandInteraction | ContextMenuCommandInteraction, message: string): Promise<string> {
+    // Remove the "" if they are at the beginning and end of the message
+    message = message.replace(/^"(.+)"$/, '$1');
+    // Replace <@123456789012345678> with @username
+    message = message.replace(/<@!?(\d+)>/g, (match, userId) => {
+        const user = interaction.client.users.cache.get(userId);
+        return user ? `@${user.username}` : match;
+    });
+    // Replace <#123456789012345678> with #channel
+    message = message.replace(/<#(\d+)>/g, (match, channelId) => {
+        const channel = interaction.guild?.channels.cache.get(channelId);
+        return channel ? `#${channel.name}` : match;
+    });
+    // Replace <@&123456789012345678> with @role
+    message = message.replace(/<@&(\d+)>/g, (match, roleId) => {
+        const role = interaction.guild?.roles.cache.get(roleId);
+        return role ? `@${role.name}` : match;
+    });
+    // Replace <a:emoji_name:123456789012345678> with :emoji_name:
+    message = message.replace(/<a?:(\w+):(\d+)>/g, (match, emojiName) => {
+        return `:${emojiName}:`;
+    });
+    // Replace <t:1234567890> with the date
+    message = message.replace(/<t:(\d+)>/g, (match, timestamp) => {
+        const date = new Date(parseInt(timestamp) * 1000);
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    });
+    // Replace <t:1234567890:T> with the date and time
+    message = message.replace(/<t:(\d+):T>/g, (match, timestamp) => {
+        const date = new Date(parseInt(timestamp) * 1000);
+        return date.toLocaleString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    });
+    // Replace <t:1234567890:F> with the date and time in full format
+    message = message.replace(/<t:(\d+):F>/g, (match, timestamp) => {
+        const date = new Date(parseInt(timestamp) * 1000);
+        return date.toLocaleString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
+    });
+    // Replace <t:1234567890:R> with the time ago
+    message = message.replace(/<t:(\d+):R>/g, (match, timestamp) => {
+        const date = new Date(parseInt(timestamp) * 1000);
+        const now = new Date();
+        const diff = Math.abs(now.getTime() - date.getTime());
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        if (seconds < 60) return `${seconds} secondes`;
+        if (minutes < 60) return `${minutes} minutes`;
+        if (hours < 24) return `${hours} heures`;
+        return `${days} jours`;
+    });
+    // Replace <t:1234567890:D> with the date in short format
+    message = message.replace(/<t:(\d+):D>/g, (match, timestamp) => {
+        const date = new Date(parseInt(timestamp) * 1000);
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    });
+    return message;
 }
