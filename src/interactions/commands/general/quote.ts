@@ -65,7 +65,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
 
     const messageSent = await channel.send({
         files: [buffer],
-        content: `"${quote}" - ${author?.toString() ?? 'Anonyme'} - ${date} ${context ? `${backSpace}${context}` : ''}`,
+        content: `"${quote}" - ${author?.toString() ?? 'Anonyme'} - ${date} ${context ? `${backSpace}*${context}*` : ''}`,
     });
     await interaction.editReply({
         embeds: [successEmbed(interaction, `Citation créée et envoyée ${messageSent.url}`)],
