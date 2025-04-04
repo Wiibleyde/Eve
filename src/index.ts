@@ -233,8 +233,8 @@ const calendarEventsCron = new CronJob('0 */10 * * * *', async () => {
 });
 calendarEventsCron.start();
 
-// QuizJob to insert a quiz question into the database every minutes
-const quizJob = new CronJob('0 */1 * * * *', async () => {
+// QuizJob to insert a quiz question into the database every 10 minutes
+const quizJob = new CronJob('0 */10 * * * *', async () => {
     await insertQuestionInDB();
 });
 quizJob.start();
@@ -253,6 +253,22 @@ process.on('SIGTERM', async () => {
     await client.destroy();
     logger.info('Déconnecté, arrêt du bot...');
     process.exit(0);
+});
+
+process.on('unhandledRejection', async (reason) => {
+    logger.error('Une promesse rejetée non gérée a été détectée :', reason);
+    await prisma.$disconnect();
+    await client.destroy();
+    logger.info('Déconnecté, arrêt du bot...');
+    process.exit(1);
+});
+
+process.on('uncaughtException', async (error) => {
+    logger.error('Une exception non interceptée a été détectée :', error.name);
+    await prisma.$disconnect();
+    await client.destroy();
+    logger.info('Déconnecté, arrêt du bot...');
+    process.exit(1);
 });
 
 initMpThreads();
