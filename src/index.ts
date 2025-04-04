@@ -233,8 +233,8 @@ const calendarEventsCron = new CronJob('0 */10 * * * *', async () => {
 });
 calendarEventsCron.start();
 
-// QuizJob to insert a quiz question into the database every minutes
-const quizJob = new CronJob('0 */1 * * * *', async () => {
+// QuizJob to insert a quiz question into the database every 10 minutes
+const quizJob = new CronJob('0 */10 * * * *', async () => {
     await insertQuestionInDB();
 });
 quizJob.start();
