@@ -17,9 +17,6 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .addUserOption((option) => option.setName('auteur').setDescription("L'auteur de la citation").setRequired(true))
     .addStringOption((option) =>
         option.setName('contexte').setDescription('[Optionnel] Le contexte de la citation').setRequired(false)
-    )
-    .addStringOption((option) =>
-        option.setName('date').setDescription('[Optionnel] La date de la citation').setRequired(false)
     );
 
 /**
@@ -35,7 +32,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     const quote = interaction.options.get('citation')?.value as string;
     const author = interaction.options.get('auteur')?.user;
     const context = interaction.options.get('contexte')?.value as string;
-    const date = (interaction.options.get('date')?.value as string) || new Date().toLocaleDateString();
+    const date = new Date().toLocaleDateString();
     const userProfilePicture = author?.displayAvatarURL({ extension: 'png', size: 1024 });
 
     if (!author) {
