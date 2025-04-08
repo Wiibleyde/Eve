@@ -20,6 +20,7 @@ import * as quiz from './fun/quiz/quiz';
 import * as addquestion from './fun/quiz/addquestion';
 import * as quizstats from './fun/quiz/quizstats';
 import * as leaderboard from './fun/quiz/leaderboard';
+import * as tictactoe from './fun/tictactoe';
 
 import * as motus from './fun/motus';
 
@@ -29,7 +30,6 @@ import * as createcalendar from './calendar/createcalendar';
 
 import * as chaban from './utils/chaban';
 
-import * as logs from './dev/logs';
 import * as debug from './dev/debug';
 import * as maintenance from './dev/maintenance';
 
@@ -69,6 +69,7 @@ export const commands = {
     motus,
     addstreamer,
     removestreamer,
+    tictactoe,
 
     // Calendar commands
     createcalendar,
@@ -93,7 +94,6 @@ export const commands = {
 };
 
 export const devCommands = {
-    logs,
     debug,
     maintenance,
 };
