@@ -20,6 +20,7 @@ import * as quiz from './fun/quiz/quiz';
 import * as addquestion from './fun/quiz/addquestion';
 import * as quizstats from './fun/quiz/quizstats';
 import * as leaderboard from './fun/quiz/leaderboard';
+import * as tictactoe from './fun/tictactoe';
 
 import * as motus from './fun/motus';
 
@@ -68,6 +69,7 @@ export const commands = {
     motus,
     addstreamer,
     removestreamer,
+    tictactoe,
 
     // Calendar commands
     createcalendar,
