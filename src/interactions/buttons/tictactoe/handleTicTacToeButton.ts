@@ -1,5 +1,6 @@
 import { errorEmbed, successEmbed } from "@/utils/embeds";
 import { tictactoeGames, TicTacToeGameState } from "@/utils/games/tictactoe";
+import { waitTime } from "@/utils/utils";
 import { ButtonInteraction, CacheType, InteractionUpdateOptions, MessageFlags } from "discord.js";
 
 export async function handleTicTacToeButton(interaction: ButtonInteraction<CacheType>): Promise<void> {
@@ -66,6 +67,28 @@ export async function handleTicTacToeButton(interaction: ButtonInteraction<Cache
             flags: [MessageFlags.Ephemeral],
         });
         return;
+    } else {
+        const channel = interaction.channel;
+        if (!channel || !('send' in channel)) {
+            await interaction.reply({
+                embeds: [
+                    errorEmbed(
+                        interaction,
+                        new Error('Une erreur est survenue lors de la récupération du salon ou le salon ne permet pas l\'envoi de messages.')
+                    ),
+                ],
+                flags: [MessageFlags.Ephemeral],
+            });
+            return;
+        }
+        const newMessage = await channel.send({
+            content: `<@${game.getCurrentPlayer()}> à toi de jouer !`,
+            allowedMentions: {
+                users: [game.getCurrentPlayer()],
+            },
+        });
+        await waitTime(3000);
+        await newMessage.delete();
     }
     return;
 }
