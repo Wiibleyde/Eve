@@ -202,6 +202,7 @@ export class TicTacToeGame {
             const response = {
                 embeds: [embed],
                 files: [attachment],
+                components: [],
             }
 
             return response;
