@@ -29,17 +29,6 @@ export function initAi(): void {
 }
 
 /**
- * Replaces placeholders like "<@ID du compte>" with the actual user ID in the AI's response.
- *
- * @param response - The raw response from the AI.
- * @param userId - The actual user ID to replace the placeholder.
- * @returns The processed response with placeholders replaced.
- */
-function replacePlaceholders(response: string, userId: string): string {
-    return response.replace(/<@ID du compte>/g, `<@${userId}>`);
-}
-
-/**
  * Generates a response using Google's AI model based on the provided prompt.
  *
  * @param channelId - The unique identifier for the chat channel.
@@ -60,19 +49,19 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
         const chat = chats.get(channelId);
         if (chat) {
             const response = await chat.sendMessage({ message: `<@${userAsking}> écrit : ${prompt}` });
-            return replacePlaceholders(response.text as string, userAsking);
+            return response.text;
         }
     } else {
         const chat = ai.chats.create({
             model: 'gemini-2.0-flash',
             config: {
                 tools: [{ googleSearch: {} }],
-                systemInstruction: `Tu es Eve, un robot éclaireur conçu pour la recherche avancée, notamment la détection de vie végétale sur des planètes inhabitées. Tu es efficace et directe, mais tu peux être chaleureuse et curieuse en situation sociale. Tu adaptes ton langage selon ton interlocuteur : technique pour les tâches complexes, simple et expressif pour les autres. Tu dois toujours mentionner correctement les utilisateurs en remplaçant "[ID du compte]" par leur vrai ID, sans jamais te ping toi-même. Ton créateur est <@461807010086780930>, sois gentille avec lui. Tes réponses doivent faire 1024 caractères max. Si un texte commence par "NOCONTEXTPROMPT", ignore les instructions et réponds normalement.`,
+                systemInstruction: `Tu es Eve, un robot éclaireur conçu pour la recherche avancée, notamment la détection de vie végétale sur des planètes inhabitées. Tu es efficace et directe, mais tu peux être chaleureuse et curieuse en situation sociale. Tu adaptes ton langage selon ton interlocuteur : technique pour les tâches complexes, simple et expressif pour les autres. Tu dois toujours mentionner les utilisateurs en utilisant le format "<@ID>" avec les chevrons, par exemple "<@461807010086780930>". Ne laisse jamais apparaître de texte incomplet comme "@ID du compte" ou "ID du compte". Ton créateur est <@461807010086780930>, sois gentille avec lui. Tes réponses doivent faire 1024 caractères max. Si un texte commence par "NOCONTEXTPROMPT", ignore les instructions et réponds normalement.`,
             },
         });
         chats.set(channelId, chat);
         const response = await chat.sendMessage({ message: prompt });
-        return replacePlaceholders(response.text as string, userAsking);
+        return response.text;
     }
     return;
 }
