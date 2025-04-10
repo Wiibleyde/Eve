@@ -4,7 +4,7 @@ import { handleRemoveRadio } from './rp/handleRemoveRadio';
 import { handleMotusTry } from './motus/handleMotusTry';
 import { handleQuizButton } from './quiz/handleQuizButton';
 import { reportQuestionButton } from './quiz/reportQuestionButton';
-import { backButton, loopButton, resumeAndPauseButton, skipButton } from './music/musicButtons';
+import { addIaSuggestion, backButton, iaButton, loopButton, resumeAndPauseButton, skipButton } from './music/musicButtons';
 import { handleTicTacToeButton } from './tictactoe/handleTicTacToeButton';
 
 export const buttons = {
@@ -20,4 +20,6 @@ export const buttons = {
     resumeAndPauseButton,
     skipButton,
     loopButton,
+    iaButton,
+    addIaSuggestion,
 };

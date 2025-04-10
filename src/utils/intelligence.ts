@@ -1,6 +1,6 @@
 import { config } from '@/config';
 import { logger } from '@/index';
-import { Chat, GoogleGenAI } from '@google/genai';
+import { Chat, GoogleGenAI, Type } from '@google/genai';
 
 const chats = new Map<string, Chat>();
 
@@ -62,6 +62,97 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
         chats.set(channelId, chat);
         const response = await chat.sendMessage({ message: prompt });
         return response.text;
+    }
+    return;
+}
+
+export async function generateNextMusicsWithGoogle(actualMusic: string): Promise<string[] | undefined> {
+    if (!isAiActive) {
+        return;
+    }
+    if (!ai) {
+        return;
+    }
+    const message = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `Donne moi 5 musiques qui pourraient être écoutées après "${actualMusic}" (Qui pourraient avoir un lien d'artiste, de style, ...). Réponds uniquement avec un JSON au format {"songs": ["titre 1", "titre 2", "titre 3", "titre 4", "titre 5"]}`
+                }]
+            }],
+            config: {
+                responseMimeType: 'application/json',
+                temperature: 0.5,
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        songs: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.STRING,
+                            },
+                        },
+                    },
+                    required: ['songs'],
+                },
+            }
+        });
+    if (message) {
+        const response = message.text;
+        if (response) {
+            try {
+                const parsedResponse = JSON.parse(response);
+                return parsedResponse.songs as string[];
+            } catch (e) {
+                logger.error(`Error parsing AI response: ${e}`);
+                return;
+            }
+        }
+    }
+    return;
+}
+
+export async function generateNextMusicWithGoogle(actualMusic: string): Promise<string | undefined> {
+    if (!isAiActive) {
+        return;
+    }
+    if (!ai) {
+        return;
+    }
+    const message = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `Donne moi une musique qui pourrait être écoutée après "${actualMusic}" (Qui pourrait avoir un lien d'artiste, de style, ...). Réponds uniquement avec un JSON au format {"song": "titre 1"}`
+                }]
+            }],
+            config: {
+                responseMimeType: 'application/json',
+                temperature: 0.5,
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        song: {
+                            type: Type.STRING,
+                        },
+                    },
+                    required: ['song'],
+                },
+            }
+        });
+    if (message) {
+        const response = message.text;
+        if (response) {
+            try {
+                const parsedResponse = JSON.parse(response);
+                return parsedResponse.song as string;
+            } catch (e) {
+                logger.error(`Error parsing AI response: ${e}`);
+                return;
+            }
+        }
     }
     return;
 }
