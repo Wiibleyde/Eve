@@ -1,7 +1,7 @@
-import { errorEmbed, successEmbed } from "@/utils/embeds";
-import { tictactoeGames, TicTacToeGameState } from "@/utils/games/tictactoe";
-import { waitTime } from "@/utils/utils";
-import { ButtonInteraction, CacheType, InteractionUpdateOptions, MessageFlags } from "discord.js";
+import { errorEmbed, successEmbed } from '@/utils/embeds';
+import { tictactoeGames, TicTacToeGameState } from '@/utils/games/tictactoe';
+import { waitTime } from '@/utils/utils';
+import { ButtonInteraction, CacheType, InteractionUpdateOptions, MessageFlags } from 'discord.js';
 
 export async function handleTicTacToeButton(interaction: ButtonInteraction<CacheType>): Promise<void> {
     const message = interaction.message;
@@ -52,18 +52,13 @@ export async function handleTicTacToeButton(interaction: ButtonInteraction<Cache
         return;
     }
 
-    const updatedResponse = await game.getResponse() as InteractionUpdateOptions;
+    const updatedResponse = (await game.getResponse()) as InteractionUpdateOptions;
     await interaction.update(updatedResponse as InteractionUpdateOptions);
 
     if (game.getGameState() !== TicTacToeGameState.IN_PROGRESS) {
         tictactoeGames.delete(message.id);
         await interaction.followUp({
-            embeds: [
-                successEmbed(
-                    interaction,
-                    'Le jeu est terminé !'
-                ),
-            ],
+            embeds: [successEmbed(interaction, 'Le jeu est terminé !')],
             flags: [MessageFlags.Ephemeral],
         });
         return;
@@ -74,7 +69,9 @@ export async function handleTicTacToeButton(interaction: ButtonInteraction<Cache
                 embeds: [
                     errorEmbed(
                         interaction,
-                        new Error('Une erreur est survenue lors de la récupération du salon ou le salon ne permet pas l\'envoi de messages.')
+                        new Error(
+                            "Une erreur est survenue lors de la récupération du salon ou le salon ne permet pas l'envoi de messages."
+                        )
                     ),
                 ],
                 flags: [MessageFlags.Ephemeral],

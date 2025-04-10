@@ -133,10 +133,11 @@ export async function onStreamOnline(stream: StreamData, offlineData: OfflineStr
                             const currentEmbed = message.embeds[0];
                             // Only update if title or game has changed
                             if (
-                                currentEmbed.description !== stream.title || 
-                                !currentEmbed.fields?.some(field => 
-                                    field.name === 'En train de :' && 
-                                    field.value === (stream.game_name || 'Inconnu')
+                                currentEmbed.description !== stream.title ||
+                                !currentEmbed.fields?.some(
+                                    (field) =>
+                                        field.name === 'En train de :' &&
+                                        field.value === (stream.game_name || 'Inconnu')
                                 )
                             ) {
                                 // Title or game has changed, update the embed
@@ -146,7 +147,7 @@ export async function onStreamOnline(stream: StreamData, offlineData: OfflineStr
                         }
                         return;
                     }
-                    
+
                     // If message indicates stream is offline, update it
                     const embed = generateEmbed(true, stream, offlineData);
                     try {
@@ -189,13 +190,19 @@ export async function onStreamOffline(offlineData: OfflineStreamData) {
                         }
                         // Update the message content
                         const embed = generateEmbed(false, null, offlineData);
-                        await message.edit({ content: `${streamData.twitchChannelName} est hors ligne.`, embeds: [embed] });
+                        await message.edit({
+                            content: `${streamData.twitchChannelName} est hors ligne.`,
+                            embeds: [embed],
+                        });
                     }
                 } catch (error) {
                     logger.error('Error while fetching message for offline update:', error);
                     // If message can't be found, create a new one
                     const embed = generateEmbed(false, null, offlineData);
-                    const newMessage = await channel.send({ content: `${offlineData.display_name} est hors ligne.`, embeds: [embed] });
+                    const newMessage = await channel.send({
+                        content: `${offlineData.display_name} est hors ligne.`,
+                        embeds: [embed],
+                    });
                     await prisma.stream.update({
                         where: {
                             uuid: streamData.uuid,
@@ -207,7 +214,10 @@ export async function onStreamOffline(offlineData: OfflineStreamData) {
                 }
             } else {
                 const embed = generateEmbed(false, null, offlineData);
-                const message = await channel.send({ content: `${offlineData.display_name} est hors ligne.`, embeds: [embed] });
+                const message = await channel.send({
+                    content: `${offlineData.display_name} est hors ligne.`,
+                    embeds: [embed],
+                });
                 await prisma.stream.update({
                     where: {
                         uuid: streamData.uuid,

@@ -1,22 +1,24 @@
-import { errorEmbed, successEmbed } from "@/utils/embeds";
-import { TicTacToeGame, tictactoeGames } from "@/utils/games/tictactoe";
-import { CommandInteraction, MessageFlags, MessagePayload, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
+import { errorEmbed, successEmbed } from '@/utils/embeds';
+import { TicTacToeGame, tictactoeGames } from '@/utils/games/tictactoe';
+import {
+    CommandInteraction,
+    MessageFlags,
+    MessagePayload,
+    SlashCommandBuilder,
+    SlashCommandOptionsOnlyBuilder,
+} from 'discord.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .setName('tictactoe')
     .setDescription('Lance une partie de Tic Tac Toe.')
-    .addUserOption(option =>
-        option.setName('opponent')
-            .setDescription('L\'opposant à défier')
-            .setRequired(true)
-    )
+    .addUserOption((option) => option.setName('opponent').setDescription("L'opposant à défier").setRequired(true));
 
 export async function execute(interaction: CommandInteraction) {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
     const opponent = interaction.options.get('opponent')?.user;
     if (!opponent) {
         return await interaction.followUp({
-            embeds: [errorEmbed(interaction, new Error('Impossible de trouver l\'opposant.'))],
+            embeds: [errorEmbed(interaction, new Error("Impossible de trouver l'opposant."))],
             flags: [MessageFlags.Ephemeral],
         });
     }
@@ -45,7 +47,7 @@ export async function execute(interaction: CommandInteraction) {
     const player2 = opponent.id;
     const game = new TicTacToeGame(player1, player2);
 
-    const response = await game.getResponse() as MessagePayload;
+    const response = (await game.getResponse()) as MessagePayload;
     if (channel.isSendable()) {
         const message = await channel.send(response);
         tictactoeGames.set(message.id, game);
@@ -55,7 +57,7 @@ export async function execute(interaction: CommandInteraction) {
         });
     } else {
         await interaction.followUp({
-            embeds: [errorEmbed(interaction, new Error('Impossible d\'envoyer le message dans le salon.'))],
+            embeds: [errorEmbed(interaction, new Error("Impossible d'envoyer le message dans le salon."))],
             flags: [MessageFlags.Ephemeral],
         });
     }
