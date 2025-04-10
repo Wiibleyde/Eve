@@ -9,7 +9,7 @@ const CLIENT_SECRET = config.TWITCH_CLIENT_SECRET;
 export class TwitchService {
     private OAUTH_TOKEN = '';
     private tokenExpiryTime = 0;
-    private refreshInterval = 7000; // 7 seconds
+    private refreshInterval = 6000; // 6 seconds
     public onlineStreamers: StreamData[] = [];
     public offlineStreamDatas: OfflineStreamData[] = [];
 
