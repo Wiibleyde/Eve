@@ -80,7 +80,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     users.forEach((user, index) => {
         const total = user.quizGoodAnswers + user.quizBadAnswers;
         const ratio = total > 0 ? (user.quizGoodAnswers / total) * 100 : 0;
-        
+
         embed.addFields({
             name: `#${index + 1} Ratio: ${ratio.toFixed(2)}%`,
             value: `<@${user.userId}> Bonnes réponses: ${user.quizGoodAnswers} | Mauvaises réponses: ${user.quizBadAnswers}`,
