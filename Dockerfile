@@ -2,11 +2,16 @@
 FROM node:23-alpine AS builder
 WORKDIR /app
 
+# Install build dependencies including Python
+RUN apk add --no-cache python3 make g++ tzdata opus opus-dev ffmpeg
+
 # Copier d'abord les fichiers de dépendances
 COPY package.json yarn.lock ./
 
-# Installer les dépendances de développement pour le build
-RUN yarn install
+# Make sure Python is properly linked
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    # Installer les dépendances de développement pour le build
+    yarn install
 
 # Copier le reste du code source
 COPY . .
@@ -28,7 +33,7 @@ ENV NODE_ENV=production
 RUN apk --no-cache add tzdata ffmpeg opus python3 g++ make && \
     cp /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
     echo "Europe/Paris" > /etc/timezone && \
-    apk del tzdata
+    ln -sf /usr/bin/python3 /usr/bin/python
 
 # Copier les fichiers de dépendances
 COPY package.json yarn.lock ./
