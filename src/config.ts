@@ -41,6 +41,7 @@ if (
     !EVE_HOME_GUILD ||
     !OWNER_ID ||
     !LOGS_WEBHOOK_URL ||
+    !GOOGLE_API_KEY ||
     !REPORT_CHANNEL ||
     !MP_CHANNEL ||
     !BLAGUE_API_TOKEN ||

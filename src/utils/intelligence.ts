@@ -11,9 +11,9 @@ export let ai: GoogleGenAI;
  * If the GOOGLE_API_KEY is not defined, it logs a warning message and disables the AI functionality.
  *
  * @remarks
- * - The AI model used is "gemini-1.5-flash".
- * - The AI will not respond to itself or mention itself in responses.
- * - Special handling is included for interactions with the developer.
+ * This function should be called at the start of the application to ensure that the AI is properly initialized.
+ * It checks for the presence of the GOOGLE_API_KEY in the configuration and creates an instance of GoogleGenAI.
+ * If the key is not present, it sets the isAiActive flag to false, indicating that AI-related commands will be disabled.
  *
  * @throws {Error} If the GOOGLE_API_KEY is not defined in the configuration.
  */
