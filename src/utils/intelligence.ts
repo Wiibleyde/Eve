@@ -11,9 +11,9 @@ export let ai: GoogleGenAI;
  * If the GOOGLE_API_KEY is not defined, it logs a warning message and disables the AI functionality.
  *
  * @remarks
- * - The AI model used is "gemini-1.5-flash".
- * - The AI will not respond to itself or mention itself in responses.
- * - Special handling is included for interactions with the developer.
+ * This function should be called at the start of the application to ensure that the AI is properly initialized.
+ * It checks for the presence of the GOOGLE_API_KEY in the configuration and creates an instance of GoogleGenAI.
+ * If the key is not present, it sets the isAiActive flag to false, indicating that AI-related commands will be disabled.
  *
  * @throws {Error} If the GOOGLE_API_KEY is not defined in the configuration.
  */
@@ -78,7 +78,7 @@ export async function generateNextMusicsWithGoogle(actualMusic: string): Promise
             contents: [{
                 role: 'user',
                 parts: [{
-                    text: `Donne moi 5 musiques qui pourraient être écoutées après "${actualMusic}" (Qui pourraient avoir un lien d'artiste, de style, ...). Réponds uniquement avec un JSON au format {"songs": ["titre 1", "titre 2", "titre 3", "titre 4", "titre 5"]}`
+                    text: `Donne moi 5 musiques qui pourraient être écoutées après "${actualMusic}" (Qui pourraient avoir un lien avec le style, l'artiste, l'ambiance, ...). Réponds uniquement avec un JSON au format {"songs": ["titre 1", "titre 2", "titre 3", "titre 4", "titre 5"]}`
                 }]
             }],
             config: {
