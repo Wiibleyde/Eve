@@ -180,7 +180,13 @@ player.events.on('playerStart', async (queue, track) => {
         .setCustomId('iaButton')
         .setStyle(ButtonStyle.Primary);
 
-    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(back, skip, resumepause, loop, ia);
+    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+        back,
+        skip,
+        resumepause,
+        loop,
+        ia
+    );
 
     if (queue.metadata.playingMessage) {
         try {
