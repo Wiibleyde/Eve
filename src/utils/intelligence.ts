@@ -78,7 +78,7 @@ export async function generateNextMusicsWithGoogle(actualMusic: string): Promise
             contents: [{
                 role: 'user',
                 parts: [{
-                    text: `Donne moi 5 musiques qui pourraient être écoutées après "${actualMusic}" (Qui pourraient avoir un lien d'artiste, de style, ...). Réponds uniquement avec un JSON au format {"songs": ["titre 1", "titre 2", "titre 3", "titre 4", "titre 5"]}`
+                    text: `Donne moi 5 musiques qui pourraient être écoutées après "${actualMusic}" (Qui pourraient avoir un lien avec le style, l'artiste, l'ambiance, ...). Réponds uniquement avec un JSON au format {"songs": ["titre 1", "titre 2", "titre 3", "titre 4", "titre 5"]}`
                 }]
             }],
             config: {
