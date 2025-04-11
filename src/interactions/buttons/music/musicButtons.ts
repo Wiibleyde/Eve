@@ -5,7 +5,15 @@ import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { generateNextMusicsWithGoogle } from '@/utils/intelligence';
 import { waitTime } from '@/utils/utils';
 import { QueryType, QueueRepeatMode, useQueue } from 'discord-player';
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, GuildMember, MessageFlags } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    EmbedBuilder,
+    GuildMember,
+    MessageFlags,
+} from 'discord.js';
 
 export function backButton(interaction: ButtonInteraction) {
     back(interaction);
@@ -71,9 +79,17 @@ export async function iaButton(interaction: ButtonInteraction) {
         });
 
     const track = queue.currentTrack;
-    if (!track) return interaction.reply({ embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))], ephemeral: true });
+    if (!track)
+        return interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
+            ephemeral: true,
+        });
     const generatedMusics = await generateNextMusicsWithGoogle(`${track.title} - ${track.author}`);
-    if (!generatedMusics) return interaction.reply({ embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))], ephemeral: true });
+    if (!generatedMusics)
+        return interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
+            ephemeral: true,
+        });
     const embed = new EmbedBuilder()
         .setTitle('Suggestions de musique')
         .setDescription(`Voici quelques suggestions de musique après **${track.title}**`)
@@ -89,11 +105,26 @@ export async function iaButton(interaction: ButtonInteraction) {
     });
 
     const buttons = [
-        new ButtonBuilder().setCustomId('addIaSuggestion--1').setLabel('Ajouter la 1ère suggestion').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('addIaSuggestion--2').setLabel('Ajouter la 2ème suggestion').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('addIaSuggestion--3').setLabel('Ajouter la 3ème suggestion').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('addIaSuggestion--4').setLabel('Ajouter la 4ème suggestion').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('addIaSuggestion--5').setLabel('Ajouter la 5ème suggestion').setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+            .setCustomId('addIaSuggestion--1')
+            .setLabel('Ajouter la 1ère suggestion')
+            .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+            .setCustomId('addIaSuggestion--2')
+            .setLabel('Ajouter la 2ème suggestion')
+            .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+            .setCustomId('addIaSuggestion--3')
+            .setLabel('Ajouter la 3ème suggestion')
+            .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+            .setCustomId('addIaSuggestion--4')
+            .setLabel('Ajouter la 4ème suggestion')
+            .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+            .setCustomId('addIaSuggestion--5')
+            .setLabel('Ajouter la 5ème suggestion')
+            .setStyle(ButtonStyle.Primary),
     ];
 
     const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
@@ -111,18 +142,26 @@ export async function addIaSuggestion(interaction: ButtonInteraction) {
         });
 
     const fromEmbed = interaction.message.embeds[0];
-    if (!fromEmbed) return interaction.reply({ embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))], ephemeral: true });
+    if (!fromEmbed)
+        return interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
+            ephemeral: true,
+        });
 
     const trackSelected = fromEmbed.fields[Number(interaction.customId.split('--')[1]) - 1].value;
-    if (!trackSelected) return interaction.reply({ embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))], ephemeral: true });
+    if (!trackSelected)
+        return interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
+            ephemeral: true,
+        });
 
     const userVoiceChannel = (interaction.member as GuildMember)?.voice.channel;
-        if (!userVoiceChannel) {
-            return await interaction.reply({
-                embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
-                ephemeral: true,
-            });
-        }
+    if (!userVoiceChannel) {
+        return await interaction.reply({
+            embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
+            ephemeral: true,
+        });
+    }
 
     const res = await player.search(trackSelected, {
         requestedBy: interaction.user,

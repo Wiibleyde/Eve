@@ -36,8 +36,8 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * @returns {Promise<void>} A promise that resolves when the leaderboard has been sent as a reply.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    // Get the top 10 users with the best ratio
-    const users = await prisma.globalUserData.findMany({
+    // Get all users with quiz data
+    let users = await prisma.globalUserData.findMany({
         select: {
             userId: true,
             quizGoodAnswers: true,
@@ -45,15 +45,16 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         },
     });
 
-    users.filter((user) => user.quizGoodAnswers + user.quizBadAnswers > 0);
-    users.filter((user) => user.userId !== client.user?.id);
+    // Filter out users with no answers and bot itself
+    users = users.filter((user) => user.quizGoodAnswers + user.quizBadAnswers > 0);
+    users = users.filter((user) => user.userId !== client.user?.id);
 
     const type = interaction.options.get('type')?.value as string;
     switch (type) {
         case 'ratio':
             users.sort((a, b) => {
-                const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers);
-                const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers);
+                const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers) || 0;
+                const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers) || 0;
                 return ratioB - ratioA;
             });
             break;
@@ -68,7 +69,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
             });
             break;
     }
-    users.splice(10);
+    users = users.slice(0, 10);
 
     const embed = new EmbedBuilder()
         .setTitle('Classement du quiz')
@@ -77,8 +78,11 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         .setFooter({ text: `Eve – Toujours prête à vous aider.`, iconURL: interaction.client.user.displayAvatarURL() });
 
     users.forEach((user, index) => {
+        const total = user.quizGoodAnswers + user.quizBadAnswers;
+        const ratio = total > 0 ? (user.quizGoodAnswers / total) * 100 : 0;
+        
         embed.addFields({
-            name: `#${index + 1} Ratio: ${((user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers)) * 100).toFixed(2)}%`,
+            name: `#${index + 1} Ratio: ${ratio.toFixed(2)}%`,
             value: `<@${user.userId}> Bonnes réponses: ${user.quizGoodAnswers} | Mauvaises réponses: ${user.quizBadAnswers}`,
         });
     });
