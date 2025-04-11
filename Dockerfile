@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:22 AS builder
+FROM node:23-alpine AS builder
 WORKDIR /app
 
 # Copier d'abord les fichiers de dépendances
@@ -12,27 +12,30 @@ RUN yarn install
 COPY . .
 
 # Générer les fichiers Prisma et construire l'application
-RUN yarn prisma generate && yarn build
+RUN yarn prisma generate && \
+    yarn build && \
+    yarn cache clean
 
 # Stage 2: Production
-FROM node:22-slim
+FROM node:23-alpine AS production
 WORKDIR /app
 
 # Définir le fuseau horaire
 ENV TZ=Europe/Paris
-ENV PATH="/usr/bin:$PATH"
+ENV NODE_ENV=production
 
-# Installer les dépendances systèmes nécessaires
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential python3 libopus-dev ffmpeg && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Installer uniquement les dépendances nécessaires
+RUN apk --no-cache add tzdata ffmpeg opus python3 g++ make && \
+    cp /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    echo "Europe/Paris" > /etc/timezone && \
+    apk del tzdata
 
 # Copier les fichiers de dépendances
 COPY package.json yarn.lock ./
 
-# Installer uniquement les dépendances de production
-RUN yarn install --production
+# Installer uniquement les dépendances de production avec cache cleanup
+RUN yarn install --production --frozen-lockfile && \
+    yarn cache clean
 
 # Copier les fichiers générés depuis l'étape de build
 COPY --from=builder /app/dist ./dist
