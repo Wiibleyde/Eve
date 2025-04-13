@@ -12,7 +12,7 @@ export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -21,12 +21,12 @@ export async function execute(interaction: CommandInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     if (!queue.tracks.toArray()[0])
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const methods = ['', '🔁', '🔂'];

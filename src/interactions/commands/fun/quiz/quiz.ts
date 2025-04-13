@@ -35,7 +35,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
             embeds: [
                 errorEmbed(interaction, new Error("Aucune question de quiz n'a été trouvée dans la base de données.")),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -66,7 +66,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
                     new Error('Une erreur est survenue lors de la récupération de la question de quiz.')
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -114,7 +114,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
             embeds: [
                 errorEmbed(interaction, new Error("Une erreur est survenue lors de l'envoi de la question de quiz.")),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }

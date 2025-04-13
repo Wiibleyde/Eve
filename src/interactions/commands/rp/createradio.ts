@@ -7,6 +7,7 @@ import {
     CommandInteraction,
     TextChannel,
     PermissionFlagsBits,
+    MessageFlags,
 } from 'discord.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
@@ -46,6 +47,6 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
 
     await interaction.reply({
         embeds: [successEmbed(interaction, `La radio du ${serviceName} a été créée avec succès !`)],
-        ephemeral: true,
+        flags: [MessageFlags.Ephemeral],
     });
 }

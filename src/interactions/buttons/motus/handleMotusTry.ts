@@ -16,14 +16,14 @@ export async function handleMotusTry(interaction: ButtonInteraction) {
     if (!game) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Partie de Motus terminée ou inexistante.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
     if (game.state !== GameState.PLAYING) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('La partie de Motus est déjà terminée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 

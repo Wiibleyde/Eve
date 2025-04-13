@@ -34,7 +34,7 @@ export async function reportQuestionButton(interaction: ButtonInteraction<CacheT
                     )
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -49,7 +49,7 @@ export async function reportQuestionButton(interaction: ButtonInteraction<CacheT
                     )
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -68,7 +68,7 @@ export async function reportQuestionButton(interaction: ButtonInteraction<CacheT
                     )
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }

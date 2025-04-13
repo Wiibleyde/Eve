@@ -19,7 +19,7 @@ export async function reportQuestionModal(interaction: ModalSubmitInteraction) {
     if (!question) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Question introuvable'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -28,7 +28,7 @@ export async function reportQuestionModal(interaction: ModalSubmitInteraction) {
     if (!channel) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Channel de report introuvable'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }

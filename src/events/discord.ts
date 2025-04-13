@@ -52,7 +52,7 @@ async function handleContextMenu(
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -64,7 +64,7 @@ async function handleCommand(interaction: CommandInteraction) {
                 embeds: [
                     errorEmbed(interaction, new Error('Le bot est en maintenance, veuillez réessayer plus tard.')),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
@@ -81,13 +81,13 @@ async function handleCommand(interaction: CommandInteraction) {
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -104,13 +104,13 @@ async function handleModal(interaction: ModalSubmitInteraction) {
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -127,13 +127,13 @@ async function handleButton(interaction: ButtonInteraction) {
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -150,13 +150,13 @@ async function handleSelectMenu(interaction: StringSelectMenuInteraction<CacheTy
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -168,7 +168,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 embeds: [
                     errorEmbed(interaction, new Error('Le bot est en maintenance, veuillez réessayer plus tard.')),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
         }
         return;

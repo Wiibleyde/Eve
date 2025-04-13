@@ -29,7 +29,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
                     new Error("Une erreur est survenue lors de la récupération de l'image de chat.")
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
