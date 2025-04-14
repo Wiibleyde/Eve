@@ -244,7 +244,7 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
         message.channel.sendTyping();
         const aiResponse = await generateWithGoogle(
             channelId,
-            message.content.replace(`<@${client.user?.id}> `, ''),
+            message.content,
             message.author.id
         ).catch((error) => {
             logger.error(`Erreur lors de la génération de réponse IA: ${error}`);
@@ -252,9 +252,8 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
         });
 
         if (aiResponse) {
-            // await message.channel.send(aiResponse);
-            await message.reply(aiResponse);
-            logger.info(`Réponse de l'IA à <@${message.author.id}> dans <#${channelId}> : ${aiResponse}`);
+            await message.channel.send(aiResponse);
+            logger.info(`Réponse de l'IA à <@${message.author.id}> : "${message.content}"  dans <#${channelId}> : ${aiResponse}`);
         }
     }
 
