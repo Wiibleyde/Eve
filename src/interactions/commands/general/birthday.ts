@@ -7,7 +7,6 @@ import {
     TextInputBuilder,
     TextInputStyle,
     ModalActionRowComponentBuilder,
-    SlashCommandOptionsOnlyBuilder,
     MessageFlags,
 } from 'discord.js';
 import { prisma } from '@/utils/database';
@@ -30,32 +29,28 @@ const months = {
     12: 'Décembre',
 };
 
-export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
     .setName('birthday')
     .setDescription('Gestion des anniversaires')
-    .addStringOption((option) =>
-        option
-            .setName('action')
-            .setDescription("L'action à effectuer")
-            .addChoices(
-                {
-                    name: 'Ajouter',
-                    value: 'add',
-                },
-                {
-                    name: 'Supprimer',
-                    value: 'remove',
-                },
-                {
-                    name: 'Voir mon anniversaire',
-                    value: 'view',
-                },
-                {
-                    name: 'Voir les anniversaires',
-                    value: 'list',
-                }
-            )
-            .setRequired(true)
+    .addSubcommand(subcommand => 
+        subcommand
+            .setName('add')
+            .setDescription('Ajouter votre anniversaire')
+    )
+    .addSubcommand(subcommand => 
+        subcommand
+            .setName('remove')
+            .setDescription('Supprimer votre anniversaire')
+    )
+    .addSubcommand(subcommand => 
+        subcommand
+            .setName('view')
+            .setDescription('Voir votre anniversaire')
+    )
+    .addSubcommand(subcommand => 
+        subcommand
+            .setName('list')
+            .setDescription('Voir tous les anniversaires')
     );
 
 /**
@@ -64,14 +59,17 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * @param interaction - The interaction object containing the command and options.
  * @returns A promise that resolves when the command execution is complete.
  *
- * The function handles the following actions:
+ * The function handles the following subcommands:
  * - "add": Adds a birthday.
  * - "remove": Removes a birthday.
  * - "view": Views a specific birthday.
  * - "list": Lists all birthdays.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    switch (interaction.options.get('action')?.value) {
+    const subcommandOption = interaction.options.data.find(option => option.type === 1);
+    const subcommand = subcommandOption?.name;
+    
+    switch (subcommand) {
         case 'add':
             await addBirthday(interaction);
             break;
