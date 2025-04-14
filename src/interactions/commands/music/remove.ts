@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
 import { useQueue } from 'discord-player';
-import { CommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import { CommandInteraction, MessageFlags, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .setName('remove')
@@ -15,7 +15,7 @@ export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -24,7 +24,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const position = interaction.options.get('position')?.value as string;
@@ -32,7 +32,7 @@ export async function execute(interaction: CommandInteraction) {
     if (isNaN(Number(position)))
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('La position doit être un nombre.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const index = Number(position) - 1;
@@ -40,7 +40,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!name)
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Cette musique n'existe pas."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     queue.removeTrack(index);

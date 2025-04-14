@@ -26,7 +26,7 @@ export async function loopButton(interaction: ButtonInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     if (queue.repeatMode === QueueRepeatMode.QUEUE) {
@@ -37,7 +37,7 @@ export async function loopButton(interaction: ButtonInteraction) {
 
     return await interaction.reply({
         embeds: [successEmbed(interaction, `Boucle ${methods[queue.repeatMode]}`)],
-        ephemeral: true,
+        flags: [MessageFlags.Ephemeral],
     });
 }
 
@@ -47,7 +47,7 @@ export async function resumeAndPauseButton(interaction: ButtonInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const resumed = queue.node.resume();
@@ -75,20 +75,20 @@ export async function iaButton(interaction: ButtonInteraction) {
     if (!queue?.isPlaying())
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const track = queue.currentTrack;
     if (!track)
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     const generatedMusics = await generateNextMusicsWithGoogle(`${track.title} - ${track.author}`);
     if (!generatedMusics)
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     const embed = new EmbedBuilder()
         .setTitle('Suggestions de musique')
@@ -138,28 +138,28 @@ export async function addIaSuggestion(interaction: ButtonInteraction) {
     if (!queue?.isPlaying())
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const fromEmbed = interaction.message.embeds[0];
     if (!fromEmbed)
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const trackSelected = fromEmbed.fields[Number(interaction.customId.split('--')[1]) - 1].value;
     if (!trackSelected)
         return interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune musique trouvée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const userVoiceChannel = (interaction.member as GuildMember)?.voice.channel;
     if (!userVoiceChannel) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -171,7 +171,7 @@ export async function addIaSuggestion(interaction: ButtonInteraction) {
     if (!res?.tracks.length) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucun résultat trouvé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -198,7 +198,7 @@ export async function addIaSuggestion(interaction: ButtonInteraction) {
         logger.error(error);
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Impossible de jouer la musique.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }

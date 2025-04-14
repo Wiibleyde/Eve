@@ -36,7 +36,7 @@ export async function addRadioModal(interaction: ModalSubmitInteraction): Promis
         if (radio.name === name) {
             await interaction.reply({
                 embeds: [errorEmbed(interaction, new Error('Nom déjà utilisé'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }

@@ -1,7 +1,8 @@
 import {
+    ApplicationCommandOptionType,
     ButtonInteraction,
     CacheType,
-    CommandInteraction,
+    ChatInputCommandInteraction,
     Events,
     Message,
     MessageContextMenuCommandInteraction,
@@ -52,19 +53,19 @@ async function handleContextMenu(
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
 
-async function handleCommand(interaction: CommandInteraction) {
+async function handleCommand(interaction: ChatInputCommandInteraction) {
     try {
         if (maintenance && !(await hasPermission(interaction, [], false))) {
             await interaction.reply({
                 embeds: [
                     errorEmbed(interaction, new Error('Le bot est en maintenance, veuillez réessayer plus tard.')),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
@@ -73,21 +74,28 @@ async function handleCommand(interaction: CommandInteraction) {
         await commands[commandName as keyof typeof commands]?.execute(interaction);
         await devCommands[commandName as keyof typeof devCommands]?.execute(interaction);
 
+        const cmdArgs = interaction.options.data.map((option) => {
+            if (option.type === ApplicationCommandOptionType.Subcommand) {
+                return `${option.name} ${option.options?.map((opt) => `${opt.name}:${opt.value}`).join(' ')}`;
+            }
+            return `${option.name}:${option.value}`;
+        });
+
         logger.info(
-            `Commande </${commandName}:${interaction.commandId}> par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}>`
+            `Commande </${commandName}:${interaction.commandId}> par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${cmdArgs.join(' ')})`
         );
     } catch (error) {
         logger.error(`Erreur lors de l'exécution d'une commande: ${error}`);
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -96,21 +104,24 @@ async function handleModal(interaction: ModalSubmitInteraction) {
     try {
         const customId = interaction.customId.split('--')[0];
         await modals[customId as keyof typeof modals]?.(interaction);
+        const modalArgs = interaction.fields.fields.map((field) => {
+            return `${field.customId}:${field.value}`;
+        });
         logger.info(
-            `Modal soumis par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId})`
+            `Modal soumis par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId}) (${modalArgs.join(' ')})`
         );
     } catch (error) {
         logger.error(`Erreur lors de la soumission d'un modal: ${error}`);
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -127,13 +138,13 @@ async function handleButton(interaction: ButtonInteraction) {
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -142,21 +153,24 @@ async function handleSelectMenu(interaction: StringSelectMenuInteraction<CacheTy
     try {
         const customId = interaction.customId.split('--')[0];
         await selectMenus[customId as keyof typeof selectMenus]?.(interaction);
+        const selectedOptions = interaction.values.map((value) => {
+            return value;
+        });
         logger.info(
-            `Menu déroulant par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId})`
+            `Menu déroulant par <@${interaction.user.id}> (${interaction.user.username}) dans <#${interaction.channelId}> (${interaction.customId}) (${selectedOptions.join(' ')})`
         );
     } catch (error) {
         logger.error(`Erreur lors de l'utilisation d'un menu déroulant: ${error}`);
         if (interaction.replied) {
             await interaction.followUp({
                 embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aïe, une erreur est survenue ||' + error + '||'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }
@@ -168,7 +182,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 embeds: [
                     errorEmbed(interaction, new Error('Le bot est en maintenance, veuillez réessayer plus tard.')),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
         }
         return;
@@ -176,7 +190,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.isContextMenuCommand()) {
         await handleContextMenu(interaction);
-    } else if (interaction.isCommand()) {
+    } else if (interaction.isChatInputCommand()) {
         await handleCommand(interaction);
     } else if (interaction.isModalSubmit()) {
         await handleModal(interaction);
@@ -228,19 +242,16 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
         }
 
         message.channel.sendTyping();
-        const aiResponse = await generateWithGoogle(
-            channelId,
-            message.content.replace(`<@${client.user?.id}> `, ''),
-            message.author.id
-        ).catch((error) => {
+        const aiResponse = await generateWithGoogle(channelId, message.content, message.author.id).catch((error) => {
             logger.error(`Erreur lors de la génération de réponse IA: ${error}`);
             return 'Je ne suis pas en mesure de répondre à cette question pour le moment. (Conversation réinitialisée)';
         });
 
         if (aiResponse) {
-            // await message.channel.send(aiResponse);
-            await message.reply(aiResponse);
-            logger.info(`Réponse de l'IA à <@${message.author.id}> dans <#${channelId}> : ${aiResponse}`);
+            await message.channel.send(aiResponse);
+            logger.info(
+                `Réponse de l'IA à <@${message.author.id}> : "${message.content}"  dans <#${channelId}> : ${aiResponse}`
+            );
         }
     }
 

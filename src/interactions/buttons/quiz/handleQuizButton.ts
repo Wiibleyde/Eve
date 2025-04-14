@@ -36,7 +36,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
                     )
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -53,7 +53,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
                         )
                     ),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
@@ -72,13 +72,13 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
                         )
                     ),
                 ],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             return;
         }
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Quiz expiré (la réponse était: ||' + question.answer + '||)'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -86,7 +86,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
     if (quiz.createdAt + maxTime < Date.now()) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Quiz expiré (la réponse était: ||' + quiz.answer + '||)'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -101,7 +101,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
     if (quiz.wrongUsers && quiz.wrongUsers.includes(interaction.user.id)) {
         await interaction.reply({
             content: 'Vous avez déjà répondu incorrectement à cette question !',
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -115,7 +115,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
                     new Error('Une erreur est survenue lors de la récupération des réponses de la question de quiz.')
                 ),
             ],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -187,7 +187,7 @@ export async function handleQuizButton(interaction: ButtonInteraction<CacheType>
         quiz.wrongUsers = quiz.wrongUsers ? [...quiz.wrongUsers, interaction.user.id] : [interaction.user.id];
         await interaction.reply({
             content: 'Mauvaise réponse ! (La bonne réponse était: ||' + answer + '||)',
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         const messageFields = message.embeds[0].fields;
         let found = false;

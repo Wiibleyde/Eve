@@ -19,7 +19,7 @@ export async function execute(interaction: CommandInteraction) {
         logger.warn('Impossible de trouver le salon de jeu.');
         return await interaction.followUp({
             embeds: [errorEmbed(interaction, new Error('Impossible de trouver le salon de jeu.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 

@@ -3,7 +3,13 @@ import { logger } from '@/index';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
 import { QueryType, useMainPlayer } from 'discord-player';
-import { CommandInteraction, GuildMember, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from 'discord.js';
+import {
+    CommandInteraction,
+    GuildMember,
+    MessageFlags,
+    SlashCommandBuilder,
+    SlashCommandOptionsOnlyBuilder,
+} from 'discord.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     .setName('play')
@@ -14,7 +20,7 @@ export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -26,7 +32,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!userVoiceChannel) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Vous devez être dans un salon vocal.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -38,7 +44,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!res?.tracks.length) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucun résultat trouvé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -65,7 +71,7 @@ export async function execute(interaction: CommandInteraction) {
         logger.error(error);
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Impossible de jouer la musique.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 }

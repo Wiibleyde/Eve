@@ -23,7 +23,7 @@ export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -32,7 +32,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     switch (interaction.options.get('action')?.value as string) {
@@ -42,14 +42,14 @@ export async function execute(interaction: CommandInteraction) {
                     embeds: [
                         errorEmbed(interaction, new Error("Impossible d'activer la boucle de la file d'attente.")),
                     ],
-                    ephemeral: true,
+                    flags: [MessageFlags.Ephemeral],
                 });
 
             queue.setRepeatMode(QueueRepeatMode.QUEUE);
 
             await interaction.reply({
                 embeds: [successEmbed(interaction, "Boucle de la file d'attente activée")],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             break;
         }
@@ -57,7 +57,7 @@ export async function execute(interaction: CommandInteraction) {
             if (queue.repeatMode === QueueRepeatMode.OFF)
                 return await interaction.reply({
                     embeds: [errorEmbed(interaction, new Error('Impossible de désactiver la boucle.'))],
-                    ephemeral: true,
+                    flags: [MessageFlags.Ephemeral],
                 });
 
             queue.setRepeatMode(QueueRepeatMode.OFF);
@@ -72,14 +72,14 @@ export async function execute(interaction: CommandInteraction) {
             if (queue.repeatMode === QueueRepeatMode.QUEUE)
                 return await interaction.reply({
                     embeds: [errorEmbed(interaction, new Error("Impossible d'activer la boucle de la musique."))],
-                    ephemeral: true,
+                    flags: [MessageFlags.Ephemeral],
                 });
 
             queue.setRepeatMode(QueueRepeatMode.TRACK);
 
             await interaction.reply({
                 embeds: [successEmbed(interaction, 'Boucle de la musique activée')],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             break;
         }
@@ -87,21 +87,21 @@ export async function execute(interaction: CommandInteraction) {
             if (queue.repeatMode === QueueRepeatMode.TRACK)
                 return await interaction.reply({
                     embeds: [errorEmbed(interaction, new Error("Impossible d'activer la boucle de l'autoplay."))],
-                    ephemeral: true,
+                    flags: [MessageFlags.Ephemeral],
                 });
 
             queue.setRepeatMode(QueueRepeatMode.AUTOPLAY);
 
             await interaction.reply({
                 embeds: [successEmbed(interaction, "Boucle de l'autoplay activée")],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             break;
         }
         default: {
             await interaction.reply({
                 embeds: [errorEmbed(interaction, new Error('Action inconnue.'))],
-                ephemeral: true,
+                flags: [MessageFlags.Ephemeral],
             });
             break;
         }

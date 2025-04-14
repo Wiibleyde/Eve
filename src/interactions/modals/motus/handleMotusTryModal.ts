@@ -1,7 +1,7 @@
 import { client } from '@/index';
 import { errorEmbed } from '@/utils/embeds';
 import { games, GameState, TryReturn } from '@/utils/games/motus';
-import { ModalSubmitInteraction, TextChannel } from 'discord.js';
+import { MessageFlags, ModalSubmitInteraction, TextChannel } from 'discord.js';
 
 export async function handleMotusTryModal(interaction: ModalSubmitInteraction) {
     const messageId = interaction.customId.split('--')[1];
@@ -10,7 +10,7 @@ export async function handleMotusTryModal(interaction: ModalSubmitInteraction) {
     if (!interaction.channel) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Impossible de trouver le salon de jeu.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
     const message = await client.channels
@@ -20,14 +20,14 @@ export async function handleMotusTryModal(interaction: ModalSubmitInteraction) {
     if (!game) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune partie de Motus en cours.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
     if (game.state !== GameState.PLAYING) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('La partie de Motus est déjà terminée.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -37,7 +37,7 @@ export async function handleMotusTryModal(interaction: ModalSubmitInteraction) {
     if (word.length !== wordLength) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error(`Le mot doit contenir ${wordLength} lettres.`))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 

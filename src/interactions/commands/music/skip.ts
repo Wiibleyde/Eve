@@ -2,7 +2,7 @@ import { config } from '@/config';
 import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { waitTime } from '@/utils/utils';
 import { useQueue } from 'discord-player';
-import { ButtonInteraction, CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ButtonInteraction, CommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 
 export const data: SlashCommandBuilder = new SlashCommandBuilder()
     .setName('skip')
@@ -16,7 +16,7 @@ export async function skip(interaction: CommandInteraction | ButtonInteraction) 
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -25,7 +25,7 @@ export async function skip(interaction: CommandInteraction | ButtonInteraction) 
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     await queue.node.skip();

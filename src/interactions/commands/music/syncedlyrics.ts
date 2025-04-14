@@ -12,7 +12,7 @@ export async function execute(interaction: CommandInteraction) {
     if (config.MUSIC_MODULE !== true) {
         await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Module de musique désactivé.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
         return;
     }
@@ -22,7 +22,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!queue?.isPlaying())
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error("Aucune musique n'est en cours de lecture."))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +31,7 @@ export async function execute(interaction: CommandInteraction) {
     if (metadataThread && !metadataThread.archived)
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Les paroles synchronisées sont déjà affichées.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
 
     const result = await player.lyrics
@@ -51,7 +51,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!lyrics) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune parole trouvée pour cette musique.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -69,7 +69,7 @@ export async function execute(interaction: CommandInteraction) {
     if (!lyrics) {
         return await interaction.reply({
             embeds: [errorEmbed(interaction, new Error('Aucune parole trouvée pour cette musique.'))],
-            ephemeral: true,
+            flags: [MessageFlags.Ephemeral],
         });
     }
 
@@ -82,6 +82,6 @@ export async function execute(interaction: CommandInteraction) {
 
     await interaction.reply({
         embeds: [successEmbed(interaction, 'Paroles synchronisées affichées dans <#' + thread.id + '>')],
-        ephemeral: true,
+        flags: [MessageFlags.Ephemeral],
     });
 }
