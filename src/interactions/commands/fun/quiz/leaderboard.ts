@@ -52,8 +52,15 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
     switch (type) {
         case 'ratio':
             users.sort((a, b) => {
-                const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers) || 0;
-                const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers) || 0;
+                const totalA = a.quizGoodAnswers + a.quizBadAnswers;
+                const totalB = b.quizGoodAnswers + b.quizBadAnswers;
+                const ratioA = totalA > 0 ? a.quizGoodAnswers / totalA : 0;
+                const ratioB = totalB > 0 ? b.quizGoodAnswers / totalB : 0;
+                
+                // Si les ratios sont proches (moins de 5% de différence), prioriser le joueur avec plus de réponses
+                if (Math.abs(ratioB - ratioA) < 0.05) {
+                    return totalB - totalA;
+                }
                 return ratioB - ratioA;
             });
             break;
