@@ -242,18 +242,16 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
         }
 
         message.channel.sendTyping();
-        const aiResponse = await generateWithGoogle(
-            channelId,
-            message.content,
-            message.author.id
-        ).catch((error) => {
+        const aiResponse = await generateWithGoogle(channelId, message.content, message.author.id).catch((error) => {
             logger.error(`Erreur lors de la génération de réponse IA: ${error}`);
             return 'Je ne suis pas en mesure de répondre à cette question pour le moment. (Conversation réinitialisée)';
         });
 
         if (aiResponse) {
             await message.channel.send(aiResponse);
-            logger.info(`Réponse de l'IA à <@${message.author.id}> : "${message.content}"  dans <#${channelId}> : ${aiResponse}`);
+            logger.info(
+                `Réponse de l'IA à <@${message.author.id}> : "${message.content}"  dans <#${channelId}> : ${aiResponse}`
+            );
         }
     }
 

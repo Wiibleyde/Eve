@@ -32,26 +32,10 @@ const months = {
 export const data = new SlashCommandBuilder()
     .setName('birthday')
     .setDescription('Gestion des anniversaires')
-    .addSubcommand(subcommand => 
-        subcommand
-            .setName('add')
-            .setDescription('Ajouter votre anniversaire')
-    )
-    .addSubcommand(subcommand => 
-        subcommand
-            .setName('remove')
-            .setDescription('Supprimer votre anniversaire')
-    )
-    .addSubcommand(subcommand => 
-        subcommand
-            .setName('view')
-            .setDescription('Voir votre anniversaire')
-    )
-    .addSubcommand(subcommand => 
-        subcommand
-            .setName('list')
-            .setDescription('Voir tous les anniversaires')
-    );
+    .addSubcommand((subcommand) => subcommand.setName('add').setDescription('Ajouter votre anniversaire'))
+    .addSubcommand((subcommand) => subcommand.setName('remove').setDescription('Supprimer votre anniversaire'))
+    .addSubcommand((subcommand) => subcommand.setName('view').setDescription('Voir votre anniversaire'))
+    .addSubcommand((subcommand) => subcommand.setName('list').setDescription('Voir tous les anniversaires'));
 
 /**
  * Executes the appropriate birthday command based on the user's interaction.
@@ -66,9 +50,9 @@ export const data = new SlashCommandBuilder()
  * - "list": Lists all birthdays.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
-    const subcommandOption = interaction.options.data.find(option => option.type === 1);
+    const subcommandOption = interaction.options.data.find((option) => option.type === 1);
     const subcommand = subcommandOption?.name;
-    
+
     switch (subcommand) {
         case 'add':
             await addBirthday(interaction);

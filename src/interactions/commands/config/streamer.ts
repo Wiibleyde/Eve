@@ -36,14 +36,12 @@ export const data = new SlashCommandBuilder()
             )
     )
     .addSubcommand((subcommand: SlashCommandSubcommandBuilder) =>
-        subcommand
-            .setName('list')
-            .setDescription('Afficher la liste des streamers suivis sur ce serveur')
+        subcommand.setName('list').setDescription('Afficher la liste des streamers suivis sur ce serveur')
     );
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-    
+
     if (!(await hasPermission(interaction, [], false))) {
         await interaction.editReply({
             embeds: [errorEmbed(interaction, new Error("Vous n'avez pas la permission de gérer les streams"))],
@@ -126,7 +124,7 @@ async function handleRemoveStreamer(interaction: ChatInputCommandInteraction): P
         });
         return;
     }
-    
+
     await removeStream(streamer, interaction.guildId as string);
 
     await interaction.editReply({
@@ -148,7 +146,7 @@ async function handleListStreamers(interaction: ChatInputCommandInteraction): Pr
 
     if (streamers.length === 0) {
         await interaction.editReply({
-            embeds: [errorEmbed(interaction, new Error('Aucun streamer n\'est suivi sur ce serveur'))],
+            embeds: [errorEmbed(interaction, new Error("Aucun streamer n'est suivi sur ce serveur"))],
         });
         return;
     }
@@ -160,7 +158,7 @@ async function handleListStreamers(interaction: ChatInputCommandInteraction): Pr
         .setTimestamp();
 
     for (const streamer of streamers) {
-        let roleInfo = "Aucun rôle mentionné";
+        let roleInfo = 'Aucun rôle mentionné';
         if (streamer.roleId) {
             roleInfo = `<@&${streamer.roleId}>`;
         }
