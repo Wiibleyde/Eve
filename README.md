@@ -53,7 +53,7 @@ Eve is a simple discord bot that can be used for multiple things, including IA f
 ## Installation
 
 1. Clone the repository
-2. Install the dependencies with `yarn`
+2. Install the dependencies with `pnpm`
 3. Create a `.env` file at the root of the project with the following content:
 
     ```env
