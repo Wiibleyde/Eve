@@ -69,8 +69,6 @@ COPY --from=builder /app/assets ./assets
 # Copy node_modules instead of just .prisma directory
 COPY --from=builder /app/node_modules ./node_modules
 
-COPY --from=builder /app/.env ./.env
-
 STOPSIGNAL SIGTERM
 
 CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
