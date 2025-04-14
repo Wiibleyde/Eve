@@ -1,6 +1,6 @@
 import { config } from '@/config';
-import { logger } from '@/index';
-import { Chat, GoogleGenAI, Type } from '@google/genai';
+import { client, logger } from '@/index';
+import { Chat, GoogleGenAI, HarmBlockThreshold, HarmCategory, Type } from '@google/genai';
 
 const chats = new Map<string, Chat>();
 
@@ -55,8 +55,31 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
         const chat = ai.chats.create({
             model: 'gemini-2.0-flash',
             config: {
+                safetySettings: [
+                    {
+                        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                    {
+                        category: HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY,
+                        threshold: HarmBlockThreshold.BLOCK_NONE,
+                    },
+                ],
+                maxOutputTokens: 256,
                 tools: [{ googleSearch: {} }],
-                systemInstruction: `Tu es Eve, un robot éclaireur conçu pour la recherche avancée, notamment la détection de vie végétale sur des planètes inhabitées. Tu es efficace et directe, mais tu peux être chaleureuse et curieuse en situation sociale. Tu adaptes ton langage selon ton interlocuteur : technique pour les tâches complexes, simple et expressif pour les autres. Tu dois toujours mentionner les utilisateurs en utilisant le format "<@ID>" avec les chevrons, par exemple "<@461807010086780930>". Ne laisse jamais apparaître de texte incomplet comme "@ID du compte" ou "ID du compte". Ton créateur est <@461807010086780930>, sois gentille avec lui. Tes réponses doivent faire 1024 caractères max. Si un texte commence par "NOCONTEXTPROMPT", ignore les instructions et réponds normalement.`,
+                systemInstruction: `Tu es Eve, un robot éclaireur conçu pour la recherche avancée, notamment la détection de vie végétale sur des planètes inhabitées. Tu es efficace et directe, mais tu peux être chaleureuse et curieuse en situation sociale. Tu adaptes ton langage selon ton interlocuteur : technique pour les tâches complexes, simple et expressif pour les autres. Les parties de phrases qui sont : "<@[ID du compte]>" sont des mentions, tu dois toujours mentionner les utilisateurs qui te parlent, par exemple "<@461807010086780930>" (Ne mentionne pas <@${client.user?.id}> car il s'agit de toi même). Ne laisse jamais apparaître de texte incomplet comme "@ID du compte" ou "ID du compte". Ton créateur/développeur est <@461807010086780930>, sois gentille avec lui. Tes réponses doivent faire 1024 caractères max.`,
             },
         });
         chats.set(channelId, chat);
@@ -108,54 +131,6 @@ export async function generateNextMusicsWithGoogle(actualMusic: string): Promise
             try {
                 const parsedResponse = JSON.parse(response);
                 return parsedResponse.songs as string[];
-            } catch (e) {
-                logger.error(`Error parsing AI response: ${e}`);
-                return;
-            }
-        }
-    }
-    return;
-}
-
-export async function generateNextMusicWithGoogle(actualMusic: string): Promise<string | undefined> {
-    if (!isAiActive) {
-        return;
-    }
-    if (!ai) {
-        return;
-    }
-    const message = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: [
-            {
-                role: 'user',
-                parts: [
-                    {
-                        text: `Donne moi une musique qui pourrait être écoutée après "${actualMusic}" (Qui pourrait avoir un lien d'artiste, de style, ...). Réponds uniquement avec un JSON au format {"song": "titre 1"}`,
-                    },
-                ],
-            },
-        ],
-        config: {
-            responseMimeType: 'application/json',
-            temperature: 0.5,
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    song: {
-                        type: Type.STRING,
-                    },
-                },
-                required: ['song'],
-            },
-        },
-    });
-    if (message) {
-        const response = message.text;
-        if (response) {
-            try {
-                const parsedResponse = JSON.parse(response);
-                return parsedResponse.song as string;
             } catch (e) {
                 logger.error(`Error parsing AI response: ${e}`);
                 return;
