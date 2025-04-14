@@ -45,7 +45,6 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         },
     });
 
-    // Filter out users with no answers and bot itself
     users = users.filter((user) => user.quizGoodAnswers + user.quizBadAnswers > 0);
     users = users.filter((user) => user.userId !== client.user?.id);
 
