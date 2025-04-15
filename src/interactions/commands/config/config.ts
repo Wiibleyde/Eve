@@ -1,10 +1,10 @@
 import {
     CommandInteraction,
+    ChatInputCommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
     PermissionFlagsBits,
     InteractionContextType,
-    SlashCommandOptionsOnlyBuilder,
     ChannelType,
     MessageFlags,
 } from 'discord.js';
@@ -13,43 +13,29 @@ import { errorEmbed, successEmbed } from '@/utils/embeds';
 import { backSpace } from '@/utils/textUtils';
 import { hasPermission } from '@/utils/permissionTester';
 
-export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
     .setName('config')
     .setDescription('Configurer les salons')
-    .addStringOption((option) =>
-        option
-            .setName('action')
-            .setDescription("L'action à effectuer")
-            .addChoices(
-                {
-                    name: 'Voir la configuration',
-                    value: 'view',
-                },
-                {
-                    name: 'Modifier la configuration',
-                    value: 'edit',
-                }
+    .addSubcommand((subcommand) => subcommand.setName('view').setDescription('Voir la configuration actuelle'))
+    .addSubcommand((subcommand) =>
+        subcommand
+            .setName('edit')
+            .setDescription('Modifier la configuration')
+            .addStringOption((option) =>
+                option.setName('key').setDescription('Clé de configuration').setRequired(true).addChoices(
+                    {
+                        name: 'Salon des anniversaires',
+                        value: 'birthdayChannel',
+                    },
+                    {
+                        name: 'Salon des citations',
+                        value: 'quoteChannel',
+                    }
+                )
             )
-            .setRequired(true)
-    )
-    .addStringOption((option) =>
-        option.setName('key').setDescription('Clé de configuration').setRequired(false).addChoices(
-            {
-                name: 'Salon des anniversaires',
-                value: 'birthdayChannel',
-            },
-            {
-                name: 'Salon des citations',
-                value: 'quoteChannel',
-            },
-            {
-                name: 'Catégorie des formations',
-                value: 'trainingCategory',
-            }
-        )
-    )
-    .addChannelOption((option) =>
-        option.setName('channel').setDescription('Salon ou catégorie à configurer').setRequired(false)
+            .addChannelOption((option) =>
+                option.setName('channel').setDescription('Salon ou catégorie à configurer').setRequired(true)
+            )
     )
     .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]);
 
@@ -62,14 +48,13 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
  * This function performs the following actions:
  * 1. Defers the reply to the interaction.
  * 2. Checks if the user has the required permissions to manage channels.
- * 3. Based on the action specified in the interaction options, it either:
+ * 3. Based on the subcommand specified in the interaction, it either:
  *    - Views the current channel configuration and sends it as a reply.
  *    - Edits the channel configuration by updating or creating a new entry in the database.
  *
  * The function handles errors and sends appropriate error messages if:
  * - The user does not have the required permissions.
  * - No configuration is found when attempting to view.
- * - Required options (key and channel) are missing when attempting to edit.
  */
 export async function execute(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
@@ -79,7 +64,9 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
         });
         return;
     }
-    switch (interaction.options.get('action')?.value) {
+    const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+
+    switch (subcommand) {
         case 'view': {
             const serverConfig = await prisma.config.findMany({
                 where: {
@@ -106,22 +93,18 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
             break;
         }
         case 'edit': {
-            const key = interaction.options.get('key')?.value as string;
-            const channel = interaction.options.get('channel')?.value as string;
-            if (!key || !channel) {
-                await interaction.editReply({
-                    embeds: [errorEmbed(interaction, new Error('Veuillez fournir une clé et un salon.'))],
-                });
-                return;
-            }
+            const key = interaction.options.get('key', true).value as string;
+            const channel = interaction.options.get('channel', true).channel;
+
             const existingConfig = await prisma.config.findFirst({
                 where: {
                     guildId: interaction.guildId?.toString() as string,
                     key,
                 },
             });
+
             if (key === 'trainingCategory') {
-                const channelData = await interaction.guild?.channels.fetch(channel);
+                const channelData = await interaction.guild?.channels.fetch(channel?.id as string);
                 if (channelData?.type !== ChannelType.GuildCategory) {
                     await interaction.editReply({
                         embeds: [errorEmbed(interaction, new Error("Le salon fourni n'est pas une catégorie."))],
@@ -129,21 +112,28 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
                     return;
                 }
             }
+
             if (existingConfig) {
                 await prisma.config.update({
                     where: {
                         uuid: existingConfig.uuid,
                     },
                     data: {
-                        value: channel,
+                        value: channel?.id,
                     },
                 });
             } else {
+                if (!channel) {
+                    await interaction.editReply({
+                        embeds: [errorEmbed(interaction, new Error('Aucun salon fourni.'))],
+                    });
+                    return;
+                }
                 await prisma.config.create({
                     data: {
                         guildId: interaction.guildId?.toString() as string,
                         key,
-                        value: channel,
+                        value: channel?.id,
                     },
                 });
             }

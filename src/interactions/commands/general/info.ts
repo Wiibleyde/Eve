@@ -3,7 +3,7 @@ import {
     EmbedBuilder,
     MessageFlags,
     SlashCommandBuilder,
-    SlashCommandOptionsOnlyBuilder,
+    SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
 import { prisma } from '@/utils/database';
 import { backSpace } from '@/utils/textUtils';
@@ -12,24 +12,12 @@ import packageJson from '../../../../package.json';
 
 const infoImage = './assets/img/info.png';
 
-export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
+export const data: SlashCommandSubcommandsOnlyBuilder = new SlashCommandBuilder()
     .setName('info')
     .setDescription("Affiche des informations sur le bot / l'utilisateur")
-    .addStringOption((option) =>
-        option
-            .setName('section')
-            .setDescription('La section à afficher')
-            .addChoices(
-                {
-                    name: 'Info sur le bot',
-                    value: 'bot',
-                },
-                {
-                    name: 'Utilisateur',
-                    value: 'user',
-                }
-            )
-            .setRequired(true)
+    .addSubcommand((subcommand) => subcommand.setName('bot').setDescription('Affiche des informations sur le bot'))
+    .addSubcommand((subcommand) =>
+        subcommand.setName('user').setDescription("Affiche des informations sur l'utilisateur")
     );
 
 /**
@@ -46,7 +34,10 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
 export async function execute(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
 
-    switch (interaction.options.get('section')?.value) {
+    const subcommandOption = interaction.options.data.find((option) => option.type === 1);
+    const subcommand = subcommandOption?.name;
+
+    switch (subcommand) {
         case 'bot': {
             const version = packageJson.version;
             const libs = Object.keys(packageJson.dependencies).join(backSpace);
