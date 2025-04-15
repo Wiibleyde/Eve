@@ -34,10 +34,6 @@ export const data = new SlashCommandBuilder()
                     {
                         name: 'Salon des citations',
                         value: 'quoteChannel',
-                    },
-                    {
-                        name: 'Catégorie des formations',
-                        value: 'trainingCategory',
                     }
                 )
             )
