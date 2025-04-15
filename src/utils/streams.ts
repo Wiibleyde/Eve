@@ -132,8 +132,7 @@ export async function onStreamOnline(stream: StreamData, offlineData: OfflineStr
                             currentEmbed.description !== stream.title ||
                             !currentEmbed.fields?.some(
                                 (field) =>
-                                    field.name === 'En train de :' &&
-                                    field.value === (stream.game_name || 'Inconnu')
+                                    field.name === 'En train de :' && field.value === (stream.game_name || 'Inconnu')
                             )
                         ) {
                             const embed = generateEmbed(true, stream, offlineData);
@@ -176,7 +175,10 @@ export async function onStreamOffline(offlineData: OfflineStreamData) {
                 try {
                     const message = await channel.messages.fetch(streamData.messageId as string);
                     if (message) {
-                        if (message.embeds.length > 0 && message.embeds[0].description === 'Le stream est hors-ligne.') {
+                        if (
+                            message.embeds.length > 0 &&
+                            message.embeds[0].description === 'Le stream est hors-ligne.'
+                        ) {
                             continue;
                         }
                         const embed = generateEmbed(false, null, offlineData);

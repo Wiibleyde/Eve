@@ -15,14 +15,10 @@ const infoImage = './assets/img/info.png';
 export const data: SlashCommandSubcommandsOnlyBuilder = new SlashCommandBuilder()
     .setName('info')
     .setDescription("Affiche des informations sur le bot / l'utilisateur")
+    .addSubcommand((subcommand) => subcommand.setName('bot').setDescription('Affiche des informations sur le bot'))
     .addSubcommand((subcommand) =>
-        subcommand
-            .setName('bot')
-            .setDescription("Affiche des informations sur le bot"))
-    .addSubcommand((subcommand) =>
-        subcommand
-            .setName('user')
-            .setDescription("Affiche des informations sur l'utilisateur"));
+        subcommand.setName('user').setDescription("Affiche des informations sur l'utilisateur")
+    );
 
 /**
  * Executes the command based on the interaction provided.

@@ -16,12 +16,8 @@ import { hasPermission } from '@/utils/permissionTester';
 export const data = new SlashCommandBuilder()
     .setName('config')
     .setDescription('Configurer les salons')
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('view')
-            .setDescription('Voir la configuration actuelle')
-    )
-    .addSubcommand(subcommand =>
+    .addSubcommand((subcommand) => subcommand.setName('view').setDescription('Voir la configuration actuelle'))
+    .addSubcommand((subcommand) =>
         subcommand
             .setName('edit')
             .setDescription('Modifier la configuration')
@@ -127,7 +123,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
                     },
                 });
             } else {
-                if(!channel) {
+                if (!channel) {
                     await interaction.editReply({
                         embeds: [errorEmbed(interaction, new Error('Aucun salon fourni.'))],
                     });
