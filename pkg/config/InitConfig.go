@@ -8,36 +8,33 @@ import (
 )
 
 type Config struct {
-	BotToken string
+	DiscordToken    string
+	DiscordClientId string
 }
 
 var config *Config
+
+// getRequiredEnv récupère une variable d'environnement et vérifie qu'elle n'est pas vide
+func getRequiredEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		fmt.Printf("%s is not set\n", key)
+		os.Exit(1)
+	}
+	return value
+}
 
 func InitConfig() {
 	// Charge le fichier .env
 	err := godotenv.Load()
 	if err != nil {
-		// Crée un fichier .env par défaut si inexistant
-		CreateFile()
-		err = godotenv.Load()
-		if err != nil {
-			fmt.Println("Error loading .env file:", err)
-			return
-		}
+		fmt.Println("Error loading .env file")
+		os.Exit(1)
 	}
 
-	config = &Config{}
-
-	// Récupère la variable depuis l'environnement
-	config.BotToken = os.Getenv("BOT_TOKEN")
-}
-
-func CreateFile() {
-	envContent := "BOT_TOKEN=\n"
-
-	err := os.WriteFile(".env", []byte(envContent), 0644)
-	if err != nil {
-		fmt.Println("Error creating .env file:", err)
+	config = &Config{
+		DiscordToken:    getRequiredEnv("DISCORD_TOKEN"),
+		DiscordClientId: getRequiredEnv("DISCORD_CLIENT_ID"),
 	}
 }
 

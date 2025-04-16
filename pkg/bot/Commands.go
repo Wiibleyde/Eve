@@ -14,6 +14,48 @@ var (
 			Description: "Savoir si le bot est en ligne",
 		},
 		{
+			Name:        "birthday",
+			Description: "Gérer les anniversaires",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "set",
+					Description: "Définir votre date de naissance",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "date",
+							Description: "Date de naissance au format YYYY-MM-DD",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+						},
+					},
+				},
+				{
+					Name:        "get",
+					Description: "Obtenir votre date de naissance",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "user",
+							Description: "Utilisateur dont vous voulez connaître la date de naissance",
+							Type:        discordgo.ApplicationCommandOptionUser,
+							Required:    false,
+						},
+					},
+				},
+				{
+					Name:        "delete",
+					Description: "Supprimer votre date de naissance",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "list",
+					Description: "Lister les anniversaires (dans le serveur)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+			},
+		},
+		{
 			Name:        "rolemanager",
 			Description: "Gérer les rôles",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -87,6 +129,7 @@ var (
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
 		"ping": commandHandler.PingHandler,
 		//TODO: Add role manager handler
+		"birthday": commandHandler.BirthdayHandler,
 	}
 )
 

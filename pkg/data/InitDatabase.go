@@ -37,7 +37,3 @@ func CloseDBConnection() {
 	}
 }
 
-// InitDatabase is maintained for backward compatibility
-func InitDatabase() {
-	GetDBClient()
-}

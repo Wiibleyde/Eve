@@ -10,8 +10,8 @@ import (
 )
 
 func InitBot() {
-	logger.InfoLogger.Println("Starting bot...", config.GetConfig().BotToken)
-	dg, err := discordgo.New("Bot " + config.GetConfig().BotToken)
+	logger.InfoLogger.Println("Starting bot...", config.GetConfig().DiscordToken)
+	dg, err := discordgo.New("Bot " + config.GetConfig().DiscordToken)
 	if err != nil {
 		logger.ErrorLogger.Panicln("[PANIC] Error creating Discord session,", err)
 		return
