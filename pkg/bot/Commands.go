@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	Commands = []*discordgo.ApplicationCommand{
+	commands = []*discordgo.ApplicationCommand{
 		{
 			Name:        "ping",
 			Description: "Savoir si le bot est en ligne",
@@ -126,7 +126,7 @@ var (
 			},
 		},
 	}
-	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
+	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
 		"ping": commandHandler.PingHandler,
 		//TODO: Add role manager handler
 		"birthday": commandHandler.BirthdayHandler,
@@ -135,9 +135,9 @@ var (
 
 // CheckCommandHandlers check if every command has a handler
 func CheckCommandHandlers() {
-	for i, v := range Commands {
-		if _, ok := CommandHandlers[v.Name]; !ok {
-			Commands = append(Commands[:i], Commands[i+1:]...)
+	for i, v := range commands {
+		if _, ok := commandHandlers[v.Name]; !ok {
+			commands = append(commands[:i], commands[i+1:]...)
 			logger.WarningLogger.Println("Removed command", v.Name)
 			continue
 		}
@@ -148,7 +148,7 @@ func RegisterCommands(s *discordgo.Session) {
 	CheckCommandHandlers()
 
 	// Remove previous commands
-	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", Commands)
+	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
 	if err != nil {
 		logger.ErrorLogger.Printf("Impossible de supprimer les commandes précédentes: %v", err)
 		return
@@ -156,9 +156,9 @@ func RegisterCommands(s *discordgo.Session) {
 	logger.InfoLogger.Println("Suppression des commandes précédentes terminée !")
 
 	// Register new commands
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(Commands))
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 
-	for i, v := range Commands {
+	for i, v := range commands {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, "", v)
 		if err != nil {
 			logger.ErrorLogger.Printf("Impossible d'enregistrer la commande '%v': %v", v.Name, err)

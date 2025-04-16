@@ -22,7 +22,7 @@ func OnReady(s *discordgo.Session, r *discordgo.Ready) {
 
 func InteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Type == discordgo.InteractionApplicationCommand {
-		if handler, ok := CommandHandlers[i.ApplicationCommandData().Name]; ok {
+		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			err := handler(s, i)
 			if err != nil {
 				logger.ErrorLogger.Println("Error handling command", i.ApplicationCommandData().Name, err)
