@@ -155,13 +155,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			return err
 		}
 	case "list":
-		// Fetch guild instead of using State
-		// guild, err := s.Guild(i.GuildID)
-		// if err != nil {
-		// 	logger.ErrorLogger.Println("Error fetching guild:", err)
-		// 	return err
-		// }
-
 		// Fetch members
 		members, err := s.GuildMembers(i.GuildID, "", 1000)
 		if err != nil {
