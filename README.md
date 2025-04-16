@@ -6,6 +6,10 @@
 
 ![GitHub forks](https://img.shields.io/github/forks/wiibleyde/eve?style=social) ![GitHub stars](https://img.shields.io/github/stars/wiibleyde/eve?style=social) ![GitHub watchers](https://img.shields.io/github/watchers/wiibleyde/eve?style=social) ![GitHub followers](https://img.shields.io/github/followers/wiibleyde?style=social)
 
+# COMPLETE REWRITE OF THE BOT IN GOLANG
+
+For now, the bot is working in TypeScript, but I will rewrite it in Golang to improve performance and maintainability.
+
 ## Description
 
 Eve is a simple discord bot that can be used for multiple things, including IA functionalities, and more.
