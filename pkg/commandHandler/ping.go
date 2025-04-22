@@ -2,6 +2,7 @@ package commandHandler
 
 import (
 	"fmt"
+	"main/pkg/bot_utils"
 	"runtime"
 	"time"
 
@@ -46,6 +47,9 @@ func PingHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	runtime.ReadMemStats(&memStats)
 	heapConsumed := float64(memStats.HeapAlloc) / (1024 * 1024)
 
+	uptime := time.Since(bot_utils.StartTime)
+	uptimeMessage := fmt.Sprintf("%d minutes, %d secondes", int(uptime.Minutes()), int(uptime.Seconds())%60)
+
 	embed := &discordgo.MessageEmbed{
 		Title:       "Status du bot",
 		Description: pingMessage,
@@ -59,6 +63,11 @@ func PingHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			{
 				Name:   "Mémoire utilisée",
 				Value:  fmt.Sprintf("%.2f Mo", heapConsumed),
+				Inline: true,
+			},
+			{
+				Name:   "Uptime",
+				Value:  uptimeMessage,
 				Inline: true,
 			},
 		},
