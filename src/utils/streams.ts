@@ -128,6 +128,24 @@ export async function onStreamOnline(stream: StreamData, offlineData: OfflineStr
                 if (message) {
                     if (message.embeds.length > 0) {
                         const currentEmbed = message.embeds[0];
+                        if (currentEmbed.description === 'Le stream est hors-ligne.') {
+                            const embed = generateEmbed(true, stream, offlineData);
+                            const newMessage = await channel.send({ content: mention, embeds: [embed] });
+                            await prisma.stream.update({
+                                where: {
+                                    uuid: streamData.uuid,
+                                },
+                                data: {
+                                    messageId: newMessage.id,
+                                },
+                            });
+                            try {
+                                await message.delete();
+                            } catch (error) {
+                                logger.error('Error while deleting message:', error);
+                            }
+                            return;
+                        }
                         if (
                             currentEmbed.description !== stream.title ||
                             !currentEmbed.fields?.some(
@@ -137,7 +155,7 @@ export async function onStreamOnline(stream: StreamData, offlineData: OfflineStr
                         ) {
                             const embed = generateEmbed(true, stream, offlineData);
                             await message.edit({ content: mention, embeds: [embed] });
-                        }
+                        } 
                         return;
                     }
 
