@@ -101,8 +101,8 @@ var (
 	}
 )
 
-// CheckCommandHandlers check if every command has a handler
-func CheckCommandHandlers() {
+// checkCommandHandlers check if every command has a handler
+func checkCommandHandlers() {
 	for i, v := range commands {
 		if _, ok := commandHandlers[v.Name]; !ok {
 			commands = append(commands[:i], commands[i+1:]...)
@@ -112,8 +112,8 @@ func CheckCommandHandlers() {
 	}
 }
 
-func RegisterCommands(s *discordgo.Session) {
-	CheckCommandHandlers()
+func registerCommands(s *discordgo.Session) {
+	checkCommandHandlers()
 
 	// Remove previous commands
 	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)

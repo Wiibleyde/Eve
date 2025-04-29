@@ -9,18 +9,19 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.Bot {
 		return
 	}
 }
 
-func OnReady(s *discordgo.Session, r *discordgo.Ready) {
-	RegisterCommands(s)
+func onReady(s *discordgo.Session, r *discordgo.Ready) {
+	registerCommands(s)
+	go startStatusChange(s)
 	logger.InfoLogger.Println("Bot is ready!")
 }
 
-func InteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Type == discordgo.InteractionApplicationCommand {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			err := handler(s, i)

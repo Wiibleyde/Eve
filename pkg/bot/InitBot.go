@@ -20,9 +20,9 @@ func InitBot() {
 
 	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildMessageReactions | discordgo.IntentsGuildVoiceStates
 
-	dg.AddHandler(MessageCreate)
-	dg.AddHandler(OnReady)
-	dg.AddHandler(InteractionCreate)
+	dg.AddHandler(messageCreate)
+	dg.AddHandler(onReady)
+	dg.AddHandler(interactionCreate)
 
 	err = dg.Open()
 	if err != nil {

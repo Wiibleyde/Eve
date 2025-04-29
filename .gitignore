@@ -25,3 +25,5 @@ go.work.sum
 .env
 
 logs/
+
+.DS_Store
