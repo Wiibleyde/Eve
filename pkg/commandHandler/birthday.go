@@ -91,11 +91,36 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 		}
 	case "get":
 		userId := i.Member.User.ID
+
+		// Check if a user ID was provided as an option
+		if len(subCommand.Options) > 0 {
+			userOption := subCommand.Options[0].UserValue(s)
+			if userOption != nil {
+				userId = userOption.ID
+			}
+		}
+
 		client, ctx := data.GetDBClient()
 		globalUserData, err := client.GlobalUserData.FindUnique(
 			db.GlobalUserData.UserID.Equals(userId),
 		).Exec(ctx)
 		if err != nil {
+			if err.Error() == "ErrNotFound" {
+				embed := bot_utils.WarningEmbed(s, "Date de naissance demandée.")
+				embed.Description = "Aucune date de naissance trouvée pour <@" + userId + ">."
+				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Embeds: []*discordgo.MessageEmbed{embed},
+						Flags:  discordgo.MessageFlagsEphemeral,
+					},
+				})
+				if err != nil {
+					logger.ErrorLogger.Println("Error responding to interaction:", err)
+					return err
+				}
+				return nil
+			}
 			logger.ErrorLogger.Println("Error getting birth date:", err)
 			return err
 		}
@@ -118,7 +143,9 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			}
 			return nil
 		}
-		embed.Description = "Voici votre date de naissance : " + birthDateValue.Format("02/01/2006")
+		embed.Color = 0xCC9845
+		embed.Title = "Date de naissance demandée"
+		embed.Description = "Voici la date de naissance de <@" + userId + "> : " + birthDateValue.Format("02/01/2006")
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
