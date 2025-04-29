@@ -98,6 +98,63 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "config",
+			Description: "Configurer le bot",
+			// Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "set",
+					Description: "Configurer le bot",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "setting",
+							Description: "Paramètre à configurer",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Canal d'anniversaire",
+									Value: "birthday_channel",
+								},
+							},
+						},
+						{
+							Name:         "channel",
+							Description:  "Canal choisi",
+							Type:         discordgo.ApplicationCommandOptionChannel,
+							Required:     true,
+							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText},
+						},
+					},
+				},
+				{
+					Name:        "get",
+					Description: "Obtenir la configuration du bot",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "delete",
+					Description: "Supprimer la configuration du bot",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "setting",
+							Description: "Paramètre à supprimer",
+							Type:        discordgo.ApplicationCommandOptionString,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Canal d'anniversaire",
+									Value: "birthday_channel",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 
 		// Context menu user commands
 		{
@@ -116,6 +173,7 @@ var (
 		"ping":     commandHandler.PingHandler,
 		"birthday": commandHandler.BirthdayHandler,
 		"blague":   commandHandler.BlagueHandler,
+		"config":   commandHandler.ConfigHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,
