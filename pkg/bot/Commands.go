@@ -2,6 +2,7 @@ package bot
 
 import (
 	"main/pkg/commandHandler"
+	"main/pkg/contextMenuHandler"
 	"main/pkg/logger"
 
 	"github.com/bwmarrin/discordgo"
@@ -9,13 +10,16 @@ import (
 
 var (
 	commands = []*discordgo.ApplicationCommand{
+		// Slash commands
 		{
 			Name:        "ping",
 			Description: "Savoir si le bot est en ligne",
+			// Type:        discordgo.ChatApplicationCommand,
 		},
 		{
 			Name:        "birthday",
 			Description: "Gérer les anniversaires",
+			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -58,6 +62,7 @@ var (
 		{
 			Name:        "blague",
 			Description: "Obtenir une blague",
+			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "type",
@@ -93,11 +98,28 @@ var (
 				},
 			},
 		},
+
+		// Context menu user commands
+		{
+			Name: "Récupérer la photo de profil",
+			Type: discordgo.UserApplicationCommand,
+		},
+		{
+			Name: "Récupérer la bannière",
+			Type: discordgo.UserApplicationCommand,
+		},
+
+		// Context menu message commands
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
-		"ping": commandHandler.PingHandler,
+		// Slash commands
+		"ping":     commandHandler.PingHandler,
 		"birthday": commandHandler.BirthdayHandler,
-		"blague": commandHandler.BlagueHandler,
+		"blague":   commandHandler.BlagueHandler,
+
+		// Context menu user commands
+		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,
+		"Récupérer la bannière":        contextMenuHandler.BannerContextMenuHandler,
 	}
 )
 

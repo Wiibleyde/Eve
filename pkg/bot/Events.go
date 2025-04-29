@@ -25,6 +25,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+			//TODO: Handle errors of user and message commands
 			err := handler(s, i)
 			if err != nil {
 				logger.ErrorLogger.Println("Error handling command", i.ApplicationCommandData().Name, err)
@@ -40,35 +41,41 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					logger.ErrorLogger.Println("Error responding to interaction:", err)
 				}
 			}
-			args := i.ApplicationCommandData().Options
-			if len(args) > 0 {
-				var formattedArgs []string
-				for _, arg := range args {
-					var value interface{}
-					switch arg.Type {
-					case discordgo.ApplicationCommandOptionString:
-						value = arg.StringValue()
-					case discordgo.ApplicationCommandOptionInteger:
-						value = arg.IntValue()
-					case discordgo.ApplicationCommandOptionBoolean:
-						value = arg.BoolValue()
-					case discordgo.ApplicationCommandOptionUser:
-						value = arg.UserValue(s).Username
-					case discordgo.ApplicationCommandOptionChannel:
-						value = arg.ChannelValue(s).Name
-					case discordgo.ApplicationCommandOptionRole:
-						value = arg.RoleValue(s, i.GuildID).Name
-					default:
-						value = "unknown"
-					}
-					formattedArgs = append(formattedArgs, arg.Name+"="+fmt.Sprint(value))
-				}
-				logger.InfoLogger.Printf("Command executed: %s by %s (Args: %s)\n",
-					i.ApplicationCommandData().Name,
-					i.Member.User.Username,
-					strings.Join(formattedArgs, ", "))
+			if i.ApplicationCommandData().Type() == discordgo.InteractionType(discordgo.UserApplicationCommand) {
+				logger.InfoLogger.Println("User command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username+" on "+i.ApplicationCommandData().TargetID)
+			} else if i.ApplicationCommandData().Type() == discordgo.InteractionType(discordgo.MessageApplicationCommand) {
+				logger.InfoLogger.Println("Message command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username+" on "+i.ApplicationCommandData().TargetID)
 			} else {
-				logger.InfoLogger.Println("Command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username)
+				args := i.ApplicationCommandData().Options
+				if len(args) > 0 {
+					var formattedArgs []string
+					for _, arg := range args {
+						var value interface{}
+						switch arg.Type {
+						case discordgo.ApplicationCommandOptionString:
+							value = arg.StringValue()
+						case discordgo.ApplicationCommandOptionInteger:
+							value = arg.IntValue()
+						case discordgo.ApplicationCommandOptionBoolean:
+							value = arg.BoolValue()
+						case discordgo.ApplicationCommandOptionUser:
+							value = arg.UserValue(s).Username
+						case discordgo.ApplicationCommandOptionChannel:
+							value = arg.ChannelValue(s).Name
+						case discordgo.ApplicationCommandOptionRole:
+							value = arg.RoleValue(s, i.GuildID).Name
+						default:
+							value = "unknown"
+						}
+						formattedArgs = append(formattedArgs, arg.Name+"="+fmt.Sprint(value))
+					}
+					logger.InfoLogger.Printf("Command executed: %s by %s (Args: %s)\n",
+						i.ApplicationCommandData().Name,
+						i.Member.User.Username,
+						strings.Join(formattedArgs, ", "))
+				} else {
+					logger.InfoLogger.Println("Command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username)
+				}
 			}
 		} else {
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
