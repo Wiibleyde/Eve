@@ -79,5 +79,33 @@ func InteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				logger.ErrorLogger.Println("Error responding to unknown command interaction:", err)
 			}
 		}
+	} else if i.Type == discordgo.InteractionMessageComponent {
+		if handler, ok := componentHandlers[i.MessageComponentData().CustomID]; ok {
+			err := handler(s, i)
+			if err != nil {
+				logger.ErrorLogger.Println("Error handling component", i.MessageComponentData().CustomID, err)
+				embed := bot_utils.ErrorEmbed(s, err)
+				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Embeds: []*discordgo.MessageEmbed{embed},
+						Flags:  discordgo.MessageFlagsEphemeral,
+					},
+				})
+				if err != nil {
+					logger.ErrorLogger.Println("Error responding to interaction:", err)
+				}
+			}
+		} else {
+			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Unknown component",
+				},
+			})
+			if err != nil {
+				logger.ErrorLogger.Println("Error responding to unknown component interaction:", err)
+			}
+		}
 	}
 }

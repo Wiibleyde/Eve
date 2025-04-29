@@ -56,71 +56,39 @@ var (
 			},
 		},
 		{
-			Name:        "rolemanager",
-			Description: "Gérer les rôles",
+			Name:        "blague",
+			Description: "Obtenir une blague",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Name:        "create",
-					Description: "Créer un gestionnaire de rôles",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
+					Name:        "type",
+					Description: "Type de blague (certains types ont été censurés)",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
 						{
-							Name:        "role",
-							Description: "Rôle à ajouter au gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionRole,
-							Required:    true,
-						},
-					},
-				},
-				{
-					Name:        "delete",
-					Description: "Supprimer un gestionnaire de rôles",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Name:        "id",
-							Description: "ID du gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionString,
-							Required:    true,
-						},
-					},
-				},
-				{
-					Name:        "addrole",
-					Description: "Ajouter un rôle à un gestionnaire de rôles",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Name:        "id",
-							Description: "ID du gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionString,
-							Required:    true,
+							Name:  "Globale",
+							Value: "global",
 						},
 						{
-							Name:        "role",
-							Description: "Rôle à ajouter au gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionRole,
-							Required:    true,
-						},
-					},
-				},
-				{
-					Name:        "removerole",
-					Description: "Supprimer un rôle d'un gestionnaire de rôles",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Name:        "id",
-							Description: "ID du gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionString,
-							Required:    true,
+							Name:  "Programmation",
+							Value: "dev",
 						},
 						{
-							Name:        "role",
-							Description: "Rôle à supprimer du gestionnaire de rôles",
-							Type:        discordgo.ApplicationCommandOptionRole,
-							Required:    true,
+							Name:  "Beauf",
+							Value: "beauf",
 						},
+						// {
+						// 	Name:  "Dark",
+						// 	Value: "dark",
+						// },
+						// {
+						// 	Name:  "Limite",
+						// 	Value: "limit",
+						// },
+						// {
+						// 	Name:  "Blondes",
+						// 	Value: "blondes",
+						// },
 					},
 				},
 			},
@@ -128,8 +96,8 @@ var (
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
 		"ping": commandHandler.PingHandler,
-		//TODO: Add role manager handler
 		"birthday": commandHandler.BirthdayHandler,
+		"blague": commandHandler.BlagueHandler,
 	}
 )
 
