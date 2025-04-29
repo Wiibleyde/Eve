@@ -22,7 +22,8 @@ func onReady(s *discordgo.Session, r *discordgo.Ready) {
 }
 
 func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if i.Type == discordgo.InteractionApplicationCommand {
+	switch i.Type {
+	case discordgo.InteractionApplicationCommand:
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			err := handler(s, i)
 			if err != nil {
@@ -80,7 +81,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				logger.ErrorLogger.Println("Error responding to unknown command interaction:", err)
 			}
 		}
-	} else if i.Type == discordgo.InteractionMessageComponent {
+	case discordgo.InteractionMessageComponent:
 		if handler, ok := componentHandlers[i.MessageComponentData().CustomID]; ok {
 			err := handler(s, i)
 			if err != nil {
@@ -108,5 +109,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				logger.ErrorLogger.Println("Error responding to unknown component interaction:", err)
 			}
 		}
+	default:
+		logger.WarningLogger.Printf("Unhandled interaction type: %v\n", i.Type)
 	}
 }
