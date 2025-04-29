@@ -25,7 +25,6 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
-			//TODO: Handle errors of user and message commands
 			err := handler(s, i)
 			if err != nil {
 				logger.ErrorLogger.Println("Error handling command", i.ApplicationCommandData().Name, err)
@@ -41,11 +40,14 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					logger.ErrorLogger.Println("Error responding to interaction:", err)
 				}
 			}
-			if i.ApplicationCommandData().Type() == discordgo.InteractionType(discordgo.UserApplicationCommand) {
+			// Log based on the command type
+			cmdType := i.ApplicationCommandData().Type()
+			if cmdType == discordgo.InteractionType(discordgo.UserApplicationCommand) {
 				logger.InfoLogger.Println("User command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username+" on "+i.ApplicationCommandData().TargetID)
-			} else if i.ApplicationCommandData().Type() == discordgo.InteractionType(discordgo.MessageApplicationCommand) {
+			} else if cmdType == discordgo.InteractionType(discordgo.MessageApplicationCommand) {
 				logger.InfoLogger.Println("Message command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username+" on "+i.ApplicationCommandData().TargetID)
 			} else {
+				// For regular slash commands
 				args := i.ApplicationCommandData().Options
 				if len(args) > 0 {
 					var formattedArgs []string

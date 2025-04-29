@@ -1,6 +1,7 @@
 package contextMenuHandler
 
 import (
+	"errors"
 	"main/pkg/bot_utils"
 	"main/pkg/logger"
 
@@ -20,7 +21,7 @@ func ProfilePictureContextMenuHandler(s *discordgo.Session, i *discordgo.Interac
 	avatarURL := user.AvatarURL("1024")
 	if avatarURL == "" {
 		logger.ErrorLogger.Println("User has no avatar")
-		return err
+		return errors.New("this user has no avatar")
 	}
 
 	embed := bot_utils.BasicEmbedBuilder(s)

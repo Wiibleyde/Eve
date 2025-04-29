@@ -1,6 +1,7 @@
 package contextMenuHandler
 
 import (
+	"errors"
 	"main/pkg/bot_utils"
 	"main/pkg/logger"
 
@@ -20,7 +21,7 @@ func BannerContextMenuHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 	bannerURL := user.BannerURL("1024")
 	if bannerURL == "" {
 		logger.ErrorLogger.Println("User has no banner")
-		return err
+		return errors.New("this user has no banner")
 	}
 
 	embed := bot_utils.BasicEmbedBuilder(s)
