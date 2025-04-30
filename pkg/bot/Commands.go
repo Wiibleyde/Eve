@@ -259,26 +259,18 @@ func checkCommandHandlers() {
 func registerCommands(s *discordgo.Session) {
 	checkCommandHandlers()
 
-	// Remove previous commands
-	_, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
+	// Register all commands at once using BulkOverwrite which is more efficient
+	// This both removes old commands and adds the new ones in a single API call
+	registeredCommands, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
 	if err != nil {
-		logger.ErrorLogger.Printf("Impossible de supprimer les commandes précédentes: %v", err)
+		logger.ErrorLogger.Printf("Impossible d'enregistrer les commandes: %v", err)
 		return
 	}
-	logger.InfoLogger.Println("Suppression des commandes précédentes terminée !")
 
-	// Register new commands
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	logger.InfoLogger.Printf("Total de %v commandes enregistrées avec succès!", len(registeredCommands))
 
-	for i, v := range commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, "", v)
-		if err != nil {
-			logger.ErrorLogger.Printf("Impossible d'enregistrer la commande '%v': %v", v.Name, err)
-			continue
-		}
-		registeredCommands[i] = cmd
-		logger.InfoLogger.Printf("Commande '%v' enregistrée !", v.Name)
+	// Log each registered command for verification
+	for _, cmd := range registeredCommands {
+		logger.InfoLogger.Printf("Commande '%v' enregistrée !", cmd.Name)
 	}
-
-	logger.InfoLogger.Println("Enregistrement des commandes terminé !")
 }

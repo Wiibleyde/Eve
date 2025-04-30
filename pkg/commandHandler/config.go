@@ -70,6 +70,7 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed},
+				Flags:  discordgo.MessageFlagsEphemeral,
 			},
 		})
 		return err
