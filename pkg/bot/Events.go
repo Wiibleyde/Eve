@@ -42,7 +42,6 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 			// Log based on the command type
 			cmdType := i.ApplicationCommandData().CommandType
-			logger.DebugLogger.Println("Command type:", cmdType)
 			if cmdType == discordgo.UserApplicationCommand {
 				logger.InfoLogger.Println("User command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username+" on "+i.ApplicationCommandData().TargetID)
 			} else if cmdType == discordgo.MessageApplicationCommand {
