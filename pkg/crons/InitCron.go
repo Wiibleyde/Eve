@@ -20,10 +20,6 @@ func StartCron(bot *discordgo.Session) {
 		logger.ErrorLogger.Println("Error adding cron job:", err)
 		return
 	}
-	// For testing purposes, schedule the birthday check every 10 seconds
-	// _, err = c.AddFunc("*/10 * * * * *", func() {
-	// 	checkBirthdays(bot)
-	// })
 
 	c.Start()
 }

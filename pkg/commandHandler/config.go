@@ -1,6 +1,7 @@
 package commandHandler
 
 import (
+	"errors"
 	"main/pkg/data"
 	"main/pkg/logger"
 	"main/prisma/db"
@@ -11,7 +12,7 @@ import (
 func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	// Check if we have subcommands
 	if len(i.ApplicationCommandData().Options) == 0 {
-		return respondWithError(s, i, "No subcommand provided")
+		return errors.New("no subcommand provided")
 	}
 
 	subCommand := i.ApplicationCommandData().Options[0]
@@ -19,23 +20,19 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	case "set":
 		// Check if we have the required options for the set command
 		if len(subCommand.Options) < 2 {
-			return respondWithError(s, i, "Missing config key or value")
+			return errors.New("missing required options for set command")
 		}
 
 		// Safely access options
-		var strConfig, strValue string
+		var strConfig string
 
 		if subCommand.Options[0].Type == discordgo.ApplicationCommandOptionString {
 			strConfig = subCommand.Options[0].StringValue()
 		} else {
-			return respondWithError(s, i, "Config key must be a string")
+			return errors.New("config key must be a string")
 		}
 
-		if subCommand.Options[1].Type == discordgo.ApplicationCommandOptionString {
-			strValue = subCommand.Options[1].StringValue()
-		} else {
-			return respondWithError(s, i, "Config value must be a string")
-		}
+		channelValue := subCommand.Options[1].ChannelValue(s)
 
 		client, ctx := data.GetDBClient()
 		actualData, err := client.Config.FindMany(
@@ -48,7 +45,7 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		if len(actualData) == 0 {
 			_, err = client.Config.CreateOne(
 				db.Config.Key.Set(strConfig),
-				db.Config.Value.Set(strValue),
+				db.Config.Value.Set(channelValue.ID),
 				db.Config.GuildID.Set(i.GuildID),
 			).Exec(ctx)
 			if err != nil {
@@ -62,7 +59,7 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 					db.Config.Key.Equals(strConfig),
 				),
 			).Update(
-				db.Config.Value.Set(strValue),
+				db.Config.Value.Set(channelValue.ID),
 			).Exec(ctx)
 			if err != nil {
 				logger.ErrorLogger.Println("Error updating config:", err)
@@ -83,19 +80,4 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		return err
 	}
 	return nil
-}
-
-// Helper function to respond with error messages
-func respondWithError(s *discordgo.Session, i *discordgo.InteractionCreate, message string) error {
-	embed := &discordgo.MessageEmbed{
-		Description: "Error: " + message,
-		Color:       0xFF0000, // Red color for errors
-	}
-
-	return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{embed},
-		},
-	})
 }
