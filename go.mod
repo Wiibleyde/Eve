@@ -24,6 +24,7 @@ require (
 
 require (
 	github.com/bwmarrin/discordgo v0.28.1
+	github.com/gtuk/discordwebhook v1.2.0
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	golang.org/x/sys v0.32.0 // indirect

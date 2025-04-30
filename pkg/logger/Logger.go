@@ -1,12 +1,16 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"log"
+	"main/pkg/config"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/gtuk/discordwebhook"
 )
 
 var (
@@ -15,6 +19,17 @@ var (
 	ErrorLogger   *log.Logger
 	DebugLogger   *log.Logger
 )
+
+var ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+// ptrToString converts a string to a pointer to that string.
+func ptrToString(s string) *string {
+	return &s
+}
+
+func stripANSI(input string) string {
+	return ansiEscapeRegex.ReplaceAllString(input, "")
+}
 
 func getDate() string {
 	dt := time.Now()
@@ -75,10 +90,64 @@ type prefixWriter struct {
 // Write writes the log message to the output stream with the specified prefix.
 func (w *prefixWriter) Write(p []byte) (n int, err error) {
 	content := string(p)
+	finalContent := content
+
+	// Process the content to remove redundant prefixes
 	for i := 0; i < len(content); i++ {
 		if content[i] == ':' && i+1 < len(content) && content[i+1] == ' ' {
-			return w.out.Write([]byte(w.prefix + content[i+2:]))
+			finalContent = content[i+2:]
+			break
 		}
 	}
-	return w.out.Write([]byte(w.prefix + content))
+
+	// Log to Discord if configured
+	if config.GetConfig().WebhookUrl != "" {
+		LogToDiscord(finalContent, w.prefix)
+	}
+
+	return w.out.Write([]byte(w.prefix + finalContent))
+}
+
+func LogToDiscord(message string, level string) {
+	var username = "Panel"
+	var url = config.GetConfig().WebhookUrl
+
+	if len(message) > 1900 {
+		message = message[:1900] + "..." // Truncate the message if it exceeds 1900 characters
+	}
+
+	// Strip ANSI color codes from the level
+	cleanLevel := stripANSI(level)
+
+	embed := discordwebhook.Embed{
+		Title:       &cleanLevel,
+		Description: &message,
+		Color:       ptrToString(fmt.Sprintf("%d", getEmbedColor(cleanLevel))),
+	}
+
+	messageType := discordwebhook.Message{
+		Username: &username,
+		Embeds:   &[]discordwebhook.Embed{embed},
+	}
+
+	err := discordwebhook.SendMessage(url, messageType)
+	if err != nil {
+		// Don't use ErrorLogger here to avoid infinite recursion
+		log.Printf("Error sending message to discord: %s", err)
+	}
+}
+
+func getEmbedColor(level string) int {
+	switch level {
+	case "WARNING: ":
+		return 16776960 // Yellow
+	case "INFO: ":
+		return 255 // Blue
+	case "ERROR: ":
+		return 16711680 // Red
+	case "DEBUG: ":
+		return 65280 // Green
+	default:
+		return 0 // Default color
+	}
 }
