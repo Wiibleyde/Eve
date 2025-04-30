@@ -86,10 +86,12 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				}
 			}
 		} else {
+			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown command: %s", i.ApplicationCommandData().Name))
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "Unknown command",
+					Embeds: []*discordgo.MessageEmbed{embed},
+					Flags:  discordgo.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -114,10 +116,12 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				}
 			}
 		} else {
+			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown component: %s", i.MessageComponentData().CustomID))
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "Unknown component",
+					Embeds: []*discordgo.MessageEmbed{embed},
+					Flags:  discordgo.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
