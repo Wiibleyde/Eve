@@ -12,6 +12,7 @@ type Config struct {
 	DiscordClientId string
 	BlagueApiToken  string
 	OwnerId         string
+	WebhookUrl      string
 }
 
 var config *Config
@@ -39,6 +40,7 @@ func InitConfig() {
 		DiscordClientId: getRequiredEnv("DISCORD_CLIENT_ID"),
 		BlagueApiToken:  getRequiredEnv("BLAGUE_API_TOKEN"),
 		OwnerId:         getRequiredEnv("OWNER_ID"),
+		WebhookUrl:      getRequiredEnv("LOGS_WEBHOOK_URL"),
 	}
 }
 

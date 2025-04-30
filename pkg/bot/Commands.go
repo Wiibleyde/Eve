@@ -278,9 +278,4 @@ func registerCommands(s *discordgo.Session) {
 	}
 
 	logger.InfoLogger.Printf("Total de %v commandes enregistrées avec succès!", len(registeredCommands))
-
-	// Log each registered command for verification
-	for _, cmd := range registeredCommands {
-		logger.InfoLogger.Printf("Commande '%v' enregistrée !", cmd.Name)
-	}
 }
