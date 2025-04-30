@@ -11,8 +11,6 @@ import (
 	"main/pkg/logger"
 	"net/http"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -104,8 +102,8 @@ func CreateQuote(
 		dc.DrawImage(smokeImg, 0, bgHeight-smokeHeight)
 	}
 
-	// Set font for quote with bold font - increased size from 28 to 36
-	quoteFace, err := gg.LoadFontFace(boldFontPath, 36)
+	// Set font for quote with bold font 48
+	quoteFace, err := gg.LoadFontFace(boldFontPath, 48)
 	if err != nil {
 		logger.ErrorLogger.Println("Error loading font face for quote:", err)
 		return "", err
@@ -136,7 +134,7 @@ func CreateQuote(
 
 	// Handle context if provided
 	if context != "" {
-		contextFace, err := gg.LoadFontFace(lightItalicFontPath, 16) // Use italic font for context
+		contextFace, err := gg.LoadFontFace(lightItalicFontPath, 24) // Use italic font for context
 		if err != nil {
 			logger.ErrorLogger.Println("Error loading font face for context:", err)
 			return "", err
@@ -149,7 +147,7 @@ func CreateQuote(
 	}
 
 	// Add author and date
-	authorFace, err := gg.LoadFontFace(semiBoldFontPath, 22) // Use semibold font for author
+	authorFace, err := gg.LoadFontFace(semiBoldFontPath, 28) // Use semibold font for author
 	if err != nil {
 		logger.ErrorLogger.Println("Error loading font face for author:", err)
 		return "", err
@@ -208,49 +206,6 @@ func wrapText(dc *gg.Context, text string, maxWidth float64) string {
 
 	lines = append(lines, line)
 	return strings.Join(lines, "\n")
-}
-
-// fixMessage cleans up various message formats
-func fixMessage(message string) string {
-	// Remove the "" if they are at the beginning and end of the message
-	re := regexp.MustCompile(`^"(.+)"$`)
-	message = re.ReplaceAllString(message, "$1")
-
-	// Replace <@123456789012345678> with @username (simplified since we don't have Discord client)
-	userMention := regexp.MustCompile(`<@!?(\d+)>`)
-	message = userMention.ReplaceAllString(message, "@user")
-
-	// Replace <#123456789012345678> with #channel
-	channelMention := regexp.MustCompile(`<#(\d+)>`)
-	message = channelMention.ReplaceAllString(message, "#channel")
-
-	// Replace <@&123456789012345678> with @role
-	roleMention := regexp.MustCompile(`<@&(\d+)>`)
-	message = roleMention.ReplaceAllString(message, "@role")
-
-	// Replace <a:emoji_name:123456789012345678> with :emoji_name:
-	emoji := regexp.MustCompile(`<a?:(\w+):(\d+)>`)
-	message = emoji.ReplaceAllString(message, ":$1:")
-
-	// Replace <t:1234567890> with the date
-	timestamp := regexp.MustCompile(`<t:(\d+)>`)
-	message = timestamp.ReplaceAllStringFunc(message, func(match string) string {
-		re := regexp.MustCompile(`<t:(\d+)>`)
-		matches := re.FindStringSubmatch(match)
-		if len(matches) > 1 {
-			ts, err := strconv.ParseInt(matches[1], 10, 64)
-			if err != nil {
-				return match
-			}
-			date := time.Unix(ts, 0)
-			return date.Format("02/01/2006")
-		}
-		return match
-	})
-
-	// Additional timestamp formats could be implemented similarly
-
-	return message
 }
 
 // downloadImage downloads an image from the given URL and returns it as an image.Image
@@ -317,26 +272,6 @@ func resizeImage(img image.Image, width, height int) image.Image {
 	dc.DrawImage(img, 0, 0)
 
 	return dc.Image()
-}
-
-// Helper function to apply opacity to an image
-func applyOpacity(img image.Image, opacity float64) image.Image {
-	bounds := img.Bounds()
-	rgba := image.NewRGBA(bounds)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := img.At(x, y).RGBA()
-			// Convert from 16-bit to 8-bit and apply opacity
-			alpha := uint8(float64(a>>8) * opacity)
-			rgba.SetRGBA(x, y, color.RGBA{
-				R: uint8(r >> 8),
-				G: uint8(g >> 8),
-				B: uint8(b >> 8),
-				A: alpha,
-			})
-		}
-	}
-	return rgba
 }
 
 // Helper function to darken an image by drawing a transparent black rectangle over it

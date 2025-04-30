@@ -120,7 +120,11 @@ var (
 							Choices: []*discordgo.ApplicationCommandOptionChoice{
 								{
 									Name:  "Canal d'anniversaire",
-									Value: "birthday_channel",
+									Value: "birthdayChannel",
+								},
+								{
+									Name:  "Canal des citations",
+									Value: "quoteChannel",
 								},
 							},
 						},
@@ -151,7 +155,11 @@ var (
 							Choices: []*discordgo.ApplicationCommandOptionChoice{
 								{
 									Name:  "Canal d'anniversaire",
-									Value: "birthday_channel",
+									Value: "birthdayChannel",
+								},
+								{
+									Name:  "Canal des citations",
+									Value: "quoteChannel",
 								},
 							},
 						},
@@ -180,6 +188,35 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "quote",
+			Description: "Créer une citation",
+			// Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "citation",
+					Description: "Citation à créer",
+					Type:        discordgo.ApplicationCommandOptionString,
+					MinLength:   intPtr(1),
+					MaxLength:   256,
+					Required:    true,
+				},
+				{
+					Name:        "auteur",
+					Description: "Auteur de la citation",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+				{
+					Name:        "contexte",
+					Description: "Contexte de la citation",
+					Type:        discordgo.ApplicationCommandOptionString,
+					MinLength:   intPtr(1),
+					MaxLength:   256,
+					Required:    false,
+				},
+			},
+		},
 
 		// Context menu user commands
 		{
@@ -200,6 +237,7 @@ var (
 		"blague":   commandHandler.BlagueHandler,
 		"config":   commandHandler.ConfigHandler,
 		"talk":     commandHandler.TalkHandler,
+		"quote":    commandHandler.QuoteHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,

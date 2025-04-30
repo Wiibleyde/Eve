@@ -53,7 +53,7 @@ func checkBirthdays(bot *discordgo.Session) {
 		birthdayChannelConfig, err := client.Config.FindMany(
 			db.Config.And(
 				db.Config.GuildID.Equals(guildID),
-				db.Config.Key.Equals("birthday_channel"),
+				db.Config.Key.Equals("birthdayChannel"),
 			),
 		).Exec(ctx)
 
