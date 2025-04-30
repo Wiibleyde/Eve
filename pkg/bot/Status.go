@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"main/pkg/bot_utils"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -119,18 +120,33 @@ func startStatusChange(s *discordgo.Session) {
 	for {
 		currentTime := time.Now().UTC()
 
-		if currentTime.After(halloweenStatus.Period.StartDate) && currentTime.Before(halloweenStatus.Period.EndDate) {
-			currentConfig = halloweenStatus
-		} else if currentTime.After(christmasStatus.Period.StartDate) && currentTime.Before(christmasStatus.Period.EndDate) {
-			currentConfig = christmasStatus
+		if bot_utils.IsMaintenanceMode() {
+			s.UpdateStatusComplex(discordgo.UpdateStatusData{
+				IdleSince: nil,
+				Activities: []*discordgo.Activity{
+					{
+						Name: "la maintenance",
+						Type: discordgo.ActivityTypeWatching,
+					},
+				},
+				Status: "dnd",
+				AFK:    false,
+			})
+
 		} else {
-			currentConfig = defaultStatus
-		}
+			if currentTime.After(halloweenStatus.Period.StartDate) && currentTime.Before(halloweenStatus.Period.EndDate) {
+				currentConfig = halloweenStatus
+			} else if currentTime.After(christmasStatus.Period.StartDate) && currentTime.Before(christmasStatus.Period.EndDate) {
+				currentConfig = christmasStatus
+			} else {
+				currentConfig = defaultStatus
+			}
 
-		if len(currentConfig.Status) > 0 {
-			setStatus(s, currentConfig, currentIndex%len(currentConfig.Status))
+			if len(currentConfig.Status) > 0 {
+				setStatus(s, currentConfig, currentIndex%len(currentConfig.Status))
 
-			currentIndex++
+				currentIndex++
+			}
 		}
 
 		time.Sleep(10 * time.Second)
