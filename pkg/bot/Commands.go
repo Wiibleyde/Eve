@@ -221,6 +221,10 @@ var (
 			Name:        "debug",
 			Description: "[OWNER] Debug command",
 		},
+		{
+			Name:        "maintenance",
+			Description: "[OWNER] Mettre le bot en mode maintenance",
+		},
 
 		// Context menu user commands
 		{
@@ -236,13 +240,14 @@ var (
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
 		// Slash commands
-		"ping":     commandHandler.PingHandler,
-		"birthday": commandHandler.BirthdayHandler,
-		"blague":   commandHandler.BlagueHandler,
-		"config":   commandHandler.ConfigHandler,
-		"talk":     commandHandler.TalkHandler,
-		"quote":    commandHandler.QuoteHandler,
-		"debug":    commandHandler.DebugHandler,
+		"ping":        commandHandler.PingHandler,
+		"birthday":    commandHandler.BirthdayHandler,
+		"blague":      commandHandler.BlagueHandler,
+		"config":      commandHandler.ConfigHandler,
+		"talk":        commandHandler.TalkHandler,
+		"quote":       commandHandler.QuoteHandler,
+		"debug":       commandHandler.DebugHandler,
+		"maintenance": commandHandler.MaintenanceHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,

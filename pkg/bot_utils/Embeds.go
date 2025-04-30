@@ -1,6 +1,7 @@
 package bot_utils
 
 import (
+	"main/pkg/logger"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -42,3 +43,22 @@ func WarningEmbed(s *discordgo.Session, reason string) *discordgo.MessageEmbed {
 	return embed
 }
 
+func MaintenanceModeEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	embed := BasicEmbedBuilder(s)
+	embed.Title = "Mode Maintenance"
+	embed.Description = "Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard."
+	embed.Color = 0xFFA500
+	embed.Footer.Text = "Eve – En maintenance"
+	embed.Timestamp = time.Now().Format("2006-01-02T15:04:05Z07:00")
+
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{embed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
+		logger.ErrorLogger.Println("Error responding to interaction:", err)
+	}
+}

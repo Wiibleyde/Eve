@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"main/pkg/bot_utils"
+	"main/pkg/config"
 	"main/pkg/logger"
 	"strings"
 
@@ -22,6 +23,11 @@ func onReady(s *discordgo.Session, r *discordgo.Ready) {
 }
 
 func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	if bot_utils.IsMaintenanceMode() && i.Member.User.ID != config.GetConfig().OwnerId {
+		logger.WarningLogger.Println("Maintenance mode is enabled. Ignoring interaction from", i.Member.User.Username)
+		bot_utils.MaintenanceModeEmbed(s, i)
+		return
+	}
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
