@@ -8,6 +8,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+func intPtr(i int) *int {
+	return &i
+}
+
 var (
 	commands = []*discordgo.ApplicationCommand{
 		// Slash commands
@@ -155,6 +159,27 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "talk",
+			Description: "Faire parler le bot",
+			// Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "message",
+					MinLength:   intPtr(1),
+					MaxLength:   2000,
+					Description: "Message à faire dire",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+				{
+					Name:        "mp",
+					Description: "Dans le MPs de l'utilisateur ?",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    false,
+				},
+			},
+		},
 
 		// Context menu user commands
 		{
@@ -174,6 +199,7 @@ var (
 		"birthday": commandHandler.BirthdayHandler,
 		"blague":   commandHandler.BlagueHandler,
 		"config":   commandHandler.ConfigHandler,
+		"talk":     commandHandler.TalkHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,
