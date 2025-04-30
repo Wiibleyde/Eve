@@ -217,6 +217,10 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "debug",
+			Description: "[OWNER] Debug command",
+		},
 
 		// Context menu user commands
 		{
@@ -238,6 +242,7 @@ var (
 		"config":   commandHandler.ConfigHandler,
 		"talk":     commandHandler.TalkHandler,
 		"quote":    commandHandler.QuoteHandler,
+		"debug":    commandHandler.DebugHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,

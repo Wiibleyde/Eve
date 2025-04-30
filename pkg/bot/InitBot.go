@@ -11,7 +11,7 @@ import (
 )
 
 func InitBot() {
-	logger.InfoLogger.Println("Starting bot... Please wait.")
+	logger.InfoLogger.Println("Starting bot...")
 	dg, err := discordgo.New("Bot " + config.GetConfig().DiscordToken)
 	if err != nil {
 		logger.ErrorLogger.Panicln("[PANIC] Error creating Discord session,", err)

@@ -11,6 +11,7 @@ type Config struct {
 	DiscordToken    string
 	DiscordClientId string
 	BlagueApiToken  string
+	OwnerId         string
 }
 
 var config *Config
@@ -37,6 +38,7 @@ func InitConfig() {
 		DiscordToken:    getRequiredEnv("DISCORD_TOKEN"),
 		DiscordClientId: getRequiredEnv("DISCORD_CLIENT_ID"),
 		BlagueApiToken:  getRequiredEnv("BLAGUE_API_TOKEN"),
+		OwnerId:         getRequiredEnv("OWNER_ID"),
 	}
 }
 
