@@ -95,7 +95,7 @@ func (w *prefixWriter) Write(p []byte) (n int, err error) {
 	// Process the content to remove redundant prefixes
 	for i := 0; i < len(content); i++ {
 		if content[i] == ':' && i+1 < len(content) && content[i+1] == ' ' {
-			finalContent = content[i+2:]
+			finalContent = content[i+1:]
 			break
 		}
 	}
@@ -113,11 +113,13 @@ func LogToDiscord(message string, level string) {
 	var url = config.GetConfig().WebhookUrl
 
 	if len(message) > 1900 {
-		message = message[:1900] + "..." // Truncate the message if it exceeds 1900 characters
+		message = message[:1900] + "..."
 	}
 
-	// Strip ANSI color codes from the level
 	cleanLevel := stripANSI(level)
+	if len(cleanLevel) > 0 && cleanLevel[len(cleanLevel)-1] == ':' {
+		cleanLevel = cleanLevel[:len(cleanLevel)-1]
+	}
 
 	embed := discordwebhook.Embed{
 		Title:       &cleanLevel,
