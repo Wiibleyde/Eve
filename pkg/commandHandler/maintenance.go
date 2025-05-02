@@ -3,7 +3,6 @@ package commandHandler
 import (
 	"main/pkg/bot_utils"
 	"main/pkg/config"
-	"main/pkg/logger"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -20,7 +19,6 @@ func MaintenanceHandler(s *discordgo.Session, i *discordgo.InteractionCreate) er
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error sending response:", err)
 			return err
 		}
 		return nil
@@ -44,7 +42,6 @@ func MaintenanceHandler(s *discordgo.Session, i *discordgo.InteractionCreate) er
 		},
 	})
 	if err != nil {
-		logger.ErrorLogger.Println("Error sending response:", err)
 		return err
 	}
 	return nil

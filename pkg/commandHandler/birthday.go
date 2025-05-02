@@ -69,7 +69,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			db.GlobalUserData.BirthDate.Set(birthDate),
 		).Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error setting birth date:", err)
 			return err
 		}
 		embed := bot_utils.SuccessEmbed(s, "Date de naissance définie avec succès.")
@@ -86,7 +85,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 	case "get":
@@ -116,12 +114,10 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 					},
 				})
 				if err != nil {
-					logger.ErrorLogger.Println("Error responding to interaction:", err)
 					return err
 				}
 				return nil
 			}
-			logger.ErrorLogger.Println("Error getting birth date:", err)
 			return err
 		}
 		birthDate := globalUserData.BirthDate
@@ -138,7 +134,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 				},
 			})
 			if err != nil {
-				logger.ErrorLogger.Println("Error responding to interaction:", err)
 				return err
 			}
 			return nil
@@ -154,7 +149,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 	case "delete":
@@ -166,7 +160,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			db.GlobalUserData.BirthDate.SetOptional(nil),
 		).Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error deleting birth date:", err)
 			return err
 		}
 		embed := bot_utils.SuccessEmbed(s, "Date de naissance supprimée avec succès.")
@@ -178,14 +171,12 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 	case "list":
 		// Fetch members
 		members, err := s.GuildMembers(i.GuildID, "", 1000)
 		if err != nil {
-			logger.ErrorLogger.Println("Error fetching guild members:", err)
 			return err
 		}
 
@@ -204,7 +195,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			db.GlobalUserData.BirthDate.Field(),
 		).Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error getting birthdays:", err)
 			return err
 		}
 		if len(birthdays) == 0 {
@@ -218,7 +208,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 				},
 			})
 			if err != nil {
-				logger.ErrorLogger.Println("Error responding to interaction:", err)
 				return err
 			}
 			return nil
@@ -260,7 +249,6 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	"io"
 	"main/pkg/bot_utils"
 	"main/pkg/config"
-	"main/pkg/logger"
 	"net/http"
 	"strings"
 
@@ -28,7 +27,6 @@ func BlagueHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.ErrorLogger.Println("Error creating request:", err)
 		return err
 	}
 	req.Header.Set("Accept", "application/json")
@@ -37,18 +35,15 @@ func BlagueHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	req.URL.Path = strings.Replace(req.URL.Path, "<TYPE>", typeAsked, 1)
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		logger.ErrorLogger.Println("Error making request:", err)
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		logger.ErrorLogger.Println("Error response from API:", resp.Status)
 		return err
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.ErrorLogger.Println("Error reading response body:", err)
 		return err
 	}
 
@@ -57,7 +52,6 @@ func BlagueHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	var blague Blague
 	err = json.NewDecoder(resp.Body).Decode(&blague)
 	if err != nil {
-		logger.ErrorLogger.Println("Error decoding response:", err)
 		return err
 	}
 
@@ -94,7 +88,6 @@ func BlagueHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		},
 	})
 	if err != nil {
-		logger.ErrorLogger.Println("Error sending response:", err)
 		return err
 	}
 	return nil

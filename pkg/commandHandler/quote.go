@@ -2,9 +2,9 @@ package commandHandler
 
 import (
 	"errors"
+	"main/pkg/bot_utils"
 	"main/pkg/data"
 	"main/pkg/image_generator"
-	"main/pkg/logger"
 	"main/prisma/db"
 	"os"
 	"time"
@@ -22,7 +22,6 @@ func QuoteHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 
 	// Check if the quote is empty
 	if strQuote == "" {
-		logger.ErrorLogger.Println("Quote is empty")
 		return errors.New("quote cannot be empty")
 	}
 
@@ -34,14 +33,12 @@ func QuoteHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	avatarURL := author.AvatarURL("1024")
 	path, err := image_generator.CreateQuote(strQuote, author.GlobalName, context, formattedDate, avatarURL)
 	if err != nil {
-		logger.ErrorLogger.Println("Error creating quote:", err)
 		return err
 	}
 
 	// Open the file for reading
 	fileReader, err := os.Open(path)
 	if err != nil {
-		logger.ErrorLogger.Println("Error opening quote image file:", err)
 		return err
 	}
 	defer fileReader.Close()
@@ -54,7 +51,6 @@ func QuoteHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		),
 	).Exec(ctx)
 	if err != nil {
-		logger.ErrorLogger.Println("Error retrieving quote channel config:", err)
 		return err
 	}
 
@@ -85,7 +81,18 @@ func QuoteHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	// Send the message with the image
 	_, err = s.ChannelMessageSendComplex(channelID, messageData)
 	if err != nil {
-		logger.ErrorLogger.Println("Error sending message with quote image:", err)
+		return err
+	}
+
+	embed := bot_utils.SuccessEmbed(s, "Citation envoyé avec succès !")
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{embed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
 		return err
 	}
 

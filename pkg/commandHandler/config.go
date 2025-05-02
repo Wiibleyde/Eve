@@ -4,7 +4,6 @@ import (
 	"errors"
 	"main/pkg/bot_utils"
 	"main/pkg/data"
-	"main/pkg/logger"
 	"main/prisma/db"
 
 	"github.com/bwmarrin/discordgo"
@@ -37,7 +36,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			db.Config.GuildID.Equals(i.GuildID),
 		).Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error updating config:", err)
 			return err
 		}
 		if len(actualData) == 0 {
@@ -47,7 +45,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 				db.Config.GuildID.Set(i.GuildID),
 			).Exec(ctx)
 			if err != nil {
-				logger.ErrorLogger.Println("Error creating config:", err)
 				return err
 			}
 		} else {
@@ -60,7 +57,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 				db.Config.Value.Set(channelValue.ID),
 			).Exec(ctx)
 			if err != nil {
-				logger.ErrorLogger.Println("Error updating config:", err)
 				return err
 			}
 		}
@@ -80,7 +76,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			db.Config.GuildID.Equals(i.GuildID),
 		).Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error fetching config:", err)
 			return err
 		}
 		if len(configs) == 0 {
@@ -93,7 +88,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 				},
 			})
 			if err != nil {
-				logger.ErrorLogger.Println("Error responding to interaction:", err)
 				return err
 			}
 			return nil
@@ -116,7 +110,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 		return nil
@@ -137,7 +130,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			db.Config.Key.Equals(strConfig),
 		).Delete().Exec(ctx)
 		if err != nil {
-			logger.ErrorLogger.Println("Error deleting config:", err)
 			return err
 		}
 		embed := bot_utils.SuccessEmbed(s, "Configuration supprimée avec succès.")
@@ -149,7 +141,6 @@ func ConfigHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error responding to interaction:", err)
 			return err
 		}
 	}

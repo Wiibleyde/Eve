@@ -1,6 +1,7 @@
 package bot_utils
 
 import (
+	"main/pkg/config"
 	"main/pkg/logger"
 	"time"
 
@@ -30,7 +31,13 @@ func SuccessEmbed(s *discordgo.Session, reason string) *discordgo.MessageEmbed {
 func ErrorEmbed(s *discordgo.Session, reason error) *discordgo.MessageEmbed {
 	embed := BasicEmbedBuilder(s)
 	embed.Title = "Oops ! Une erreur s'est produite"
-	embed.Description = reason.Error()
+	embed.Description = "Veuillez nous excuser pour cette erreur. (N'hésitez pas à signaler l'erreur à<@" + config.GetConfig().OwnerId + ">.)"
+	embed.Fields = []*discordgo.MessageEmbedField{
+		{
+			Name:  "Détails de l'erreur",
+			Value: reason.Error(),
+		},
+	}
 	embed.Color = 0xFF0000
 	return embed
 }

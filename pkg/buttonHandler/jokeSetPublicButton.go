@@ -2,7 +2,6 @@ package buttonHandler
 
 import (
 	"main/pkg/bot_utils"
-	"main/pkg/logger"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -27,7 +26,7 @@ func JokeSetPublicButton(s *discordgo.Session, i *discordgo.InteractionCreate) e
 
 	_, err := s.ChannelMessageSendEmbed(channel, embed)
 	if err != nil {
-		logger.ErrorLogger.Println("Error sending message:", err)
+		return err
 	}
 
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -38,7 +37,6 @@ func JokeSetPublicButton(s *discordgo.Session, i *discordgo.InteractionCreate) e
 		},
 	})
 	if err != nil {
-		logger.ErrorLogger.Println("Error responding to interaction:", err)
 		return err
 	}
 	return nil

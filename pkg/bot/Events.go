@@ -43,7 +43,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					},
 				})
 				if err != nil {
-					logger.ErrorLogger.Println("Error responding to interaction:", err)
+					logger.ErrorLogger.Println("Error of errors responding to interaction:", err)
 				}
 			}
 			// Log based on the command type

@@ -4,7 +4,6 @@ import (
 	"main/pkg/bot_utils"
 	"main/pkg/config"
 	"main/pkg/data"
-	"main/pkg/logger"
 	"main/prisma/db"
 
 	"github.com/bwmarrin/discordgo"
@@ -30,7 +29,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			},
 		})
 		if err != nil {
-			logger.ErrorLogger.Println("Error sending response:", err)
 			return err
 		}
 		return nil
@@ -44,14 +42,12 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		},
 	})
 	if err != nil {
-		logger.ErrorLogger.Println("Error acknowledging interaction:", err)
 		return err
 	}
 
 	// Fetch the server/guild
 	guild, err := s.Guild(i.GuildID)
 	if err != nil {
-		logger.ErrorLogger.Printf("Failed to fetch guild %s: %v", i.GuildID, err)
 		_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 			Content: "Impossible de trouver le serveur",
 			Flags:   discordgo.MessageFlagsEphemeral,
@@ -75,7 +71,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			).Exec(ctx)
 
 			if err != nil {
-				logger.ErrorLogger.Printf("Failed to create guild data: %v", err)
 				_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Content: "Erreur lors de la création des données du serveur",
 					Flags:   discordgo.MessageFlagsEphemeral,
@@ -92,7 +87,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			}
 			role, err := s.GuildRoleCreate(i.GuildID, roleData)
 			if err != nil {
-				logger.ErrorLogger.Printf("Failed to create debug role: %v", err)
 				_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 					Content: "Impossible de créer le rôle de debug",
 					Flags:   discordgo.MessageFlagsEphemeral,
@@ -108,14 +102,12 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			).Exec(ctx)
 
 			if err != nil {
-				logger.ErrorLogger.Printf("Failed to update guild with debug role: %v", err)
 				return err
 			}
 
 			// Add role to the user
 			err = s.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, role.ID)
 			if err != nil {
-				logger.ErrorLogger.Printf("Failed to add role to user: %v", err)
 				return err
 			}
 
@@ -125,7 +117,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 			})
 			return err
 		}
-		logger.ErrorLogger.Printf("Failed to query guild data: %v", err)
 		return err
 	}
 
@@ -143,7 +134,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		}
 		role, err := s.GuildRoleCreate(i.GuildID, roleData)
 		if err != nil {
-			logger.ErrorLogger.Printf("Failed to create debug role: %v", err)
 			_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 				Content: "Impossible de créer le rôle de debug",
 				Flags:   discordgo.MessageFlagsEphemeral,
@@ -159,7 +149,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		).Exec(ctx)
 
 		if err != nil {
-			logger.ErrorLogger.Printf("Failed to update guild with debug role: %v", err)
 			return err
 		}
 	}
@@ -167,7 +156,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	// Check if user has the role
 	member, err := s.GuildMember(i.GuildID, i.Member.User.ID)
 	if err != nil {
-		logger.ErrorLogger.Printf("Failed to get guild member: %v", err)
 		return err
 	}
 
@@ -185,7 +173,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		// Remove role
 		err = s.GuildMemberRoleRemove(i.GuildID, i.Member.User.ID, debugRoleID)
 		if err != nil {
-			logger.ErrorLogger.Printf("Failed to remove role: %v", err)
 			return err
 		}
 		responseContent = "Vous n'êtes plus en mode debug sur le serveur " + guild.Name
@@ -193,7 +180,6 @@ func DebugHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		// Add role
 		err = s.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, debugRoleID)
 		if err != nil {
-			logger.ErrorLogger.Printf("Failed to add role: %v", err)
 			return err
 		}
 		responseContent = "Vous êtes maintenant en mode debug sur le serveur " + guild.Name
