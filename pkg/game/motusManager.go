@@ -137,7 +137,7 @@ func (g *MotusGame) GetEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 	embed.Title = "Motus"
 
 	if g.GameState == MotusGameStatePlaying {
-		embed.Description = "Essaye de deviner le mot ! \n(Mot en + " + fmt.Sprint(len(g.Word)) + " lettres)"
+		embed.Description = "Essaye de deviner le mot ! \nLe mot à trouver fait " + fmt.Sprint(len(g.Word)) + " lettres et commence par " + string(g.Word[0]) + "."
 	} else if g.GameState == MotusGameStateWon {
 		embed.Description = "Bravo ! Vous avez trouvé le mot !"
 	} else if g.GameState == MotusGameStateLost {
@@ -162,6 +162,9 @@ func (g *MotusGame) GetEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 		tryStr := ""
 		for _, letter := range motusTry.Try {
 			tryStr += " " + string(letter) + " "
+		}
+		if len(tryStr) > 0 {
+			tryStr = tryStr[:len(tryStr)-1]
 		}
 		tryStr = "`" + tryStr + "`"
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
