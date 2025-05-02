@@ -128,6 +128,36 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				logger.ErrorLogger.Println("Error responding to unknown component interaction:", err)
 			}
 		}
+	case discordgo.InteractionModalSubmit:
+		if handler, ok := modalHandlers[i.ModalSubmitData().CustomID]; ok {
+			err := handler(s, i)
+			if err != nil {
+				logger.ErrorLogger.Println("Error handling modal", i.ModalSubmitData().CustomID, err)
+				embed := bot_utils.ErrorEmbed(s, err)
+				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Embeds: []*discordgo.MessageEmbed{embed},
+						Flags:  discordgo.MessageFlagsEphemeral,
+					},
+				})
+				if err != nil {
+					logger.ErrorLogger.Println("Error responding to interaction:", err)
+				}
+			}
+		} else {
+			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown modal: %s", i.ModalSubmitData().CustomID))
+			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed{embed},
+					Flags:  discordgo.MessageFlagsEphemeral,
+				},
+			})
+			if err != nil {
+				logger.ErrorLogger.Println("Error responding to unknown modal interaction:", err)
+			}
+		}
 	default:
 		logger.WarningLogger.Printf("Unhandled interaction type: %v\n", i.Type)
 	}

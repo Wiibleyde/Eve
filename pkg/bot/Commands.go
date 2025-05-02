@@ -225,6 +225,10 @@ var (
 			Name:        "maintenance",
 			Description: "[OWNER] Mettre le bot en mode maintenance",
 		},
+		{
+			Name:        "motus",
+			Description: "Lancer une partie de motus",
+		},
 
 		// Context menu user commands
 		{
@@ -248,6 +252,7 @@ var (
 		"quote":       commandHandler.QuoteHandler,
 		"debug":       commandHandler.DebugHandler,
 		"maintenance": commandHandler.MaintenanceHandler,
+		"motus":       commandHandler.MotusCommand,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,
