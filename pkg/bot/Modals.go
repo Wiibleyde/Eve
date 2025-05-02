@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"main/pkg/modalHandler"
+	"main/pkg/interactions/modalHandler"
 
 	"github.com/bwmarrin/discordgo"
 )

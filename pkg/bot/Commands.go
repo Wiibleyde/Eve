@@ -1,8 +1,8 @@
 package bot
 
 import (
-	"main/pkg/commandHandler"
-	"main/pkg/contextMenuHandler"
+	"main/pkg/interactions/commandHandler"
+	"main/pkg/interactions/contextMenuHandler"
 	"main/pkg/logger"
 
 	"github.com/bwmarrin/discordgo"

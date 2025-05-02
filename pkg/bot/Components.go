@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"main/pkg/buttonHandler"
+	"main/pkg/interactions/buttonHandler"
 
 	"github.com/bwmarrin/discordgo"
 )
