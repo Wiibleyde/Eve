@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/pkg/bot_utils"
 	"main/pkg/config"
+	"main/pkg/intelligence"
 	"main/pkg/logger"
 	"strings"
 
@@ -13,6 +14,10 @@ import (
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.Bot {
 		return
+	}
+
+	if m.GuildID != "" {
+		logger.DebugLogger.Println(intelligence.SendMessageToAIChat(s, m.GuildID, m.Content, m.Author.ID))
 	}
 }
 

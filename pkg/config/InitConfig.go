@@ -13,6 +13,7 @@ type Config struct {
 	BlagueApiToken  string
 	OwnerId         string
 	WebhookUrl      string
+	GoogleApiKey    string
 }
 
 var config *Config
@@ -41,6 +42,7 @@ func InitConfig() {
 		BlagueApiToken:  getRequiredEnv("BLAGUE_API_TOKEN"),
 		OwnerId:         getRequiredEnv("OWNER_ID"),
 		WebhookUrl:      getRequiredEnv("LOGS_WEBHOOK_URL"),
+		GoogleApiKey:    getRequiredEnv("GOOGLE_API_KEY"),
 	}
 }
 
