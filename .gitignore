@@ -28,3 +28,4 @@ logs/
 
 .DS_Store
 
+assets/generated/*

@@ -3,8 +3,8 @@ package commandHandler
 import (
 	"errors"
 	"main/pkg/data"
+	"main/pkg/image_generator"
 	"main/pkg/logger"
-	"main/pkg/quote"
 	"main/prisma/db"
 	"os"
 	"time"
@@ -32,7 +32,7 @@ func QuoteHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 
 	// Get user profile picture
 	avatarURL := author.AvatarURL("1024")
-	path, err := quote.CreateQuote(strQuote, author.GlobalName, context, formattedDate, avatarURL)
+	path, err := image_generator.CreateQuote(strQuote, author.GlobalName, context, formattedDate, avatarURL)
 	if err != nil {
 		logger.ErrorLogger.Println("Error creating quote:", err)
 		return err

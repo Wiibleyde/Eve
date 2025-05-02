@@ -1,4 +1,4 @@
-package quote
+package image_generator
 
 import (
 	"errors"
@@ -11,20 +11,23 @@ import (
 	"main/pkg/logger"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/fogleman/gg"
+	"github.com/google/uuid"
 )
 
 const (
-	smokePath           = "assets/img/smoke.png"
-	boldFontPath        = "assets/fonts/Montserrat-Bold.ttf"
-	lightItalicFontPath = "assets/fonts/Montserrat-LightItalic.ttf"
-	semiBoldFontPath    = "assets/fonts/Montserrat-SemiBold.ttf"
-	quoteMaxWidth       = 550
-	maxQuoteLength      = 200
-	maxContextLength    = 200
+	smokePath            = "assets/img/smoke.png"
+	boldFontPath         = "assets/fonts/Montserrat-Bold.ttf"
+	lightItalicFontPath  = "assets/fonts/Montserrat-LightItalic.ttf"
+	semiBoldFontPath     = "assets/fonts/Montserrat-SemiBold.ttf"
+	quoteMaxWidth        = 550
+	maxQuoteLength       = 200
+	maxContextLength     = 200
+	imageCleanupDuration = 24 * time.Hour // Duration after which images are deleted
 )
 
 func CreateQuote(
@@ -36,12 +39,9 @@ func CreateQuote(
 ) (string, error) {
 	logger.InfoLogger.Println("Creating quote image...")
 
-	// Delete the previous quote image if it exists
-	err := os.Remove("assets/quote_output.png")
-	if err != nil && !os.IsNotExist(err) {
-		logger.ErrorLogger.Println("Error deleting previous quote image:", err)
-		return "", err
-	}
+	// Generate a unique filename using UUID
+	uuid := uuid.New().String()
+	outputPath := filepath.Join("assets/generated", fmt.Sprintf("quote_output_%s.png", uuid))
 
 	// Input validation
 	if quote == "" {
@@ -169,7 +169,6 @@ func CreateQuote(
 	dc.DrawString(authorText, authorXPosition, 360)
 
 	// Save the image to a file
-	outputPath := "assets/quote_output.png"
 	err = dc.SavePNG(outputPath)
 	if err != nil {
 		logger.ErrorLogger.Println("Error saving quote image:", err)
@@ -177,6 +176,9 @@ func CreateQuote(
 	}
 
 	logger.InfoLogger.Println("Quote image created successfully:", outputPath)
+
+	// Schedule cleanup of old images
+	go cleanupOldImages("assets/generated", imageCleanupDuration)
 
 	// Return the path to the generated image
 	return outputPath, nil
@@ -346,4 +348,36 @@ func loadSmokeImage(path string, targetWidth int) (image.Image, error) {
 	resizedSmoke := resizeImage(smokeImg, targetWidth, newHeight)
 
 	return resizedSmoke, nil
+}
+
+func cleanupOldImages(directory string, maxAge time.Duration) {
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		logger.ErrorLogger.Printf("Error reading directory for cleanup: %v", err)
+		return
+	}
+
+	now := time.Now()
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		filePath := filepath.Join(directory, file.Name())
+		info, err := os.Stat(filePath)
+		if err != nil {
+			logger.ErrorLogger.Printf("Error getting file info for cleanup: %v", err)
+			continue
+		}
+
+		// Check if the file is older than the max age
+		if now.Sub(info.ModTime()) > maxAge {
+			err := os.Remove(filePath)
+			if err != nil {
+				logger.ErrorLogger.Printf("Error deleting old file: %v", err)
+			} else {
+				logger.InfoLogger.Printf("Deleted old file: %s", filePath)
+			}
+		}
+	}
 }
