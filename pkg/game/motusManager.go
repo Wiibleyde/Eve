@@ -150,13 +150,13 @@ func (g *MotusGame) GetEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 		for _, state := range motusTry.Correction {
 			switch state {
 			case MotusLetterStateFound:
-				correctionStr += "🟩"
+				correctionStr += "🟩 "
 			case MotusLetterStateMisplaced:
-				correctionStr += "🟨"
+				correctionStr += "🟨 "
 			case MotusLetterStateNotFound:
-				correctionStr += "🟥"
+				correctionStr += "🟥 "
 			case MotusLetterStateEmpty:
-				correctionStr += "⬜"
+				correctionStr += "⬜ "
 			}
 		}
 		tryStr := ""
@@ -175,7 +175,8 @@ func (g *MotusGame) GetEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 
 func (g *MotusGame) GetComponents() []discordgo.MessageComponent {
 	button := &discordgo.Button{
-		Label:    "Jouer un essai",
+		Label:    "Tenter un mot",
+		Emoji:    &discordgo.ComponentEmoji{Name: "🔤"},
 		Style:    discordgo.PrimaryButton,
 		CustomID: "motusTryButton",
 	}

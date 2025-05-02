@@ -5,6 +5,8 @@ import (
 	"main/pkg/bot_utils"
 	"main/pkg/game"
 
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -24,6 +26,8 @@ func MotusTryButton(s *discordgo.Session, i *discordgo.InteractionCreate) error 
 		})
 	}
 
+	wordLength := len(game.Word)
+
 	// Open modal to get the user's guess
 	modal := &discordgo.InteractionResponseData{
 		CustomID: "motusTryModal",
@@ -33,11 +37,11 @@ func MotusTryButton(s *discordgo.Session, i *discordgo.InteractionCreate) error 
 				Components: []discordgo.MessageComponent{
 					&discordgo.TextInput{
 						CustomID:    "motusTryInput",
-						Label:       "Entrez votre essai",
+						Label:       "Votre essai",
 						Style:       discordgo.TextInputShort,
-						Placeholder: "Entrez un mot de 5 lettres",
-						MaxLength:   5,
-						MinLength:   5,
+						Placeholder: "Entrez un mot de " + fmt.Sprint(wordLength) + " lettres",
+						MaxLength:   wordLength,
+						MinLength:   wordLength,
 					},
 				},
 			},
