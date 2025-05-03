@@ -59,7 +59,6 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			err := handler(s, i)
 			if err != nil {
-				logger.ErrorLogger.Println("Error handling command", i.ApplicationCommandData().Name, err)
 				embed := bot_utils.ErrorEmbed(s, err)
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -125,10 +124,11 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 		}
 	case discordgo.InteractionMessageComponent:
-		if handler, ok := componentHandlers[i.MessageComponentData().CustomID]; ok {
+		// Split customID at -- 
+		customId := strings.Split(i.MessageComponentData().CustomID, "--")[0]
+		if handler, ok := componentHandlers[customId]; ok {
 			err := handler(s, i)
 			if err != nil {
-				logger.ErrorLogger.Println("Error handling component", i.MessageComponentData().CustomID, err)
 				embed := bot_utils.ErrorEmbed(s, err)
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -158,7 +158,6 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := modalHandlers[i.ModalSubmitData().CustomID]; ok {
 			err := handler(s, i)
 			if err != nil {
-				logger.ErrorLogger.Println("Error handling modal", i.ModalSubmitData().CustomID, err)
 				embed := bot_utils.ErrorEmbed(s, err)
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,

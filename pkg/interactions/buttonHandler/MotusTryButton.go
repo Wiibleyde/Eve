@@ -4,6 +4,7 @@ import (
 	"errors"
 	"main/pkg/bot_utils"
 	"main/pkg/game"
+	"main/pkg/logger"
 
 	"fmt"
 
@@ -53,13 +54,17 @@ func MotusTryButton(s *discordgo.Session, i *discordgo.InteractionCreate) error 
 		Data: modal,
 	})
 	if err != nil {
-		return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		logger.ErrorLogger.Println("Error responding to interaction:", err)
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{bot_utils.ErrorEmbed(s, err)},
 				Flags:  discordgo.MessageFlagsEphemeral,
 			},
 		})
+		if err != nil {
+			logger.ErrorLogger.Println("Error responding to interaction:", err)
+		}
 	}
 
 	return nil
