@@ -352,6 +352,10 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "help",
+			Description: "Obtenir de l'aide sur les commandes",
+		},
 
 		// Context menu user commands
 		{
@@ -415,3 +419,15 @@ func registerCommands(s *discordgo.Session) {
 
 	logger.InfoLogger.Printf("Total de %v commandes enregistrées avec succès!", len(registeredCommands))
 }
+
+func GetCommandsForHelp() []*discordgo.ApplicationCommand {
+	// Filter out commands that are not slash commands
+	var slashCommands []*discordgo.ApplicationCommand
+	for _, command := range commands {
+		if command.Type == discordgo.ChatApplicationCommand {
+			slashCommands = append(slashCommands, command)
+		}
+	}
+	return slashCommands
+}
+

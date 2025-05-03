@@ -8,12 +8,14 @@ import (
 )
 
 type Config struct {
-	DiscordToken    string
-	DiscordClientId string
-	BlagueApiToken  string
-	OwnerId         string
-	WebhookUrl      string
-	GoogleApiKey    string
+	DiscordToken       string
+	DiscordClientId    string
+	BlagueApiToken     string
+	OwnerId            string
+	WebhookUrl         string
+	GoogleApiKey       string
+	TwitchClientId     string
+	TwitchClientSecret string
 }
 
 var config *Config
@@ -37,12 +39,14 @@ func InitConfig() {
 	}
 
 	config = &Config{
-		DiscordToken:    getRequiredEnv("DISCORD_TOKEN"),
-		DiscordClientId: getRequiredEnv("DISCORD_CLIENT_ID"),
-		BlagueApiToken:  getRequiredEnv("BLAGUE_API_TOKEN"),
-		OwnerId:         getRequiredEnv("OWNER_ID"),
-		WebhookUrl:      getRequiredEnv("LOGS_WEBHOOK_URL"),
-		GoogleApiKey:    getRequiredEnv("GOOGLE_API_KEY"),
+		DiscordToken:       getRequiredEnv("DISCORD_TOKEN"),
+		DiscordClientId:    getRequiredEnv("DISCORD_CLIENT_ID"),
+		BlagueApiToken:     getRequiredEnv("BLAGUE_API_TOKEN"),
+		OwnerId:            getRequiredEnv("OWNER_ID"),
+		WebhookUrl:         getRequiredEnv("LOGS_WEBHOOK_URL"),
+		GoogleApiKey:       getRequiredEnv("GOOGLE_API_KEY"),
+		TwitchClientId:     getRequiredEnv("TWITCH_CLIENT_ID"),
+		TwitchClientSecret: getRequiredEnv("TWITCH_CLIENT_SECRET"),
 	}
 }
 

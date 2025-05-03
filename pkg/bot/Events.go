@@ -124,7 +124,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 		}
 	case discordgo.InteractionMessageComponent:
-		// Split customID at -- 
+		// Split customID at --
 		customId := strings.Split(i.MessageComponentData().CustomID, "--")[0]
 		if handler, ok := componentHandlers[customId]; ok {
 			err := handler(s, i)
