@@ -230,6 +230,128 @@ var (
 			Name:        "motus",
 			Description: "Lancer une partie de motus",
 		},
+		{
+			Name:        "quiz",
+			Description: "Gestionnaire de quiz",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "launch",
+					Description: "Afficher une question de quiz aléatoire",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "create",
+					Description: "Créer une question de quiz",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "question",
+							Description: "Question à poser",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "answer",
+							Description: "Réponse à la question",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "bad1",
+							Description: "Mauvaise réponse 1",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "bad2",
+							Description: "Mauvaise réponse 2",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "bad3",
+							Description: "Mauvaise réponse 3",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "category",
+							Description: "Catégorie de la question",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:        "difficulty",
+							Description: "Difficulté de la question",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Facile",
+									Value: "facile",
+								},
+								{
+									Name:  "Normal",
+									Value: "normal",
+								},
+								{
+									Name:  "Difficile",
+									Value: "difficile",
+								},
+							},
+						},
+					},
+				},
+				{
+					Name:        "leaderboard",
+					Description: "Afficher le classement des joueurs",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "type",
+							Description: "Type de classement",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+							Choices: []*discordgo.ApplicationCommandOptionChoice{
+								{
+									Name:  "Ratio",
+									Value: "ratio",
+								},
+								{
+									Name:  "Bonnes réponses",
+									Value: "goodAnswers",
+								},
+								{
+									Name:  "Mauvaises réponses",
+									Value: "badAnswers",
+								},
+							},
+						},
+					},
+				},
+				{
+					Name:        "me",
+					Description: "Afficher vos statistiques de quiz",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+			},
+		},
 
 		// Context menu user commands
 		{
@@ -258,6 +380,7 @@ var (
 		"debug":       commandHandler.DebugHandler,
 		"maintenance": commandHandler.MaintenanceHandler,
 		"motus":       commandHandler.MotusCommand,
+		"quiz":        commandHandler.QuizHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
