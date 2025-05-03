@@ -37,8 +37,6 @@ func CreateQuote(
 	date string,
 	userProfilePictureURL string,
 ) (string, error) {
-	logger.InfoLogger.Println("Creating quote image...")
-
 	// Generate a unique filename using UUID
 	uuid := uuid.New().String()
 	outputPath := filepath.Join("assets/generated", fmt.Sprintf("quote_output_%s.png", uuid))
