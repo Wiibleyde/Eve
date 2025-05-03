@@ -2,6 +2,7 @@ package bot
 
 import (
 	"main/pkg/interactions/commandHandler"
+	messageContextMenuHandler "main/pkg/interactions/contextMenuHandler/message"
 	userContextMenuHandler "main/pkg/interactions/contextMenuHandler/user"
 	"main/pkg/logger"
 
@@ -261,6 +262,9 @@ var (
 		// Context menu user commands
 		"Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
 		"Récupérer la bannière":        userContextMenuHandler.BannerContextMenuHandler,
+
+		// Context menu message commands
+		"Créer une citation": messageContextMenuHandler.CreateQuoteContextMenuHandler,
 	}
 )
 

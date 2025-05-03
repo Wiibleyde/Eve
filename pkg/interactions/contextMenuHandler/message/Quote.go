@@ -12,7 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func CreateQuoteMenuHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
+func CreateQuoteContextMenuHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	// Get the message ID from the interaction
 	messageID := i.ApplicationCommandData().TargetID
 
