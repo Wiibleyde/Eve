@@ -50,7 +50,7 @@ func WarningEmbed(s *discordgo.Session, reason string) *discordgo.MessageEmbed {
 	return embed
 }
 
-func MaintenanceModeEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func MaintenanceModeEmbed(s *discordgo.Session, i interface{}) {
 	embed := BasicEmbedBuilder(s)
 	embed.Title = "Mode Maintenance"
 	embed.Description = "Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard."
@@ -58,7 +58,16 @@ func MaintenanceModeEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	embed.Footer.Text = "Eve – En maintenance"
 	embed.Timestamp = time.Now().Format("2006-01-02T15:04:05Z07:00")
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	var interaction *discordgo.Interaction
+	switch v := i.(type) {
+	case *discordgo.InteractionCreate:
+		interaction = v.Interaction
+	case *discordgo.MessageCreate:
+		// Handle MessageCreate case if needed
+		return
+	}
+
+	err := s.InteractionRespond(interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},

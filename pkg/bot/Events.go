@@ -16,8 +16,29 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if bot_utils.IsMaintenanceMode() && m.Author.ID != config.GetConfig().OwnerId {
+		logger.WarningLogger.Println("Maintenance mode is enabled. Ignoring message from", m.Author.Username)
+		bot_utils.MaintenanceModeEmbed(s, m)
+		return
+	}
+
 	if m.GuildID != "" {
-		logger.DebugLogger.Println(intelligence.SendMessageToAIChat(s, m.GuildID, m.Content, m.Author.ID))
+		if !m.MentionEveryone && bot_utils.Contains(m.Mentions, s.State.User.ID) {
+			// Send typing
+			_ = s.ChannelTyping(m.ChannelID)
+
+			aiAnswer, err := intelligence.SendMessageToAIChat(s, m.GuildID, m.Content, m.Author.ID)
+			if err != nil {
+				logger.ErrorLogger.Println("Error sending message to AI:", err)
+				return
+			}
+			if aiAnswer != "" {
+				_, err = s.ChannelMessageSend(m.ChannelID, aiAnswer)
+				if err != nil {
+					logger.ErrorLogger.Println("Error sending message to channel:", err)
+				}
+			}
+		}
 	}
 }
 
