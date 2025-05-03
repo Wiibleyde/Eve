@@ -2,7 +2,7 @@ package bot
 
 import (
 	"main/pkg/interactions/commandHandler"
-	"main/pkg/interactions/contextMenuHandler"
+	userContextMenuHandler "main/pkg/interactions/contextMenuHandler/user"
 	"main/pkg/logger"
 
 	"github.com/bwmarrin/discordgo"
@@ -241,6 +241,10 @@ var (
 		},
 
 		// Context menu message commands
+		{
+			Name: "Créer une citation",
+			Type: discordgo.MessageApplicationCommand,
+		},
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
 		// Slash commands
@@ -255,8 +259,8 @@ var (
 		"motus":       commandHandler.MotusCommand,
 
 		// Context menu user commands
-		"Récupérer la photo de profil": contextMenuHandler.ProfilePictureContextMenuHandler,
-		"Récupérer la bannière":        contextMenuHandler.BannerContextMenuHandler,
+		"Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
+		"Récupérer la bannière":        userContextMenuHandler.BannerContextMenuHandler,
 	}
 )
 

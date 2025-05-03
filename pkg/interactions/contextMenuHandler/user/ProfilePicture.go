@@ -1,4 +1,4 @@
-package contextMenuHandler
+package userContextMenuHandler
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func BannerContextMenuHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
+func ProfilePictureContextMenuHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	userID := i.ApplicationCommandData().TargetID
 
 	user, err := s.User(userID)
@@ -17,21 +17,21 @@ func BannerContextMenuHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 		return err
 	}
 
-	// Get the user's banner URL
-	bannerURL := user.BannerURL("1024")
-	if bannerURL == "" {
-		logger.ErrorLogger.Println("User has no banner")
-		return errors.New("this user has no banner")
+	// Get the user's avatar URL
+	avatarURL := user.AvatarURL("1024")
+	if avatarURL == "" {
+		logger.ErrorLogger.Println("User has no avatar")
+		return errors.New("this user has no avatar")
 	}
 
 	embed := bot_utils.BasicEmbedBuilder(s)
 
-	embed.Title = "Bannière demandée"
-	embed.Description = "Voici la bannière de " + user.Username
-	embed.Image = &discordgo.MessageEmbedImage{URL: bannerURL}
+	embed.Title = "Avatar demandé"
+	embed.Description = "Voici l'avatar de " + user.Username
+	embed.Image = &discordgo.MessageEmbedImage{URL: avatarURL}
 	embed.Color = 0x00FF00
 
-	// Send the banner URL as a message
+	// Send the avatar URL as a message
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
