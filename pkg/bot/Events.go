@@ -6,6 +6,7 @@ import (
 	"main/pkg/config"
 	"main/pkg/intelligence"
 	"main/pkg/logger"
+	"main/pkg/twitch"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -45,6 +46,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 func onReady(s *discordgo.Session, r *discordgo.Ready) {
 	registerCommands(s)
 	go startStatusChange(s)
+
+	// Register stream handlers before starting the stream check
+	RegisterStreamHandlers()
+	go twitch.StartAutomaticStreamCheck()
+
 	logger.InfoLogger.Println("Bot is ready!")
 }
 

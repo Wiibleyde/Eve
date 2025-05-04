@@ -10,6 +10,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+	session *discordgo.Session
+)
+
 func InitBot() {
 	logger.InfoLogger.Println("Starting bot...")
 	dg, err := discordgo.New("Bot " + config.GetConfig().DiscordToken)
@@ -17,6 +21,10 @@ func InitBot() {
 		logger.ErrorLogger.Panicln("[PANIC] Error creating Discord session,", err)
 		return
 	}
+
+	session = dg
+
+	dg.StateEnabled = true
 
 	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildMessageReactions | discordgo.IntentsGuildVoiceStates
 

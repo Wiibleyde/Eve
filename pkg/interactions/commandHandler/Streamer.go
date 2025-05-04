@@ -5,6 +5,7 @@ import (
 	"main/pkg/data"
 	"main/pkg/logger"
 	"main/prisma/db"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,6 +15,7 @@ func StreamerHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 	switch subCommand.Name {
 	case "add":
 		twitchChannelName := subCommand.Options[0].StringValue()
+		twitchChannelName = strings.ToLower(twitchChannelName)
 		announceChannel := subCommand.Options[1].ChannelValue(s)
 		var announceRole *discordgo.Role
 		if len(subCommand.Options) > 2 {
@@ -120,6 +122,7 @@ func StreamerHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 		}
 	case "remove":
 		twitchChannelName := subCommand.Options[0].StringValue()
+		twitchChannelName = strings.ToLower(twitchChannelName)
 		client, ctx := data.GetDBClient()
 		rowToDelete, err := client.Stream.FindFirst(
 			db.Stream.And(

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"main/pkg/config"
 	"main/pkg/data"
+	"main/pkg/events"
 	"main/pkg/logger"
 	"net/http"
 	"strings"
@@ -15,22 +16,8 @@ const (
 	OfflineUrl = "https://api.twitch.tv/helix/users"
 )
 
-type StreamData struct {
-	ID           string   `json:"id"`
-	UserID       string   `json:"user_id"`
-	UserLogin    string   `json:"user_login"`
-	UserName     string   `json:"user_name"`
-	GameID       string   `json:"game_id"`
-	GameName     string   `json:"game_name"`
-	Type         string   `json:"type"`
-	Title        string   `json:"title"`
-	Tags         []string `json:"tags"`
-	ViewerCount  int      `json:"viewer_count"`
-	StartedAt    string   `json:"started_at"`
-	Language     string   `json:"language"`
-	ThumbnailURL string   `json:"thumbnail_url"`
-	IsMature     bool     `json:"is_mature"`
-}
+// Using the StreamData from events package
+type StreamData = events.StreamData
 
 type OnlineStreamResponse struct {
 	Data       []StreamData `json:"data"`
@@ -39,19 +26,8 @@ type OnlineStreamResponse struct {
 	} `json:"pagination"`
 }
 
-type UserData struct {
-	ID              string `json:"id"`
-	Login           string `json:"login"`
-	DisplayName     string `json:"display_name"`
-	Type            string `json:"type"`
-	BroadcasterType string `json:"broadcaster_type"`
-	Description     string `json:"description"`
-	ProfileImageURL string `json:"profile_image_url"`
-	OfflineImageURL string `json:"offline_image_url"`
-	ViewCount       int    `json:"view_count"`
-	Email           string `json:"email"`
-	CreatedAt       string `json:"created_at"`
-}
+// Using the UserData from events package
+type UserData = events.UserData
 
 type OfflineStreamResponse struct {
 	Data []UserData `json:"data"`
@@ -98,7 +74,7 @@ func GenerateOfflineUrl() string {
 	for _, streamer := range streamers {
 		if _, exists := uniqueMap[streamer.TwitchChannelName]; !exists {
 			uniqueMap[streamer.TwitchChannelName] = struct{}{}
-			uniqueStreamers = append(uniqueStreamers, "user_id="+streamer.TwitchChannelName)
+			uniqueStreamers = append(uniqueStreamers, "login="+streamer.TwitchChannelName)
 		}
 	}
 
@@ -115,15 +91,29 @@ func GetOnlineStreamers() (OnlineStreamResponse, error) {
 	header := http.Header{}
 	header.Add("Authorization", "Bearer "+oauthToken)
 	header.Add("Client-Id", config.GetConfig().TwitchClientId)
+
 	generateUrlParameters := GenerateOnlineUrl()
 	if generateUrlParameters == "" {
 		return OnlineStreamResponse{}, nil
 	}
 	url := OnlineUrl + "?" + generateUrlParameters
-	response, err := http.Get(url)
+
+	// Create a new request with the headers
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return OnlineStreamResponse{}, err
 	}
+
+	// Set the headers on the request
+	req.Header = header
+
+	// Make the request
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return OnlineStreamResponse{}, err
+	}
+
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		return OnlineStreamResponse{}, nil
@@ -136,21 +126,43 @@ func GetOnlineStreamers() (OnlineStreamResponse, error) {
 }
 
 func GetOfflineStreamers() (OfflineStreamResponse, error) {
+	oauthToken := GetOauthToken()
+	header := http.Header{}
+	header.Add("Authorization", "Bearer "+oauthToken)
+	header.Add("Client-Id", config.GetConfig().TwitchClientId)
 	generateUrlParameters := GenerateOfflineUrl()
 	if generateUrlParameters == "" {
+		logger.ErrorLogger.Println("No streamers found")
 		return OfflineStreamResponse{}, nil
 	}
 	url := OfflineUrl + "?" + generateUrlParameters
-	response, err := http.Get(url)
+
+	// Create a new request with the headers
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		logger.ErrorLogger.Println("Error creating request:", err)
 		return OfflineStreamResponse{}, err
 	}
+
+	// Set the headers on the request
+	req.Header = header
+
+	// Make the request
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		logger.ErrorLogger.Println("Error making request:", err)
+		return OfflineStreamResponse{}, err
+	}
+
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
+		logger.ErrorLogger.Println("Error: received non-200 response code:", response.StatusCode)
 		return OfflineStreamResponse{}, nil
 	}
 	err = json.NewDecoder(response.Body).Decode(&OfflineStreams)
 	if err != nil {
+		logger.ErrorLogger.Println("Error decoding response:", err)
 		return OfflineStreamResponse{}, err
 	}
 	return OfflineStreams, nil
@@ -228,11 +240,15 @@ func StartAutomaticStreamCheck() {
 // Event on new stream
 func OnNewStream(stream StreamData, userData UserData) {
 	// Handle new stream event
-	logger.DebugLogger.Printf("New stream started: %s is now live playing %s\n", stream.UserName, stream.GameName)
+	logger.DebugLogger.Printf("New stream started: %s is now live playing %s", stream.UserName, stream.GameName)
+	// Use events package to notify handlers instead of directly calling bot function
+	events.NotifyNewStream(stream, userData)
 }
 
 // Event on stream end
 func OnStreamEnd(stream StreamData, userData UserData) {
 	// Handle stream end event
-	logger.DebugLogger.Printf("Stream ended: %s is now offline\n", stream.UserName)
+	logger.DebugLogger.Printf("Stream ended: %s is now offline", stream.UserName)
+	// Use events package to notify handlers instead of directly calling bot function
+	events.NotifyStreamEnd(stream, userData)
 }
