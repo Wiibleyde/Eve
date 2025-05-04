@@ -44,7 +44,7 @@ func BirthdayHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error
 
 				if !parsed {
 					logger.ErrorLogger.Println("Error parsing birth date:", err)
-					embed := bot_utils.ErrorEmbed(s, err)
+					embed := bot_utils.ErrorEmbed(s, err.Error())
 					embed.Description = "Format de date invalide. Veuillez utiliser un format de date valide (YYYY-MM-DD)"
 					err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 						Type: discordgo.InteractionResponseChannelMessageWithSource,

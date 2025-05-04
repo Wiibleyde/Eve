@@ -59,7 +59,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			err := handler(s, i)
 			if err != nil {
-				embed := bot_utils.ErrorEmbed(s, err)
+				embed := bot_utils.ErrorEmbed(s, err.Error())
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
@@ -111,7 +111,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				}
 			}
 		} else {
-			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown command: %s", i.ApplicationCommandData().Name))
+			embed := bot_utils.ErrorEmbed(s, "unknown command: "+i.ApplicationCommandData().Name)
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -129,7 +129,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := componentHandlers[customId]; ok {
 			err := handler(s, i)
 			if err != nil {
-				embed := bot_utils.ErrorEmbed(s, err)
+				embed := bot_utils.ErrorEmbed(s, err.Error())
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
@@ -142,7 +142,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				}
 			}
 		} else {
-			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown component: %s", i.MessageComponentData().CustomID))
+			embed := bot_utils.ErrorEmbed(s, "unknown component: "+i.MessageComponentData().CustomID)
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -158,7 +158,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := modalHandlers[i.ModalSubmitData().CustomID]; ok {
 			err := handler(s, i)
 			if err != nil {
-				embed := bot_utils.ErrorEmbed(s, err)
+				embed := bot_utils.ErrorEmbed(s, err.Error())
 				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
@@ -171,7 +171,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				}
 			}
 		} else {
-			embed := bot_utils.ErrorEmbed(s, fmt.Errorf("unknown modal: %s", i.ModalSubmitData().CustomID))
+			embed := bot_utils.ErrorEmbed(s, "unknown modal: "+i.ModalSubmitData().CustomID)
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{

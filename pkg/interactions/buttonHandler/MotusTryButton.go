@@ -1,7 +1,6 @@
 package buttonHandler
 
 import (
-	"errors"
 	"main/pkg/bot_utils"
 	"main/pkg/game"
 	"main/pkg/logger"
@@ -21,7 +20,7 @@ func MotusTryButton(s *discordgo.Session, i *discordgo.InteractionCreate) error 
 		return s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{bot_utils.ErrorEmbed(s, errors.New("aucune partie de motus trouvé"))},
+				Embeds: []*discordgo.MessageEmbed{bot_utils.ErrorEmbed(s, "Jeu de motus introuvable.")},
 				Flags:  discordgo.MessageFlagsEphemeral,
 			},
 		})
@@ -58,7 +57,7 @@ func MotusTryButton(s *discordgo.Session, i *discordgo.InteractionCreate) error 
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Embeds: []*discordgo.MessageEmbed{bot_utils.ErrorEmbed(s, err)},
+				Embeds: []*discordgo.MessageEmbed{bot_utils.ErrorEmbed(s, err.Error())},
 				Flags:  discordgo.MessageFlagsEphemeral,
 			},
 		})

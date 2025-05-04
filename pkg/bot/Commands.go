@@ -353,8 +353,54 @@ var (
 			},
 		},
 		{
-			Name:        "help",
-			Description: "Obtenir de l'aide sur les commandes",
+			Name:        "streamer",
+			Description: "Gérer les streamers",
+			// Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "add",
+					Description: "Ajouter un streamer",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "channel_name",
+							Description: "Nom EXACT de la chaîne Twitch",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+						{
+							Name:         "channel",
+							Description:  "Canal où envoyer les notifications",
+							Type:         discordgo.ApplicationCommandOptionChannel,
+							Required:     true,
+							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText},
+						},
+						{
+							Name:        "role",
+							Description: "Rôle à mentionner lors de la notification",
+							Type:        discordgo.ApplicationCommandOptionRole,
+							Required:    false,
+						},
+					},
+				},
+				{
+					Name:        "remove",
+					Description: "Supprimer un streamer",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Name:        "channel_name",
+							Description: "Nom EXACT de la chaîne Twitch",
+							Type:        discordgo.ApplicationCommandOptionString,
+							MinLength:   intPtr(1),
+							MaxLength:   256,
+							Required:    true,
+						},
+					},
+				},
+			},
 		},
 
 		// Context menu user commands
@@ -385,6 +431,7 @@ var (
 		"maintenance": commandHandler.MaintenanceHandler,
 		"motus":       commandHandler.MotusCommand,
 		"quiz":        commandHandler.QuizHandler,
+		"streamer":    commandHandler.StreamerHandler,
 
 		// Context menu user commands
 		"Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
@@ -430,4 +477,3 @@ func GetCommandsForHelp() []*discordgo.ApplicationCommand {
 	}
 	return slashCommands
 }
-
