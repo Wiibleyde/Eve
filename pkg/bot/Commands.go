@@ -375,7 +375,7 @@ var (
 							Description:  "Canal où envoyer les notifications",
 							Type:         discordgo.ApplicationCommandOptionChannel,
 							Required:     true,
-							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText},
+							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText, discordgo.ChannelTypeGuildNews},
 						},
 						{
 							Name:        "role",
