@@ -31,12 +31,8 @@ func getRequiredEnv(key string) string {
 }
 
 func InitConfig() {
-	// Charge le fichier .env
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-		os.Exit(1)
-	}
+	// Essaye de charger le fichier .env, mais continue même s'il n'existe pas
+	_ = godotenv.Load() // Ignore error, will use environment variables directly if .env doesn't exist
 
 	config = &Config{
 		DiscordToken:       getRequiredEnv("DISCORD_TOKEN"),

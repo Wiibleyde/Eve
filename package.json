@@ -1,0 +1,7 @@
+{
+    "name": "prisma-tools",
+    "private": true,
+    "devDependencies": {
+        "prisma": "^5.0.0"
+    }
+}
