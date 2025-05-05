@@ -41,6 +41,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 	}
+
+	bot_utils.DetectFeur(s, m)
 }
 
 func onReady(s *discordgo.Session, r *discordgo.Ready) {
