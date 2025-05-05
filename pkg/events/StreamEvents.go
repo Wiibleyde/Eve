@@ -37,6 +37,7 @@ type UserData struct {
 type StreamEventHandler interface {
 	OnNewStream(stream StreamData, userData UserData)
 	OnStreamEnd(stream StreamData, userData UserData)
+	OnInitStreams(streams []StreamData, usersDatas []UserData)
 }
 
 var streamEventHandlers []StreamEventHandler
@@ -57,5 +58,12 @@ func NotifyNewStream(stream StreamData, userData UserData) {
 func NotifyStreamEnd(stream StreamData, userData UserData) {
 	for _, handler := range streamEventHandlers {
 		handler.OnStreamEnd(stream, userData)
+	}
+}
+
+// NotifyInitStreams calls all registered handlers for initializing streams
+func NotifyInitStreams(streams []StreamData, usersDatas []UserData) {
+	for _, handler := range streamEventHandlers {
+		handler.OnInitStreams(streams, usersDatas)
 	}
 }

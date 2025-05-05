@@ -15,7 +15,7 @@ func FormatUserIDs(userIDs []string) string {
 	return formattedIDs
 }
 
-func Contains(mentions []*discordgo.User, user string) bool {
+func UserContains(mentions []*discordgo.User, user string) bool {
 	for _, mention := range mentions {
 		if mention.ID == user {
 			return true

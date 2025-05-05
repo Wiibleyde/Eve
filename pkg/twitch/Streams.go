@@ -184,6 +184,11 @@ func GetStreamers() (OnlineStreamResponse, OfflineStreamResponse, error) {
 var streamersState = make(map[string]StreamData)
 
 func StartAutomaticStreamCheck() {
+	// Initialiser les streams
+	InitStreams()
+
+	time.Sleep(5 * time.Second) // Attendre un peu avant de commencer la vérification automatique
+
 	for {
 		onlineStreams, offlineStreams, err := GetStreamers()
 		if err != nil {
@@ -251,4 +256,16 @@ func OnStreamEnd(stream StreamData, userData UserData) {
 	logger.DebugLogger.Printf("Stream ended: %s is now offline", stream.UserName)
 	// Use events package to notify handlers instead of directly calling bot function
 	events.NotifyStreamEnd(stream, userData)
+}
+
+// InitStreams initializes the streams
+func InitStreams() {
+	onlineStreams, offlineStreams, err := GetStreamers()
+	if err != nil {
+		logger.ErrorLogger.Println("Error fetching streamers:", err)
+		return
+	}
+
+	// Call the event to initialize streams
+	events.NotifyInitStreams(onlineStreams.Data, offlineStreams.Data)
 }

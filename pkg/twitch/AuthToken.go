@@ -50,7 +50,6 @@ func refreshToken() {
 	}
 	OauthToken = token.AccessToken
 	ExpiresAt = time.Now().Unix() + token.ExpiresIn
-	logger.DebugLogger.Println("New Twitch token obtained:", OauthToken)
 }
 
 func isTokenExpired() bool {
@@ -70,5 +69,3 @@ func GetOauthToken() string {
 	}
 	return OauthToken
 }
-
-

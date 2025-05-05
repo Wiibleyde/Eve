@@ -24,7 +24,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.GuildID != "" {
-		if !m.MentionEveryone && bot_utils.Contains(m.Mentions, s.State.User.ID) {
+		if !m.MentionEveryone && bot_utils.UserContains(m.Mentions, s.State.User.ID) {
 			// Send typing
 			_ = s.ChannelTyping(m.ChannelID)
 
