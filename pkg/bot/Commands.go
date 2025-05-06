@@ -13,16 +13,22 @@ func intPtr(i int) *int {
 	return &i
 }
 
+func boolPtr(b bool) *bool {
+	return &b
+}
+
 var (
 	commands = []*discordgo.ApplicationCommand{
 		// Slash commands
 		{
-			Name:        "ping",
-			Description: "Savoir si le bot est en ligne",
+			Name:         "ping",
+			Description:  "Savoir si le bot est en ligne",
+			DMPermission: boolPtr(false),
 		},
 		{
-			Name:        "birthday",
-			Description: "Gérer les anniversaires",
+			Name:         "birthday",
+			Description:  "Gérer les anniversaires",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -63,8 +69,9 @@ var (
 			},
 		},
 		{
-			Name:        "blague",
-			Description: "Obtenir une blague",
+			Name:         "blague",
+			Description:  "Obtenir une blague",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "type",
@@ -101,8 +108,9 @@ var (
 			},
 		},
 		{
-			Name:        "config",
-			Description: "Configurer le bot",
+			Name:         "config",
+			Description:  "Configurer le bot",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -165,8 +173,9 @@ var (
 			},
 		},
 		{
-			Name:        "talk",
-			Description: "Faire parler le bot",
+			Name:         "talk",
+			Description:  "Faire parler le bot",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "message",
@@ -185,8 +194,9 @@ var (
 			},
 		},
 		{
-			Name:        "quote",
-			Description: "Créer une citation",
+			Name:         "quote",
+			Description:  "Créer une citation",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "citation",
@@ -213,20 +223,24 @@ var (
 			},
 		},
 		{
-			Name:        "debug",
-			Description: "[OWNER] Debug command",
+			Name:         "debug",
+			Description:  "[OWNER] Debug command",
+			DMPermission: boolPtr(false),
 		},
 		{
-			Name:        "maintenance",
-			Description: "[OWNER] Mettre le bot en mode maintenance",
+			Name:         "maintenance",
+			Description:  "[OWNER] Mettre le bot en mode maintenance",
+			DMPermission: boolPtr(false),
 		},
 		{
-			Name:        "motus",
-			Description: "Lancer une partie de motus",
+			Name:         "motus",
+			Description:  "Lancer une partie de motus",
+			DMPermission: boolPtr(false),
 		},
 		{
-			Name:        "quiz",
-			Description: "Gestionnaire de quiz",
+			Name:         "quiz",
+			Description:  "Gestionnaire de quiz",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "launch",
@@ -347,8 +361,9 @@ var (
 			},
 		},
 		{
-			Name:        "streamer",
-			Description: "Gérer les streamers",
+			Name:         "streamer",
+			Description:  "Gérer les streamers",
+			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "add",
@@ -398,18 +413,21 @@ var (
 
 		// Context menu user commands
 		{
-			Name: "Récupérer la photo de profil",
-			Type: discordgo.UserApplicationCommand,
+			Name:         "Récupérer la photo de profil",
+			Type:         discordgo.UserApplicationCommand,
+			DMPermission: boolPtr(false),
 		},
 		{
-			Name: "Récupérer la bannière",
-			Type: discordgo.UserApplicationCommand,
+			Name:         "Récupérer la bannière",
+			Type:         discordgo.UserApplicationCommand,
+			DMPermission: boolPtr(false),
 		},
 
 		// Context menu message commands
 		{
-			Name: "Créer une citation",
-			Type: discordgo.MessageApplicationCommand,
+			Name:         "Créer une citation",
+			Type:         discordgo.MessageApplicationCommand,
+			DMPermission: boolPtr(false),
 		},
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
