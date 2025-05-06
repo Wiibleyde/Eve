@@ -67,7 +67,7 @@ func (q *Quiz) GenerateEmbed(s *discordgo.Session) *discordgo.MessageEmbed {
 		},
 		{
 			Name:   "Invalide",
-			Value:  "<t:" + strconv.FormatInt(q.CreatedAt.Unix(), 10) + ":R>",
+			Value:  "<t:" + strconv.FormatInt(q.CreatedAt.Unix()+(QuizMaxTime*3600), 10) + ":R>",
 			Inline: true,
 		},
 	}
