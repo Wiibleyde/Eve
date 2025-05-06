@@ -45,6 +45,11 @@ func checkBirthdays(bot *discordgo.Session) {
 		}
 	}
 
+	if len(todayBirthdays) == 0 {
+		logger.InfoLogger.Println("No birthdays today")
+		return
+	}
+
 	botGuilds := bot.State.Guilds
 	for _, guild := range botGuilds {
 		guildID := guild.ID
