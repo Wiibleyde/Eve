@@ -1,16 +1,16 @@
 package logger
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"main/pkg/config"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
-	"github.com/gtuk/discordwebhook"
 )
 
 var (
@@ -22,11 +22,6 @@ var (
 
 var ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 
-// ptrToString converts a string to a pointer to that string.
-func ptrToString(s string) *string {
-	return &s
-}
-
 func stripANSI(input string) string {
 	return ansiEscapeRegex.ReplaceAllString(input, "")
 }
@@ -35,6 +30,17 @@ func getDate() string {
 	dt := time.Now()
 	return dt.Format("2006-01-02")
 }
+
+// EmbedColor defines Discord embed colors
+type EmbedColor int
+
+const (
+	ColorWarning EmbedColor = 0xFC9803 // Yellow
+	ColorInfo    EmbedColor = 0x03B1FC // Blue
+	ColorError   EmbedColor = 0xFF0000 // Red
+	ColorDebug   EmbedColor = 0x00FF00 // Green
+	ColorDefault EmbedColor = 0x7289DA // Discord Blurple
+)
 
 func InitLogger() {
 	if _, err := os.Stat("logs/"); os.IsNotExist(err) {
@@ -59,32 +65,34 @@ func InitLogger() {
 
 	WarningLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleWarningPrefix}),
+		&prefixWriter{out: color.Output, prefix: consoleWarningPrefix, level: "WARNING", embedColor: ColorWarning}),
 		fileWarningPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	InfoLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleInfoPrefix}),
+		&prefixWriter{out: color.Output, prefix: consoleInfoPrefix, level: "INFO", embedColor: ColorInfo}),
 		fileInfoPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	ErrorLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleErrorPrefix}),
+		&prefixWriter{out: color.Output, prefix: consoleErrorPrefix, level: "ERROR", embedColor: ColorError}),
 		fileErrorPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	DebugLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleDebugPrefix}),
+		&prefixWriter{out: color.Output, prefix: consoleDebugPrefix, level: "DEBUG", embedColor: ColorDebug}),
 		fileDebugPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 type prefixWriter struct {
-	out    io.Writer
-	prefix string
+	out        io.Writer
+	prefix     string
+	level      string
+	embedColor EmbedColor
 }
 
 // Write writes the log message to the output stream with the specified prefix.
@@ -102,54 +110,81 @@ func (w *prefixWriter) Write(p []byte) (n int, err error) {
 
 	// Log to Discord if configured
 	if config.GetConfig().WebhookUrl != "" {
-		LogToDiscord(finalContent, w.prefix)
+		LogToDiscord(finalContent, w.level, w.embedColor)
 	}
 
 	return w.out.Write([]byte(w.prefix + finalContent))
 }
 
-func LogToDiscord(message string, level string) {
-	var username = "Panel"
-	var url = config.GetConfig().WebhookUrl
-
-	if len(message) > 1900 {
-		message = message[:1900] + "..."
+// formatLogMessage formats the message for Discord embeds
+func formatLogMessage(message string) string {
+	// Ensure the message isn't too long for Discord
+	if len(message) > 2000 {
+		message = message[:1997] + "..."
 	}
 
-	cleanLevel := stripANSI(level)
-	if len(cleanLevel) > 0 && cleanLevel[len(cleanLevel)-1] == ':' {
-		cleanLevel = cleanLevel[:len(cleanLevel)-1]
-	}
+	// Strip any control characters that would break Discord formatting
+	message = strings.ReplaceAll(message, "\r", "")
 
-	embed := discordwebhook.Embed{
-		Title:       &cleanLevel,
-		Description: &message,
-		Color:       ptrToString(fmt.Sprintf("%d", getEmbedColor(cleanLevel))),
-	}
+	// Remove ANSI color codes
+	message = stripANSI(message)
 
-	messageType := discordwebhook.Message{
-		Username: &username,
-		Embeds:   &[]discordwebhook.Embed{embed},
-	}
-
-	err := discordwebhook.SendMessage(url, messageType)
-	if err != nil {
-		// Don't use ErrorLogger here to avoid infinite recursion
-		log.Printf("Error sending message to discord: %s", err)
-	}
+	return message
 }
 
-func getEmbedColor(level string) int {
-	switch level {
-	case "WARNING: ":
-		return 16776960 // Yellow
-	case "INFO: ":
-		return 255 // Blue
-	case "ERROR: ":
-		return 16711680 // Red
-	case "DEBUG: ":
-		return 65280 // Green
-	default:
-		return 0 // Default color
+// LogToDiscord sends a message to Discord webhook with proper formatting
+func LogToDiscord(message, level string, embedColor EmbedColor) {
+	webhookURL := config.GetConfig().WebhookUrl
+	if webhookURL == "" {
+		return
+	}
+
+	// Extract webhook ID and token from URL
+	parts := strings.Split(webhookURL, "/")
+	if len(parts) < 7 {
+		log.Printf("Invalid webhook URL format")
+		return
+	}
+
+	webhookID := parts[len(parts)-2]
+	webhookToken := parts[len(parts)-1]
+
+	// Initialize Discord session (no token needed for webhooks)
+	dg, err := discordgo.New("")
+	if err != nil {
+		log.Printf("Error creating Discord session: %s", err)
+		return
+	}
+
+	formattedMsg := formatLogMessage(message)
+
+	// Create a rich embed with more options
+	embed := &discordgo.MessageEmbed{
+		Title:       level,
+		Description: formattedMsg,
+		Color:       int(embedColor),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text:    "Eve System Log",
+			IconURL: "https://static.wikia.nocookie.net/disneyemojiblitz/images/e/ed/EmojiBlitzEVE1.png",
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	// Add an author field
+	embed.Author = &discordgo.MessageEmbedAuthor{
+		Name:    "Eve Logger",
+		IconURL: "https://static.wikia.nocookie.net/disneyemojiblitz/images/e/ed/EmojiBlitzEVE1.png",
+	}
+
+	// Prepare webhook parameters
+	webhookParams := &discordgo.WebhookParams{
+		Username: "Eve Logger",
+		Embeds:   []*discordgo.MessageEmbed{embed},
+	}
+
+	// Execute the webhook
+	_, err = dg.WebhookExecute(webhookID, webhookToken, false, webhookParams)
+	if err != nil {
+		log.Printf("Error sending message to discord: %s", err)
 	}
 }
