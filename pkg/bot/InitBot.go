@@ -26,7 +26,16 @@ func InitBot() {
 
 	dg.StateEnabled = true
 
-	dg.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsGuildMessageReactions | discordgo.IntentsGuildVoiceStates
+	dg.Identify.Intents = discordgo.IntentsGuilds |
+		discordgo.IntentsGuildMessages |
+		discordgo.IntentsGuildMessageReactions |
+		discordgo.IntentsGuildMessageTyping |
+		discordgo.IntentsGuildVoiceStates |
+		discordgo.IntentsGuildMembers |
+		discordgo.IntentsDirectMessages |
+		discordgo.IntentsDirectMessageReactions |
+		discordgo.IntentsDirectMessageTyping |
+		discordgo.IntentsMessageContent
 
 	dg.AddHandler(messageCreate)
 	dg.AddHandler(onReady)

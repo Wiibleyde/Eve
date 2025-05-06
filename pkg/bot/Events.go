@@ -23,7 +23,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.GuildID != "" {
+	if m.GuildID != "" { // Check if the message is in a guild
+		if m.GuildID == config.GetConfig().EveHomeGuild {
+			checkAndForwardThreadMessage(s, m)
+		}
+
 		if !m.MentionEveryone && bot_utils.UserContains(m.Mentions, s.State.User.ID) {
 			// Send typing
 			_ = s.ChannelTyping(m.ChannelID)
@@ -40,13 +44,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				}
 			}
 		}
-	}
 
-	bot_utils.DetectFeur(s, m)
+		bot_utils.DetectFeur(s, m)
+	} else { // Check if the message is in a DM
+		ReceiveMessage(s, m)
+	}
 }
 
 func onReady(s *discordgo.Session, r *discordgo.Ready) {
 	registerCommands(s)
+	InitMpThreadManager()
+
 	go startStatusChange(s)
 
 	// Register stream handlers before starting the stream check
