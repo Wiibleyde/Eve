@@ -123,7 +123,7 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						i.Member.User.Username,
 						strings.Join(formattedArgs, ", "))
 				} else {
-					logger.InfoLogger.Println("Command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username)
+					logger.InfoLogger.Println("Command executed:", i.ApplicationCommandData().Name, "by", i.Member.User.Username, "<@"+i.Member.User.ID+">")
 				}
 			}
 		} else {
@@ -157,6 +157,8 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					logger.ErrorLogger.Println("Error responding to interaction:", err)
 				}
 			}
+
+			logger.InfoLogger.Println("Component interaction executed:", i.MessageComponentData().CustomID, "by", i.Member.User.Username, "<@"+i.Member.User.ID+">")
 		} else {
 			embed := bot_utils.ErrorEmbed(s, "unknown component: "+i.MessageComponentData().CustomID)
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -186,6 +188,8 @@ func interactionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					logger.ErrorLogger.Println("Error responding to interaction:", err)
 				}
 			}
+
+			logger.InfoLogger.Println("Modal interaction executed:", i.ModalSubmitData().CustomID, "by", i.Member.User.Username, "<@"+i.Member.User.ID+">")
 		} else {
 			embed := bot_utils.ErrorEmbed(s, "unknown modal: "+i.ModalSubmitData().CustomID)
 			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
