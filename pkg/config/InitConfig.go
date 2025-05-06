@@ -16,6 +16,8 @@ type Config struct {
 	GoogleApiKey       string
 	TwitchClientId     string
 	TwitchClientSecret string
+	EveHomeGuild 	string
+	MpChannel          string
 }
 
 var config *Config
@@ -43,6 +45,8 @@ func InitConfig() {
 		GoogleApiKey:       getRequiredEnv("GOOGLE_API_KEY"),
 		TwitchClientId:     getRequiredEnv("TWITCH_CLIENT_ID"),
 		TwitchClientSecret: getRequiredEnv("TWITCH_CLIENT_SECRET"),
+		EveHomeGuild:       getRequiredEnv("EVE_HOME_GUILD"),
+		MpChannel:          getRequiredEnv("MP_CHANNEL"),
 	}
 }
 

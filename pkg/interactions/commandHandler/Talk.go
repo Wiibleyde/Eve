@@ -32,17 +32,17 @@ func TalkHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	// Envoyer le message dans le canal de la commande
-	_, err := s.ChannelMessageSend(i.ChannelID, strMessage)
-	if err != nil {
-		return err
+	} else {
+		// Envoyer le message dans le canal de la commande
+		_, err := s.ChannelMessageSend(i.ChannelID, strMessage)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Acknowledge the interaction
 	embed := bot_utils.SuccessEmbed(s, "Message envoyé")
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{embed},

@@ -265,10 +265,17 @@ func resizeImage(img image.Image, width, height int) image.Image {
 	// Create a new RGBA image with the desired dimensions
 	dst := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	// Use gg to draw the resized image
-	dc := gg.NewContextForImage(dst)
-	dc.DrawImageAnchored(img, 0, 0, 0, 0)
-	dc.Scale(float64(width)/float64(img.Bounds().Dx()), float64(height)/float64(img.Bounds().Dy()))
+	// Use gg to draw the resized image properly
+	dc := gg.NewContextForRGBA(dst)
+
+	// Calculate scaling factors
+	scaleX := float64(width) / float64(img.Bounds().Dx())
+	scaleY := float64(height) / float64(img.Bounds().Dy())
+
+	// Scale the context
+	dc.Scale(scaleX, scaleY)
+
+	// Draw the image at the origin (it will be scaled by the context)
 	dc.DrawImage(img, 0, 0)
 
 	return dc.Image()
