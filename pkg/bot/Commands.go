@@ -19,12 +19,10 @@ var (
 		{
 			Name:        "ping",
 			Description: "Savoir si le bot est en ligne",
-			// Type:        discordgo.ChatApplicationCommand,
 		},
 		{
 			Name:        "birthday",
 			Description: "Gérer les anniversaires",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -67,7 +65,6 @@ var (
 		{
 			Name:        "blague",
 			Description: "Obtenir une blague",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "type",
@@ -106,7 +103,6 @@ var (
 		{
 			Name:        "config",
 			Description: "Configurer le bot",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -171,7 +167,6 @@ var (
 		{
 			Name:        "talk",
 			Description: "Faire parler le bot",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "message",
@@ -192,7 +187,6 @@ var (
 		{
 			Name:        "quote",
 			Description: "Créer une citation",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "citation",
@@ -355,7 +349,6 @@ var (
 		{
 			Name:        "streamer",
 			Description: "Gérer les streamers",
-			// Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "add",
