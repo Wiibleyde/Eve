@@ -82,6 +82,13 @@ func QuizHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 
 		return nil
 	case "create":
+		var user *discordgo.User
+		if i.Member != nil && i.Member.User != nil {
+			user = i.Member.User
+		} else if i.User != nil {
+			user = i.User
+		}
+
 		strQuestion := subCommand.Options[0].StringValue()
 		strAnswer := subCommand.Options[1].StringValue()
 		strBadAnswer1 := subCommand.Options[2].StringValue()
@@ -89,7 +96,7 @@ func QuizHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 		strBadAnswer3 := subCommand.Options[4].StringValue()
 		strCategory := subCommand.Options[5].StringValue()
 		strDifficulty := subCommand.Options[6].StringValue()
-		strAuthorID := i.Member.User.ID
+		strAuthorID := user.ID
 		strGuildID := i.GuildID
 
 		client, ctx := data.GetDBClient()

@@ -23,12 +23,10 @@ var (
 		{
 			Name:         "ping",
 			Description:  "Savoir si le bot est en ligne",
-			DMPermission: boolPtr(false),
 		},
 		{
 			Name:         "birthday",
 			Description:  "Gérer les anniversaires",
-			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -71,7 +69,6 @@ var (
 		{
 			Name:         "blague",
 			Description:  "Obtenir une blague",
-			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "type",
@@ -225,22 +222,18 @@ var (
 		{
 			Name:         "debug",
 			Description:  "[OWNER] Debug command",
-			DMPermission: boolPtr(false),
 		},
 		{
 			Name:         "maintenance",
 			Description:  "[OWNER] Mettre le bot en mode maintenance",
-			DMPermission: boolPtr(false),
 		},
 		{
 			Name:         "motus",
 			Description:  "Lancer une partie de motus",
-			DMPermission: boolPtr(false),
 		},
 		{
 			Name:         "quiz",
 			Description:  "Gestionnaire de quiz",
-			DMPermission: boolPtr(false),
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "launch",
