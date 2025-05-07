@@ -27,7 +27,25 @@ func MotusTryModal(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	data := i.ModalSubmitData()
 	wordGiven := data.Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
 
-	currentGame.HandleTry(wordGiven, i.Member.User.GlobalName)
+	// Récupérer le nom de l'utilisateur en sécurisant l'accès
+	var username string
+	if i.Member != nil && i.Member.User != nil {
+		if i.Member.Nick != "" {
+			username = i.Member.Nick
+		} else {
+			username = i.Member.User.Username
+		}
+	} else if i.User != nil {
+		if i.User.GlobalName != "" {
+			username = i.User.GlobalName
+		} else {
+			username = i.User.Username
+		}
+	} else {
+		username = "Unknown user"
+	}
+
+	currentGame.HandleTry(wordGiven, username)
 
 	embed := currentGame.GetEmbed(s)
 	var components []discordgo.MessageComponent

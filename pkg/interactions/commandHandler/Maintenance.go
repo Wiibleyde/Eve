@@ -8,8 +8,15 @@ import (
 )
 
 func MaintenanceHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
-	// Check if the user is an admin
-	if i.Member.User.ID != config.GetConfig().OwnerId {
+	var user *discordgo.User
+	if i.Member != nil && i.Member.User != nil {
+		user = i.Member.User
+	} else if i.User != nil {
+		user = i.User
+	}
+
+	// Check if the user is the owner
+	if user.ID != config.GetConfig().OwnerId {
 		embed := bot_utils.WarningEmbed(s, "Vous n'avez pas la permission d'utiliser cette commande.")
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
