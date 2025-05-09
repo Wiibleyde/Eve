@@ -53,19 +53,19 @@ func InitLogger() {
 
 	fileOutput := io.Writer(file)
 
-	fileWarningPrefix := "WARNING: "
-	fileInfoPrefix := "INFO: "
-	fileErrorPrefix := "ERROR: "
-	fileDebugPrefix := "DEBUG: "
+	fileWarningPrefix := "AVERTISSMENT : "
+	fileInfoPrefix := "INFO : "
+	fileErrorPrefix := "ERREUR : "
+	fileDebugPrefix := "DEBUG : "
 
-	consoleWarningPrefix := color.YellowString("WARNING: ")
-	consoleInfoPrefix := color.BlueString("INFO: ")
-	consoleErrorPrefix := color.RedString("ERROR: ")
-	consoleDebugPrefix := color.GreenString("DEBUG: ")
+	consoleWarningPrefix := color.YellowString("AVERTISSMENT : ")
+	consoleInfoPrefix := color.BlueString("INFO : ")
+	consoleErrorPrefix := color.RedString("ERREUR : ")
+	consoleDebugPrefix := color.GreenString("DEBUG : ")
 
 	WarningLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleWarningPrefix, level: "WARNING", embedColor: ColorWarning}),
+		&prefixWriter{out: color.Output, prefix: consoleWarningPrefix, level: "AVERTISSMENT", embedColor: ColorWarning}),
 		fileWarningPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -77,7 +77,7 @@ func InitLogger() {
 
 	ErrorLogger = log.New(io.MultiWriter(
 		fileOutput,
-		&prefixWriter{out: color.Output, prefix: consoleErrorPrefix, level: "ERROR", embedColor: ColorError}),
+		&prefixWriter{out: color.Output, prefix: consoleErrorPrefix, level: "ERREUR", embedColor: ColorError}),
 		fileErrorPrefix,
 		log.Ldate|log.Ltime|log.Lshortfile)
 

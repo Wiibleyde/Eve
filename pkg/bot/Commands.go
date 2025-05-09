@@ -21,12 +21,12 @@ var (
 	commands = []*discordgo.ApplicationCommand{
 		// Slash commands
 		{
-			Name:         "ping",
-			Description:  "Savoir si le bot est en ligne",
+			Name:        "ping",
+			Description: "Savoir si le bot est en ligne",
 		},
 		{
-			Name:         "birthday",
-			Description:  "Gérer les anniversaires",
+			Name:        "birthday",
+			Description: "Gérer les anniversaires",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "set",
@@ -67,8 +67,8 @@ var (
 			},
 		},
 		{
-			Name:         "blague",
-			Description:  "Obtenir une blague",
+			Name:        "blague",
+			Description: "Obtenir une blague",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "type",
@@ -220,20 +220,20 @@ var (
 			},
 		},
 		{
-			Name:         "debug",
-			Description:  "[OWNER] Debug command",
+			Name:        "debug",
+			Description: "[OWNER] Debug command",
 		},
 		{
-			Name:         "maintenance",
-			Description:  "[OWNER] Mettre le bot en mode maintenance",
+			Name:        "maintenance",
+			Description: "[OWNER] Mettre le bot en mode maintenance",
 		},
 		{
-			Name:         "motus",
-			Description:  "Lancer une partie de motus",
+			Name:        "motus",
+			Description: "Lancer une partie de motus",
 		},
 		{
-			Name:         "quiz",
-			Description:  "Gestionnaire de quiz",
+			Name:        "quiz",
+			Description: "Gestionnaire de quiz",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "launch",

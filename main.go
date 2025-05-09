@@ -13,7 +13,7 @@ func main() {
 	config.InitConfig()
 	logger.InitLogger()
 
-	logger.InfoLogger.Println("Program starting...")
+	logger.InfoLogger.Println("Démarrage du programme...")
 
 	intelligence.InitAi()
 

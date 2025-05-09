@@ -15,10 +15,10 @@ var (
 )
 
 func InitBot() {
-	logger.InfoLogger.Println("Starting bot...")
+	logger.InfoLogger.Println("Démarrage du bot...")
 	dg, err := discordgo.New("Bot " + config.GetConfig().DiscordToken)
 	if err != nil {
-		logger.ErrorLogger.Panicln("[PANIC] Error creating Discord session,", err)
+		logger.ErrorLogger.Panicln("[PANIC] Le bot n'a pas pu démarrer,", err)
 		return
 	}
 
@@ -43,7 +43,7 @@ func InitBot() {
 
 	err = dg.Open()
 	if err != nil {
-		logger.ErrorLogger.Panicln("Error opening connection,", err.Error())
+		logger.ErrorLogger.Panicln("Impossible d'ouvrir la connexion", err.Error())
 		return
 	}
 
@@ -53,12 +53,12 @@ func InitBot() {
 	signal.Notify(sigch, os.Interrupt)
 	<-sigch
 
-	logger.InfoLogger.Println("Received interrupt signal, shutting down gracefully...")
+	logger.InfoLogger.Println("Réception du signal d'arrêt, fermeture du bot...")
 
 	err = dg.Close()
 	if err != nil {
-		logger.InfoLogger.Printf("could not close session gracefully: %s", err)
+		logger.InfoLogger.Printf("Impossible de fermer le bot : %v", err)
 	}
 
-	logger.InfoLogger.Println("Bot has been shut down.")
+	logger.InfoLogger.Println("Bot arrêté avec succès")
 }
