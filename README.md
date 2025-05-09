@@ -83,7 +83,7 @@ services:
 3. Launch the bot with Docker Compose:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Manual Configuration
@@ -104,7 +104,10 @@ go get
 3. Configure your Prisma database:
 
 ```bash
-npx prisma generate
+go run github.com/steebchen/prisma-client-go generate
+```
+```bash
+go run github.com/steebchen/prisma-client-go migrate deploy
 ```
 
 4. Create a `.env` file with the variables listed in the docker-compose.yml

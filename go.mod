@@ -19,6 +19,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
@@ -29,10 +30,11 @@ require (
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
-	golang.org/x/image v0.26.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34 // indirect
+	golang.org/x/image v0.27.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
+	google.golang.org/api v0.230.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250505200425-f936aa4a68b2 // indirect
 	google.golang.org/grpc v1.72.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
@@ -40,8 +42,8 @@ require (
 require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/robfig/cron/v3 v3.0.1
-	go.mongodb.org/mongo-driver/v2 v2.2.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
+	go.mongodb.org/mongo-driver/v2 v2.2.1 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
 )
 
 require (
@@ -50,6 +52,6 @@ require (
 	github.com/gtuk/discordwebhook v1.2.0
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	google.golang.org/genai v1.3.0
+	golang.org/x/sys v0.33.0 // indirect
+	google.golang.org/genai v1.4.0
 )
