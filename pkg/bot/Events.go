@@ -197,6 +197,18 @@ func truncateString(s string, maxLen int) string {
 
 func onReady(s *discordgo.Session, r *discordgo.Ready) {
 	log := logExecutionTime(func() {
+		s.UpdateStatusComplex(discordgo.UpdateStatusData{
+			IdleSince: nil,
+			Activities: []*discordgo.Activity{
+				{
+					Name: "démarrage...",
+					Type: discordgo.ActivityTypeCompeting,
+				},
+			},
+			Status: "dnd",
+			AFK:    false,
+		})
+
 		registerCommands(s)
 		InitMpThreadManager()
 
