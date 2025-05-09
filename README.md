@@ -90,33 +90,34 @@ docker compose up -d
 
 1. Clone the repository:
 
-```bash
-git clone https://github.com/wiibleyde/eve.git
-cd eve
-```
+  ```bash
+  git clone https://github.com/wiibleyde/eve.git
+  cd eve
+  ```
 
 2. Install dependencies:
 
-```bash
-go get
-```
+  ```bash
+  go get
+  ```
 
 3. Configure your Prisma database:
 
-```bash
-go run github.com/steebchen/prisma-client-go generate
-```
-```bash
-go run github.com/steebchen/prisma-client-go migrate deploy
-```
+  ```bash
+  go run github.com/steebchen/prisma-client-go generate
+  ```
+
+  ```bash
+  go run github.com/steebchen/prisma-client-go migrate deploy
+  ```
 
 4. Create a `.env` file with the variables listed in the docker-compose.yml
 
 5. Launch the bot:
 
-```bash
-go run main.go
-```
+  ```bash
+  go run main.go
+  ```
 
 ## Commands
 
