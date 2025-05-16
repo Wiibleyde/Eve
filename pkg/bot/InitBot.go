@@ -7,39 +7,36 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/bwmarrin/discordgo"
-)
-
-var (
-	session *discordgo.Session
+	"github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/gateway"
 )
 
 func InitBot() {
 	logger.InfoLogger.Println("Démarrage du bot...")
-	dg, err := discordgo.New("Bot " + config.GetConfig().DiscordToken)
+	client, err := disgo.New(config.GetConfig().DiscordToken, bot.WithGatewayConfigOpts(
+		gateway.WithIntents(
+			gateway.IntentGuilds,
+			gateway.IntentGuildMessages,
+			gateway.IntentGuildMessageReactions,
+			gateway.IntentGuildMessageTyping,
+			gateway.IntentGuildVoiceStates,
+			gateway.IntentGuildMembers,
+			gateway.IntentDirectMessages,
+			gateway.IntentDirectMessageReactions,
+			gateway.IntentDirectMessageTyping,
+			gateway.IntentMessageContent,
+		),
+		
+	))
 	if err != nil {
 		logger.ErrorLogger.Panicln("[PANIC] Le bot n'a pas pu démarrer,", err)
 		return
 	}
 
-	session = dg
-
-	dg.StateEnabled = true
-
-	dg.Identify.Intents = discordgo.IntentsGuilds |
-		discordgo.IntentsGuildMessages |
-		discordgo.IntentsGuildMessageReactions |
-		discordgo.IntentsGuildMessageTyping |
-		discordgo.IntentsGuildVoiceStates |
-		discordgo.IntentsGuildMembers |
-		discordgo.IntentsDirectMessages |
-		discordgo.IntentsDirectMessageReactions |
-		discordgo.IntentsDirectMessageTyping |
-		discordgo.IntentsMessageContent
-
-	dg.AddHandler(messageCreate)
-	dg.AddHandler(onReady)
-	dg.AddHandler(interactionCreate)
+	// dg.AddHandler(messageCreate)
+	// dg.AddHandler(onReady)
+	// dg.AddHandler(interactionCreate)
 
 	err = dg.Open()
 	if err != nil {

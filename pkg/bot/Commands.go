@@ -2,11 +2,11 @@ package bot
 
 import (
 	"main/pkg/interactions/commandHandler"
-	messageContextMenuHandler "main/pkg/interactions/contextMenuHandler/message"
-	userContextMenuHandler "main/pkg/interactions/contextMenuHandler/user"
 	"main/pkg/logger"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 )
 
 func intPtr(i int) *int {
@@ -18,64 +18,57 @@ func boolPtr(b bool) *bool {
 }
 
 var (
-	commands = []*discordgo.ApplicationCommand{
+	commands = []discord.ApplicationCommandCreate{
 		// Slash commands
-		{
+		discord.SlashCommandCreate{
 			Name:        "ping",
 			Description: "Savoir si le bot est en ligne",
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "birthday",
 			Description: "Gérer les anniversaires",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "set",
 					Description: "Définir votre date de naissance",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "date",
 							Description: "Date de naissance au format YYYY-MM-DD",
-							Type:        discordgo.ApplicationCommandOptionString,
 							Required:    true,
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "get",
 					Description: "Obtenir votre date de naissance",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionUser{
 							Name:        "user",
 							Description: "Utilisateur dont vous voulez connaître la date de naissance",
-							Type:        discordgo.ApplicationCommandOptionUser,
 							Required:    false,
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "delete",
 					Description: "Supprimer votre date de naissance",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "list",
 					Description: "Lister les anniversaires (dans le serveur)",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "blague",
 			Description: "Obtenir une blague",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
 					Name:        "type",
 					Description: "Type de blague (certains types ont été censurés)",
-					Type:        discordgo.ApplicationCommandOptionString,
 					Required:    true,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
+					Choices: []discord.ApplicationCommandOptionChoiceString{
 						{
 							Name:  "Globale",
 							Value: "global",
@@ -104,22 +97,20 @@ var (
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:         "config",
 			Description:  "Configurer le bot",
 			DMPermission: boolPtr(false),
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "set",
 					Description: "Configurer le bot",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "setting",
 							Description: "Paramètre à configurer",
-							Type:        discordgo.ApplicationCommandOptionString,
 							Required:    true,
-							Choices: []*discordgo.ApplicationCommandOptionChoice{
+							Choices: []discord.ApplicationCommandOptionChoiceString{
 								{
 									Name:  "Canal d'anniversaire",
 									Value: "birthdayChannel",
@@ -130,31 +121,27 @@ var (
 								},
 							},
 						},
-						{
+						discord.ApplicationCommandOptionChannel{
 							Name:         "channel",
 							Description:  "Canal choisi",
-							Type:         discordgo.ApplicationCommandOptionChannel,
 							Required:     true,
-							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText},
+							ChannelTypes: []discord.ChannelType{discord.ChannelTypeGuildText},
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "get",
 					Description: "Obtenir la configuration du bot",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "delete",
 					Description: "Supprimer la configuration du bot",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "setting",
 							Description: "Paramètre à supprimer",
-							Type:        discordgo.ApplicationCommandOptionString,
 							Required:    true,
-							Choices: []*discordgo.ApplicationCommandOptionChoice{
+							Choices: []discord.ApplicationCommandOptionChoiceString{
 								{
 									Name:  "Canal d'anniversaire",
 									Value: "birthdayChannel",
@@ -169,138 +156,124 @@ var (
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:         "talk",
 			Description:  "Faire parler le bot",
 			DMPermission: boolPtr(false),
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
 					Name:        "message",
-					MinLength:   intPtr(1),
-					MaxLength:   2000,
 					Description: "Message à faire dire",
-					Type:        discordgo.ApplicationCommandOptionString,
 					Required:    true,
+					MinLength:   intPtr(1),
+					MaxLength:   intPtr(2000),
 				},
-				{
+				discord.ApplicationCommandOptionUser{
 					Name:        "mp",
 					Description: "Dans le MPs de l'utilisateur ?",
-					Type:        discordgo.ApplicationCommandOptionUser,
 					Required:    false,
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:         "quote",
 			Description:  "Créer une citation",
 			DMPermission: boolPtr(false),
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
 					Name:        "citation",
 					Description: "Citation à créer",
-					Type:        discordgo.ApplicationCommandOptionString,
-					MinLength:   intPtr(1),
-					MaxLength:   256,
 					Required:    true,
+					MinLength:   intPtr(1),
+					MaxLength:   intPtr(256),
 				},
-				{
+				discord.ApplicationCommandOptionUser{
 					Name:        "auteur",
 					Description: "Auteur de la citation",
-					Type:        discordgo.ApplicationCommandOptionUser,
 					Required:    true,
 				},
-				{
+				discord.ApplicationCommandOptionString{
 					Name:        "contexte",
 					Description: "Contexte de la citation",
-					Type:        discordgo.ApplicationCommandOptionString,
-					MinLength:   intPtr(1),
-					MaxLength:   256,
 					Required:    false,
+					MinLength:   intPtr(1),
+					MaxLength:   intPtr(256),
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "debug",
 			Description: "[OWNER] Debug command",
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "maintenance",
 			Description: "[OWNER] Mettre le bot en mode maintenance",
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "motus",
 			Description: "Lancer une partie de motus",
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:        "quiz",
 			Description: "Gestionnaire de quiz",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "launch",
 					Description: "Afficher une question de quiz aléatoire",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "create",
 					Description: "Créer une question de quiz",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "question",
 							Description: "Question à poser",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "answer",
 							Description: "Réponse à la question",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "bad1",
 							Description: "Mauvaise réponse 1",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "bad2",
 							Description: "Mauvaise réponse 2",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "bad3",
 							Description: "Mauvaise réponse 3",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "category",
 							Description: "Catégorie de la question",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
 						},
-						{
+						discord.ApplicationCommandOptionString{
 							Name:        "difficulty",
 							Description: "Difficulté de la question",
-							Type:        discordgo.ApplicationCommandOptionString,
 							MinLength:   intPtr(1),
-							MaxLength:   256,
+							MaxLength:   intPtr(256),
 							Required:    true,
-							Choices: []*discordgo.ApplicationCommandOptionChoice{
+							Choices: []discord.ApplicationCommandOptionChoiceString{
 								{
 									Name:  "Facile",
 									Value: "facile",
@@ -317,19 +290,17 @@ var (
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "leaderboard",
 					Description: "Afficher le classement des joueurs",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "type",
 							Description: "Type de classement",
-							Type:        discordgo.ApplicationCommandOptionString,
-							MinLength:   intPtr(1),
-							MaxLength:   256,
 							Required:    true,
-							Choices: []*discordgo.ApplicationCommandOptionChoice{
+							MinLength:   intPtr(1),
+							MaxLength:   intPtr(256),
+							Choices: []discord.ApplicationCommandOptionChoiceString{
 								{
 									Name:  "Ratio",
 									Value: "ratio",
@@ -346,138 +317,121 @@ var (
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "me",
 					Description: "Afficher vos statistiques de quiz",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
 			},
 		},
-		{
+		discord.SlashCommandCreate{
 			Name:         "streamer",
 			Description:  "Gérer les streamers",
 			DMPermission: boolPtr(false),
-			Options: []*discordgo.ApplicationCommandOption{
-				{
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "add",
 					Description: "Ajouter un streamer",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "channel_name",
 							Description: "Nom EXACT de la chaîne Twitch",
-							Type:        discordgo.ApplicationCommandOptionString,
-							MinLength:   intPtr(1),
-							MaxLength:   256,
 							Required:    true,
+							MinLength:   intPtr(1),
+							MaxLength:   intPtr(256),
 						},
-						{
+						discord.ApplicationCommandOptionChannel{
 							Name:         "channel",
 							Description:  "Canal où envoyer les notifications",
-							Type:         discordgo.ApplicationCommandOptionChannel,
 							Required:     true,
-							ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText, discordgo.ChannelTypeGuildNews},
+							ChannelTypes: []discord.ChannelType{discord.ChannelTypeGuildText, discord.ChannelTypeGuildNews},
 						},
-						{
+						discord.ApplicationCommandOptionRole{
 							Name:        "role",
 							Description: "Rôle à mentionner lors de la notification",
-							Type:        discordgo.ApplicationCommandOptionRole,
 							Required:    false,
 						},
 					},
 				},
-				{
+				discord.ApplicationCommandOptionSubCommand{
 					Name:        "remove",
 					Description: "Supprimer un streamer",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Options: []*discordgo.ApplicationCommandOption{
-						{
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
 							Name:        "channel_name",
 							Description: "Nom EXACT de la chaîne Twitch",
-							Type:        discordgo.ApplicationCommandOptionString,
-							MinLength:   intPtr(1),
-							MaxLength:   256,
 							Required:    true,
+							MinLength:   intPtr(1),
+							MaxLength:   intPtr(256),
 						},
 					},
 				},
 			},
 		},
-
-		// Context menu user commands
-		{
+		discord.UserCommandCreate{
 			Name:         "Récupérer la photo de profil",
-			Type:         discordgo.UserApplicationCommand,
 			DMPermission: boolPtr(false),
 		},
-		{
+		discord.UserCommandCreate{
 			Name:         "Récupérer la bannière",
-			Type:         discordgo.UserApplicationCommand,
 			DMPermission: boolPtr(false),
 		},
-
-		// Context menu message commands
-		{
+		discord.MessageCommandCreate{
 			Name:         "Créer une citation",
-			Type:         discordgo.MessageApplicationCommand,
 			DMPermission: boolPtr(false),
 		},
 	}
-	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) error{
+	commandHandlers = map[string]func(event *events.ApplicationCommandInteractionCreate){
 		// Slash commands
-		"ping":        commandHandler.PingHandler,
-		"birthday":    commandHandler.BirthdayHandler,
-		"blague":      commandHandler.BlagueHandler,
-		"config":      commandHandler.ConfigHandler,
-		"talk":        commandHandler.TalkHandler,
-		"quote":       commandHandler.QuoteHandler,
-		"debug":       commandHandler.DebugHandler,
-		"maintenance": commandHandler.MaintenanceHandler,
-		"motus":       commandHandler.MotusCommand,
-		"quiz":        commandHandler.QuizHandler,
-		"streamer":    commandHandler.StreamerHandler,
+		"ping": commandHandler.PingHandler,
+		// "birthday":    commandHandler.BirthdayHandler,
+		// "blague":      commandHandler.BlagueHandler,
+		// "config":      commandHandler.ConfigHandler,
+		// "talk":        commandHandler.TalkHandler,
+		// "quote":       commandHandler.QuoteHandler,
+		// "debug":       commandHandler.DebugHandler,
+		// "maintenance": commandHandler.MaintenanceHandler,
+		// "motus":       commandHandler.MotusCommand,
+		// "quiz":        commandHandler.QuizHandler,
+		// "streamer":    commandHandler.StreamerHandler,
 
-		// Context menu user commands
-		"Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
-		"Récupérer la bannière":        userContextMenuHandler.BannerContextMenuHandler,
+		// // Context menu user commands
+		// "Récupérer la photo de profil": userContextMenuHandler.ProfilePictureContextMenuHandler,
+		// "Récupérer la bannière":        userContextMenuHandler.BannerContextMenuHandler,
 
-		// Context menu message commands
-		"Créer une citation": messageContextMenuHandler.CreateQuoteContextMenuHandler,
+		// // Context menu message commands
+		// "Créer une citation": messageContextMenuHandler.CreateQuoteContextMenuHandler,
 	}
 )
 
 // checkCommandHandlers check if every command has a handler
 func checkCommandHandlers() {
 	for i, v := range commands {
-		if _, ok := commandHandlers[v.Name]; !ok {
+		var name string
+		switch cmd := v.(type) {
+		case discord.SlashCommandCreate:
+			name = cmd.Name
+		case discord.UserCommandCreate:
+			name = cmd.Name
+		case discord.MessageCommandCreate:
+			name = cmd.Name
+		}
+
+		if _, ok := commandHandlers[name]; !ok {
 			commands = append(commands[:i], commands[i+1:]...)
-			logger.WarningLogger.Println("Removed command", v.Name)
+			logger.WarningLogger.Println("Removed command", name)
 			continue
 		}
 	}
 }
 
-func registerCommands(s *discordgo.Session) {
+func registerCommands(client bot.Client) {
 	checkCommandHandlers()
 
-	// Register all commands at once using BulkOverwrite which is more efficient
-	// This both removes old commands and adds the new ones in a single API call
-	registeredCommands, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
-	if err != nil {
-		logger.ErrorLogger.Printf("Impossible d'enregistrer les commandes: %v", err)
+	var err error
+	if _, err = client.Rest().SetGlobalCommands(client.ApplicationID(), commands); err != nil {
+		logger.ErrorLogger.Panicln("[PANIC] Impossible d'enregistrer les commandes globales,", err)
 		return
 	}
 
-	logger.InfoLogger.Printf("Total de %v commandes enregistrées avec succès!", len(registeredCommands))
-}
-
-func GetCommandsForHelp() []*discordgo.ApplicationCommand {
-	// Filter out commands that are not slash commands
-	var slashCommands []*discordgo.ApplicationCommand
-	for _, command := range commands {
-		if command.Type == discordgo.ChatApplicationCommand {
-			slashCommands = append(slashCommands, command)
-		}
-	}
-	return slashCommands
+	logger.InfoLogger.Printf("Total de %v commandes enregistrées avec succès!", len(commands))
 }

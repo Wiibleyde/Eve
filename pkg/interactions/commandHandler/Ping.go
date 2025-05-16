@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 	PING_THRESHOLD_BAD       = 500
 )
 
-func PingHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
-	ping := s.HeartbeatLatency().Milliseconds()
+func PingHandler(event *events.ApplicationCommandInteractionCreate) {
+	ping := event.Client().Gateway().Latency()
 	var pingMessage string
 	var color int
 
@@ -50,44 +51,24 @@ func PingHandler(s *discordgo.Session, i *discordgo.InteractionCreate) error {
 	uptime := time.Since(bot_utils.StartTime)
 	uptimeMessage := fmt.Sprintf("%d minutes, %d secondes", int(uptime.Minutes()), int(uptime.Seconds())%60)
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "Status du bot",
-		Description: pingMessage,
-		Color:       color,
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:   "Valeur",
-				Value:  fmt.Sprintf("%d ms", ping),
-				Inline: true,
-			},
-			{
-				Name:   "Mémoire utilisée",
-				Value:  fmt.Sprintf("%.2f Mo", heapConsumed),
-				Inline: true,
-			},
-			{
-				Name:   "Uptime",
-				Value:  uptimeMessage,
-				Inline: true,
-			},
-		},
-		Footer: &discordgo.MessageEmbedFooter{
-			Text:    "Eve – Toujours prête à vous aider.",
-			IconURL: s.State.User.AvatarURL("64"),
-		},
-		Timestamp: time.Now().Format("2006-01-02T15:04:05Z07:00"),
-	}
+	embed := discord.NewEmbedBuilder().
+		SetTitle("Status du bot").
+		SetDescription(pingMessage).
+		SetColor(color).
+		AddField("Valeur", fmt.Sprintf("%d ms", ping), true).
+		AddField("Mémoire utilisée", fmt.Sprintf("%.2f Mo", heapConsumed), true).
+		AddField("Uptime", uptimeMessage, true).
+		SetFooter("Eve – Toujours prête à vous aider.", *event.User().AvatarURL()).
+		SetTimestamp(time.Now()).
+		Build()
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{embed},
-			Flags:  discordgo.MessageFlagsEphemeral,
+	err := event.Respond(
+		discord.InteractionResponseTypeCreateMessage,
+		discord.MessageCreate{
+			Embeds: []discord.Embed{embed},
 		},
-	})
+	)
 	if err != nil {
-		return err
+		return
 	}
-
-	return nil
 }
