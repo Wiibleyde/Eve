@@ -1,5 +1,5 @@
 import { ActivityType, Events } from "discord.js";
-import type { Event } from "../Event";
+import type { Event } from "../event";
 import { deployCommands } from "../../commands/deploy-commands";
 import { logger } from "../../..";
 

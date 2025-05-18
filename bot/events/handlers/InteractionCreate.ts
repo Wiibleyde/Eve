@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import type { Event } from "../Event";
+import type { Event } from "../event";
 import { logger } from "../../..";
 import { commandsMap } from "../../commands/command";
 
