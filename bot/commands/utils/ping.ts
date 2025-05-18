@@ -24,7 +24,7 @@ export const ping: ICommand = {
 
         if (!firstResponse || ping <= 0) {
             status = 'Surprenant ! ⚫';
-            color = 0xffffff;
+            color = 0x000000;
         } else if (ping < PING_THRESHOLD.VERY_GOOD) {
             status = 'Très bon 🟢';
             color = 0x00ff00;
