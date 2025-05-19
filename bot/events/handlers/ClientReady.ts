@@ -2,6 +2,8 @@ import { ActivityType, Events } from 'discord.js';
 import type { Event } from '../event';
 import { deployCommands } from '../../commands/deploy-commands';
 import { logger } from '../../..';
+import { birthdayCron } from '../../../cron/birthdayCron';
+import { statusCron } from '../../../cron/statusCron';
 
 export const event: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -18,6 +20,9 @@ export const event: Event<Events.ClientReady> = {
         });
 
         await deployCommands();
+
+        birthdayCron.start();
+        statusCron.start();
 
         logger.info(`Logged in as ${client.user?.tag}`);
     },

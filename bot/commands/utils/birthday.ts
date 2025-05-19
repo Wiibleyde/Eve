@@ -251,7 +251,7 @@ export const birthday: ICommand = {
     },
 };
 
-function birthdayEmbedGenerator() {
+export function birthdayEmbedGenerator() {
     return basicEmbedGenerator().setAuthor({
         name: 'Eve - Anniversaires',
         iconURL:

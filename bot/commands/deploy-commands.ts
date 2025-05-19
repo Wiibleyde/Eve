@@ -17,7 +17,7 @@ export async function deployCommands(): Promise<void> {
         await rest.put(Routes.applicationCommands(config.DISCORD_CLIENT_ID), {
             body: commandsData,
         });
-        logger.info('Successfully deployed commands globally.');
+        logger.info(`Successfully deployed commands globally. (${commands.length} commands)`);
     } catch (error) {
         logger.error('Error deploying commands:', error);
         throw new Error(`Failed to deploy commands: ${error}`);
