@@ -55,5 +55,5 @@ export const event: Event<Events.InteractionCreate> = {
                 `[${Date.now() - startTime}ms] Button executed: ${interaction.customId} by ${interaction.user.tag}`
             );
         }
-    }
+    },
 };
