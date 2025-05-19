@@ -1,7 +1,7 @@
-import { Events } from "discord.js";
-import type { Event } from "../event";
-import { logger } from "../../..";
-import { commandsMap } from "../../commands/command";
+import { Events } from 'discord.js';
+import type { Event } from '../event';
+import { logger } from '../../..';
+import { commandsMap } from '../../commands/command';
 
 export const event: Event<Events.InteractionCreate> = {
     name: Events.InteractionCreate,
@@ -32,5 +32,5 @@ export const event: Event<Events.InteractionCreate> = {
                 `[${Date.now() - startTime}ms] Command executed: ${interaction.commandName} by ${interaction.user.tag}`
             );
         }
-    }
+    },
 };

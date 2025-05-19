@@ -1,5 +1,5 @@
-import { Client, GatewayIntentBits, Partials } from "discord.js";
-import { loadEvents } from "./events/event";
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { loadEvents } from './events/event';
 
 export const client = new Client({
     intents: [
@@ -14,12 +14,7 @@ export const client = new Client({
         GatewayIntentBits.DirectMessageTyping,
         GatewayIntentBits.MessageContent,
     ],
-    partials: [
-        Partials.User,
-        Partials.Channel,
-        Partials.Message,
-        Partials.GuildMember,
-    ],
+    partials: [Partials.User, Partials.Channel, Partials.Message, Partials.GuildMember],
 });
 
 loadEvents();

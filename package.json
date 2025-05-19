@@ -1,16 +1,22 @@
 {
-  "name": "eve",
-  "module": "index.ts",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "discord.js": "^14.19.3",
-    "dotenv": "^16.5.0"
-  }
+    "name": "eve",
+    "module": "index.ts",
+    "scripts": {
+        "prettier": "prettier --write ."
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "prettier": "3.5.3"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "@prisma/client": "^6.8.2",
+        "discord.js": "^14.19.3",
+        "dotenv": "^16.5.0",
+        "prisma": "^6.8.2"
+    }
 }

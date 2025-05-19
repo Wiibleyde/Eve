@@ -59,25 +59,25 @@ cd eve
 
 ```yml
 services:
-  eve:
-    build: .
-    image: wiibleyde/eve:latest
-    container_name: eve
-    restart: unless-stopped
-    volumes:
-      - ./logs:/root/logs
-    environment:
-      - DISCORD_TOKEN=your_discord_token
-      - DISCORD_CLIENT_ID=your_discord_client_id
-      - EVE_HOME_GUILD=your_main_server_id
-      - MP_CHANNEL=your_mp_channel_id
-      - BLAGUE_API_TOKEN=your_joke_api_token
-      - OWNER_ID=your_user_id
-      - LOGS_WEBHOOK_URL=your_webhook_url_for_logs
-      - DATABASE_URL=mysql://user:password@host:3306/eve
-      - GOOGLE_API_KEY=your_google_api_key
-      - TWITCH_CLIENT_ID=your_twitch_client_id
-      - TWITCH_CLIENT_SECRET=your_twitch_client_secret
+    eve:
+        build: .
+        image: wiibleyde/eve:latest
+        container_name: eve
+        restart: unless-stopped
+        volumes:
+            - ./logs:/root/logs
+        environment:
+            - DISCORD_TOKEN=your_discord_token
+            - DISCORD_CLIENT_ID=your_discord_client_id
+            - EVE_HOME_GUILD=your_main_server_id
+            - MP_CHANNEL=your_mp_channel_id
+            - BLAGUE_API_TOKEN=your_joke_api_token
+            - OWNER_ID=your_user_id
+            - LOGS_WEBHOOK_URL=your_webhook_url_for_logs
+            - DATABASE_URL=mysql://user:password@host:3306/eve
+            - GOOGLE_API_KEY=your_google_api_key
+            - TWITCH_CLIENT_ID=your_twitch_client_id
+            - TWITCH_CLIENT_SECRET=your_twitch_client_secret
 ```
 
 3. Launch the bot with Docker Compose:
@@ -90,34 +90,34 @@ docker compose up -d
 
 1. Clone the repository:
 
-  ```bash
-  git clone https://github.com/wiibleyde/eve.git
-  cd eve
-  ```
+```bash
+git clone https://github.com/wiibleyde/eve.git
+cd eve
+```
 
 2. Install dependencies:
 
-  ```bash
-  go get
-  ```
+```bash
+go get
+```
 
 3. Configure your Prisma database:
 
-  ```bash
-  go run github.com/steebchen/prisma-client-go generate
-  ```
+```bash
+go run github.com/steebchen/prisma-client-go generate
+```
 
-  ```bash
-  go run github.com/steebchen/prisma-client-go migrate deploy
-  ```
+```bash
+go run github.com/steebchen/prisma-client-go migrate deploy
+```
 
 4. Create a `.env` file with the variables listed in the docker-compose.yml
 
 5. Launch the bot:
 
-  ```bash
-  go run main.go
-  ```
+```bash
+go run main.go
+```
 
 ## Commands
 
