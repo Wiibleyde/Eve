@@ -2,7 +2,7 @@ import { CronJob } from 'cron';
 import { logger } from '..';
 import { prisma } from '../utils/database';
 import { client } from '../bot/bot';
-import { birthdayEmbedGenerator } from '../bot/commands/utils/birthday';
+import { birthdayEmbedGenerator } from '../bot/commands/handlers/birthday';
 
 export const birthdayCron = new CronJob(
     '0 0 * * *', // Runs every day at midnight
