@@ -1,6 +1,6 @@
-import { CronJob } from "cron";
-import { ActivityType } from "discord.js";
-import { client } from "../bot/bot";
+import { CronJob } from 'cron';
+import { ActivityType } from 'discord.js';
+import { client } from '../bot/bot';
 
 const possibleStatus: { name: string; type: ActivityType }[] = [
     { name: `les merveilles de ce monde.`, type: ActivityType.Watching },
@@ -29,7 +29,6 @@ const christmasPeriod: { start: Date; end: Date } = {
     start: new Date(new Date().getFullYear(), 11, 1),
     end: new Date(new Date().getFullYear(), 11, 25),
 };
-
 
 const areInPeriod = (period: { start: Date; end: Date }) => {
     const today = new Date();

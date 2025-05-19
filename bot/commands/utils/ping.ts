@@ -89,7 +89,8 @@ function createPingEmbed(ping: number, status: string, color: number, memoryData
         )
         .setAuthor({
             name: 'Eve - Ping',
-            iconURL: "https://cdn.discordapp.com/attachments/1373968524229218365/1373975736943120455/image.png?ex=682c5e1e&is=682b0c9e&hm=cf2d1c4ea686b7a5e298142d6b40e509d978bccbce6c7fdfc6d66086e2c7e60c&",
+            iconURL:
+                'https://cdn.discordapp.com/attachments/1373968524229218365/1373975736943120455/image.png?ex=682c5e1e&is=682b0c9e&hm=cf2d1c4ea686b7a5e298142d6b40e509d978bccbce6c7fdfc6d66086e2c7e60c&',
         })
         .setColor(color);
 
