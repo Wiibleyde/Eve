@@ -1,89 +1,88 @@
-import { ChatInputCommandInteraction, InteractionContextType, MessageFlags, SlashCommandBuilder, type GuildBasedChannel } from "discord.js";
-import type { ICommand } from "../command";
-import { prisma } from "../../../utils/database";
-import { basicEmbedGenerator } from "../../utils/embeds";
+import {
+    ChatInputCommandInteraction,
+    InteractionContextType,
+    MessageFlags,
+    SlashCommandBuilder,
+    type GuildBasedChannel,
+} from 'discord.js';
+import type { ICommand } from '../command';
+import { prisma } from '../../../utils/database';
+import { basicEmbedGenerator } from '../../utils/embeds';
 
 export const config: ICommand = {
     data: new SlashCommandBuilder()
-        .setName("config")
-        .setDescription("Configure le bot")
+        .setName('config')
+        .setDescription('Configure le bot')
         .addSubcommand((subcommand) =>
             subcommand
-                .setName("set")
-                .setDescription("Configure une option")
+                .setName('set')
+                .setDescription('Configure une option')
                 .addStringOption((option) =>
                     option
-                        .setName("option")
+                        .setName('option')
                         .setDescription("L'option à configurer")
                         .setRequired(true)
                         .addChoices([
                             {
-                                name: "Salon des anniversaires",
-                                value: "birthdayChannel",
+                                name: 'Salon des anniversaires',
+                                value: 'birthdayChannel',
                             },
                             {
-                                name: "Salon des citations",
-                                value: "quoteChannel",
+                                name: 'Salon des citations',
+                                value: 'quoteChannel',
                             },
                         ])
                 )
                 .addChannelOption((option) =>
-                    option
-                        .setName("channel")
-                        .setDescription("Le salon à configurer")
-                        .setRequired(true)
+                    option.setName('channel').setDescription('Le salon à configurer').setRequired(true)
                 )
         )
         .addSubcommand((subcommand) =>
             subcommand
-                .setName("get")
+                .setName('get')
                 .setDescription("Récupère la configuration d'une option")
                 .addStringOption((option) =>
                     option
-                        .setName("option")
+                        .setName('option')
                         .setDescription("L'option à récupérer")
                         .setRequired(true)
                         .addChoices([
                             {
-                                name: "Salon des anniversaires",
-                                value: "birthdayChannel",
+                                name: 'Salon des anniversaires',
+                                value: 'birthdayChannel',
                             },
                             {
-                                name: "Salon des citations",
-                                value: "quoteChannel",
+                                name: 'Salon des citations',
+                                value: 'quoteChannel',
                             },
                         ])
                 )
         )
         .addSubcommand((subcommand) =>
             subcommand
-                .setName("reset")
+                .setName('reset')
                 .setDescription("Réinitialise la configuration d'une option")
                 .addStringOption((option) =>
                     option
-                        .setName("option")
+                        .setName('option')
                         .setDescription("L'option à réinitialiser")
                         .setRequired(true)
                         .addChoices([
                             {
-                                name: "Salon des anniversaires",
-                                value: "birthdayChannel",
+                                name: 'Salon des anniversaires',
+                                value: 'birthdayChannel',
                             },
                             {
-                                name: "Salon des citations",
-                                value: "quoteChannel",
+                                name: 'Salon des citations',
+                                value: 'quoteChannel',
                             },
                         ])
                 )
         )
         .addSubcommand((subcommand) =>
-            subcommand
-                .setName("list")
-                .setDescription("Liste toutes les options de configuration")
+            subcommand.setName('list').setDescription('Liste toutes les options de configuration')
         )
-        .setContexts([
-            InteractionContextType.Guild, InteractionContextType.PrivateChannel
-        ]),
+        .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
     execute: async (interaction) => {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],
@@ -91,9 +90,9 @@ export const config: ICommand = {
 
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
-            case "set": {
-                const option = interaction.options.get("option")?.value as string;
-                const channel = interaction.options.get("channel")?.channel as GuildBasedChannel;
+            case 'set': {
+                const option = interaction.options.get('option')?.value as string;
+                const channel = interaction.options.get('channel')?.channel as GuildBasedChannel;
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -128,16 +127,16 @@ export const config: ICommand = {
                     .setDescription(`La configuration de l'option \`${option}\` a été mise à jour avec succès !`)
                     .addFields([
                         {
-                            name: "Salon",
+                            name: 'Salon',
                             value: `<#${channel.id}>`,
                         },
                     ]);
                 await interaction.editReply({ embeds: [configEmbed] });
                 break;
             }
-            case "get": {
-                const option = interaction.options.get("option")?.value as string;
-                const channel = interaction.options.get("channel")?.channel as GuildBasedChannel;
+            case 'get': {
+                const option = interaction.options.get('option')?.value as string;
+                const channel = interaction.options.get('channel')?.channel as GuildBasedChannel;
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -155,20 +154,21 @@ export const config: ICommand = {
                         .setDescription(`La configuration de l'option \`${option}\` est :`)
                         .addFields([
                             {
-                                name: "Salon",
+                                name: 'Salon',
                                 value: `<#${actualDatabase.value}>`,
                             },
                         ]);
                     await interaction.editReply({ embeds: [configEmbed] });
                 } else {
-                    const configEmbed = configEmbedGenerator()
-                        .setDescription(`Aucune configuration trouvée pour l'option \`${option}\``);
+                    const configEmbed = configEmbedGenerator().setDescription(
+                        `Aucune configuration trouvée pour l'option \`${option}\``
+                    );
                     await interaction.editReply({ embeds: [configEmbed] });
                 }
                 break;
             }
-            case "reset": {
-                const option = interaction.options.get("option")?.value as string;
+            case 'reset': {
+                const option = interaction.options.get('option')?.value as string;
                 await prisma.config.deleteMany({
                     where: {
                         AND: [
@@ -181,12 +181,13 @@ export const config: ICommand = {
                         ],
                     },
                 });
-                const configEmbed = configEmbedGenerator()
-                    .setDescription(`La configuration de l'option \`${option}\` a été réinitialisée avec succès !`);
+                const configEmbed = configEmbedGenerator().setDescription(
+                    `La configuration de l'option \`${option}\` a été réinitialisée avec succès !`
+                );
                 await interaction.editReply({ embeds: [configEmbed] });
                 break;
             }
-            case "list": {
+            case 'list': {
                 const configEntries = await prisma.config.findMany({
                     where: {
                         guildId: interaction.guildId as string,
@@ -204,7 +205,7 @@ export const config: ICommand = {
                 break;
             }
         }
-    }
+    },
 };
 
 function configEmbedGenerator() {
