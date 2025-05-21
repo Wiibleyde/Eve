@@ -2,7 +2,7 @@ import axios from 'axios';
 import { config } from '../config';
 import { logger } from '../..';
 import { prisma } from '../database';
-import { handleStreamEnded, handleStreamStarted, handleStreamUpdated } from '../../bot/utils/stream';
+import { handleInitStreams, handleStreamEnded, handleStreamStarted, handleStreamUpdated } from '../../bot/utils/stream';
 
 interface OAuthResponse {
     access_token: string;
@@ -277,7 +277,12 @@ export async function checkStreamsUpdate(): Promise<void> {
 
         // Process offline streamers
         for (const streamer of offlineStreamers) {
-            handleStreamEnded(streamer);
+            const userInfo = oldUserData.find((user) => user.id === streamer.user_id);
+            if (userInfo) {
+                handleStreamEnded(userInfo);
+            } else {
+                logger.warn(`No user data found for offline streamer: ${streamer.user_name} (${streamer.user_id})`);
+            }
         }
 
         // Update cached data for next check
@@ -293,5 +298,15 @@ export async function checkStreamsUpdate(): Promise<void> {
         );
     } catch (error) {
         logger.error('Error checking Twitch streams update:', error);
+    }
+}
+
+export async function initStreamsUpdate(): Promise<void> {
+    try {
+        oldOnlineStreamers.push(...(await getStreamsData()));
+        oldUserData.push(...(await getAccountsData()));
+        handleInitStreams(oldOnlineStreamers, oldUserData);
+    } catch (error) {
+        logger.error('Error initializing Twitch stream update:', error);
     }
 }
