@@ -1,8 +1,8 @@
-import axios from "axios";
-import { config } from "../config";
-import { logger } from "../..";
-import { prisma } from "../database";
-import { handleStreamEnded, handleStreamStarted, handleStreamUpdated } from "../../bot/utils/stream";
+import axios from 'axios';
+import { config } from '../config';
+import { logger } from '../..';
+import { prisma } from '../database';
+import { handleStreamEnded, handleStreamStarted, handleStreamUpdated } from '../../bot/utils/stream';
 
 interface OAuthResponse {
     access_token: string;
@@ -77,18 +77,18 @@ async function refreshOauthToken(): Promise<string> {
                 client_id: config.TWITCH_CLIENT_ID,
                 client_secret: config.TWITCH_CLIENT_SECRET,
                 grant_type: 'client_credentials',
-            }
+            },
         });
 
         const data: OAuthResponse = response.data;
         oauthToken = data.access_token;
         expirationTime = Date.now() + data.expires_in * 1000;
-        logger.debug("Twitch OAuth token refreshed successfully");
+        logger.debug('Twitch OAuth token refreshed successfully');
 
         return oauthToken;
     } catch (error) {
-        logger.error("Error refreshing Twitch OAuth token:", error);
-        throw new Error("Failed to refresh Twitch OAuth token");
+        logger.error('Error refreshing Twitch OAuth token:', error);
+        throw new Error('Failed to refresh Twitch OAuth token');
     }
 }
 
@@ -96,7 +96,7 @@ export async function getUserIdByLogin(login: string): Promise<string | null> {
     const token = await refreshOauthToken();
     const url = `https://api.twitch.tv/helix/users?login=${login}`;
     const headers = {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Client-Id': config.TWITCH_CLIENT_ID,
     };
     try {
@@ -116,22 +116,22 @@ export async function getUserIdByLogin(login: string): Promise<string | null> {
 async function getAccountsData(): Promise<TwitchUser[]> {
     const token = await refreshOauthToken();
     const params = await generateDataUrlParams();
-    
+
     // If we have no streamers to check, return empty array
     if (!params) {
         return [];
     }
-    
+
     const url = `https://api.twitch.tv/helix/users?${params}`;
     const headers = {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Client-Id': config.TWITCH_CLIENT_ID,
     };
     try {
         const response = await axios.get<TwitchUserResponse>(url, { headers });
         const data = response.data.data;
         if (data.length === 0) {
-            logger.warn("No Twitch accounts found");
+            logger.warn('No Twitch accounts found');
             return [];
         }
         return data.map((user) => ({
@@ -148,36 +148,36 @@ async function getAccountsData(): Promise<TwitchUser[]> {
             email: user.email,
         }));
     } catch (error) {
-        logger.error("Error fetching Twitch accounts data:", error);
-        throw new Error("Failed to fetch Twitch accounts data");
+        logger.error('Error fetching Twitch accounts data:', error);
+        throw new Error('Failed to fetch Twitch accounts data');
     }
 }
 
 async function getStreamsData(): Promise<StreamData[]> {
     const token = await refreshOauthToken();
     const params = await generateOnlineUrlParams();
-    
+
     // If we have no streamers to check, return empty array
     if (!params) {
         return [];
     }
-    
+
     const url = `https://api.twitch.tv/helix/streams?${params}`;
     const headers = {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Client-Id': config.TWITCH_CLIENT_ID,
     };
     try {
         const response = await axios.get<StreamResponse>(url, { headers });
         const data = response.data.data;
         if (data.length === 0) {
-            logger.debug("No Twitch streams found");
+            logger.debug('No Twitch streams found');
             return [];
         }
         return data;
     } catch (error) {
-        logger.error("Error fetching Twitch streams data:", error);
-        throw new Error("Failed to fetch Twitch streams data");
+        logger.error('Error fetching Twitch streams data:', error);
+        throw new Error('Failed to fetch Twitch streams data');
     }
 }
 
@@ -194,21 +194,21 @@ async function getStreamers(): Promise<string[]> {
 async function generateOnlineUrlParams(): Promise<string> {
     const uniqueStreamers = await getStreamers();
     if (uniqueStreamers.length === 0) {
-        logger.warn("No streamers found in database for online check");
-        return "";
+        logger.warn('No streamers found in database for online check');
+        return '';
     }
     const limitedStreamers = uniqueStreamers.slice(0, 100);
-    return limitedStreamers.map((streamer) => `user_id=${streamer}`).join("&");
+    return limitedStreamers.map((streamer) => `user_id=${streamer}`).join('&');
 }
 
 async function generateDataUrlParams(): Promise<string> {
     const uniqueStreamers = await getStreamers();
     if (uniqueStreamers.length === 0) {
-        logger.warn("No streamers found in database for user data check");
-        return "";
+        logger.warn('No streamers found in database for user data check');
+        return '';
     }
     const limitedStreamers = uniqueStreamers.slice(0, 100);
-    return limitedStreamers.map((streamer) => `id=${streamer}`).join("&");
+    return limitedStreamers.map((streamer) => `id=${streamer}`).join('&');
 }
 
 export async function checkStreamsUpdate(): Promise<void> {
@@ -216,7 +216,7 @@ export async function checkStreamsUpdate(): Promise<void> {
         // Check if we have streamers to monitor before making API calls
         const streamers = await getStreamers();
         if (streamers.length === 0) {
-            logger.info("No streamers to monitor in database, skipping update check");
+            logger.info('No streamers to monitor in database, skipping update check');
             return;
         }
 
@@ -225,7 +225,7 @@ export async function checkStreamsUpdate(): Promise<void> {
         try {
             onlineStreamers = await getStreamsData();
         } catch (error) {
-            logger.error("Failed to get streams data, skipping this update cycle:", error);
+            logger.error('Failed to get streams data, skipping this update cycle:', error);
         }
 
         // Get user data with validation
@@ -233,7 +233,7 @@ export async function checkStreamsUpdate(): Promise<void> {
         try {
             userData = await getAccountsData();
         } catch (error) {
-            logger.error("Failed to get account data, continuing with limited functionality:", error);
+            logger.error('Failed to get account data, continuing with limited functionality:', error);
         }
 
         // Find streamers who just went online
@@ -261,7 +261,7 @@ export async function checkStreamsUpdate(): Promise<void> {
 
         // Process new online streamers
         for (const streamer of newOnlineStreamers) {
-            const userInfo = userData.find(user => user.id === streamer.user_id);
+            const userInfo = userData.find((user) => user.id === streamer.user_id);
             if (userInfo) {
                 handleStreamStarted(streamer, userInfo);
             }
@@ -269,7 +269,7 @@ export async function checkStreamsUpdate(): Promise<void> {
 
         // Process changed streams
         for (const streamer of changedStreamers) {
-            const userInfo = userData.find(user => user.id === streamer.user_id);
+            const userInfo = userData.find((user) => user.id === streamer.user_id);
             if (userInfo) {
                 handleStreamUpdated(streamer, userInfo);
             }
@@ -288,10 +288,10 @@ export async function checkStreamsUpdate(): Promise<void> {
         oldUserData.length = 0;
         oldUserData.push(...userData);
 
-        logger.debug(`Twitch stream check completed: ${newOnlineStreamers.length} new, ${changedStreamers.length} changed, ${offlineStreamers.length} offline`);
+        logger.debug(
+            `Twitch stream check completed: ${newOnlineStreamers.length} new, ${changedStreamers.length} changed, ${offlineStreamers.length} offline`
+        );
     } catch (error) {
-        logger.error("Error checking Twitch streams update:", error);
+        logger.error('Error checking Twitch streams update:', error);
     }
 }
-
-

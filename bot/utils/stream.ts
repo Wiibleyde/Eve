@@ -1,4 +1,4 @@
-import type { StreamData, TwitchUser } from "../../utils/stream/twitch";
+import type { StreamData, TwitchUser } from '../../utils/stream/twitch';
 
 // Renamed functions with more descriptive names
 export function handleStreamStarted(streamer: StreamData, userData: TwitchUser): void {
