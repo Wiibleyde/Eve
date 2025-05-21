@@ -4,6 +4,7 @@ import { deployCommands } from '../../commands/deploy-commands';
 import { logger } from '../../..';
 import { birthdayCron } from '../../../cron/birthdayCron';
 import { statusCron } from '../../../cron/statusCron';
+import { streamCron } from '../../../cron/streamCron';
 
 export const event: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -23,6 +24,7 @@ export const event: Event<Events.ClientReady> = {
 
         birthdayCron.start();
         statusCron.start();
+        streamCron.start();
 
         logger.info(`Logged in as ${client.user?.tag}`);
     },

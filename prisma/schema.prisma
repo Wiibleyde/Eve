@@ -20,22 +20,6 @@ model GlobalUserData {
     @@index([userId])
 }
 
-model LogLevel {
-    id   Int    @id @default(autoincrement())
-    name String @unique
-    logs Logs[]
-}
-
-model Logs {
-    id        Int      @id @default(autoincrement())
-    message   String   @db.MediumText
-    levelId   Int
-    createdAt DateTime @default(now())
-    level     LogLevel @relation(fields: [levelId], references: [id])
-
-    @@index([levelId], map: "Logs_levelId_fkey")
-}
-
 model Config {
     uuid    String @id @default(uuid())
     key     String
@@ -116,7 +100,7 @@ model Stream {
     channelId         String
     roleId            String?
     messageId         String?
-    twitchChannelName String
+    twitchUserId      String
 
     @@index([guildId])
 }

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Stream` ADD COLUMN `twitchUserId` VARCHAR(191) NOT NULL DEFAULT '';
