@@ -3,7 +3,7 @@ import {
     jokeBasicEmbedGenerator,
     jokeErrorEmbedGenerator,
     jokeSuccessEmbedGenerator,
-} from '../../commands/handlers/blague';
+} from '../../commands/handlers/fun/blague';
 
 export async function jokeSetPublicButton(interaction: ButtonInteraction) {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
