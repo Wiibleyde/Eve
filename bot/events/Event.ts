@@ -18,7 +18,7 @@ export const loadEvents = () => {
         const filePath = path.join(eventsPath, file);
         import(filePath)
             .then((module) => {
-                const event = module.event as Event<any>;
+                const event = module.event as Event<keyof ClientEvents>;
 
                 if (event.once) {
                     client.once(event.name, (...args) => event.execute(...args));

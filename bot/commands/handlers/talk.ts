@@ -41,7 +41,7 @@ export const talk: ICommand = {
 async function sendDirectMessage(user: User, message: string): Promise<void> {
     try {
         await user.send(message);
-    } catch (error) {
+    } catch {
         throw new Error("Impossible d'envoyer le message privé");
     }
 }

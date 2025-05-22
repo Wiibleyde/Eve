@@ -136,7 +136,6 @@ export const config: ICommand = {
             }
             case 'get': {
                 const option = interaction.options.get('option')?.value as string;
-                const channel = interaction.options.get('channel')?.channel as GuildBasedChannel;
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [

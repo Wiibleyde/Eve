@@ -5,7 +5,16 @@ import { client } from '../bot';
 import { logger } from '../..';
 
 // Common helper functions to reduce duplication
-async function getStreamDataForUser(userId: string): Promise<{ streamDatas: any[]; success: boolean }> {
+async function getStreamDataForUser(userId: string): Promise<{
+    streamDatas: {
+        uuid: string;
+        guildId: string;
+        channelId: string;
+        roleId: string | null;
+        messageId: string | null;
+        twitchUserId: string;
+    }[]; success: boolean
+}> {
     try {
         const streamDatas = await prisma.stream.findMany({
             where: { twitchUserId: userId },
@@ -52,7 +61,7 @@ async function updateOrCreateMessage(
                     await existingMessage.edit({ embeds: [embed], components });
                     return existingMessageId;
                 }
-            } catch (err) {
+            } catch {
                 logger.warn(`Message ${existingMessageId} not found, creating new message`);
             }
         }
@@ -117,12 +126,12 @@ export async function handleStreamStarted(streamer: StreamData, userData: Twitch
                     if (oldMessage) {
                         await oldMessage.delete();
                     }
-                } catch (err) {
+                } catch {
                     logger.warn(`Message not found for user ID: ${streamer.user_id}`);
                 }
             }
 
-            // Send new message with appropriate mentions
+            // Send new message with appropriate mentions, including roleId for mentions
             const newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
 
             // Update database with new message ID

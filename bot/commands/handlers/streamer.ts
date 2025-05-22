@@ -80,9 +80,10 @@ export const streamer: ICommand = {
                     return;
                 }
 
-                const newStream = await prisma.stream.create({
+                // Insert the streamer data in the database with role ID if provided
+                await prisma.stream.create({
                     data: {
-                        twitchUserId: twitchUserId,
+                        twitchUserId,
                         guildId: interaction.guildId as string,
                         channelId: channel.id,
                         roleId: role ? role.id : null,

@@ -21,8 +21,6 @@ export enum GameState {
     LOST,
 }
 
-const motusLogo = './assets/img/eve-motus.png';
-
 export class MotusGame {
     public state: GameState;
     public readonly wordLength: number;

@@ -98,30 +98,30 @@ export class Logger {
                     }
                 }
             }
-        } catch (err) {
+        } catch {
             // Silently fail if we can't get stack info
         }
 
         return undefined;
     }
 
-    debug(...args: any[]) {
+    debug(...args: unknown[]) {
         this.writeLog('debug', this.formatArgs(args));
     }
 
-    info(...args: any[]) {
+    info(...args: unknown[]) {
         this.writeLog('info', this.formatArgs(args));
     }
 
-    warn(...args: any[]) {
+    warn(...args: unknown[]) {
         this.writeLog('warn', this.formatArgs(args));
     }
 
-    error(...args: any[]) {
+    error(...args: unknown[]) {
         this.writeLog('error', this.formatArgs(args));
     }
 
-    private formatArgs(args: any[]): string {
+    private formatArgs(args: unknown[]): string {
         // Imiter le comportement de console.log pour formater plusieurs arguments
         return args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
     }

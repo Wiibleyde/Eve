@@ -83,7 +83,7 @@ async function fetchGameMessage(channelId: string, messageId: string) {
         const channel = await client.channels.fetch(channelId);
         if (!channel || !(channel instanceof TextChannel)) return null;
         return await channel.messages.fetch(messageId);
-    } catch (error) {
+    } catch {
         return null;
     }
 }
