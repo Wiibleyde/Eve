@@ -33,9 +33,7 @@ export async function handleMotusTry(interaction: ButtonInteraction): Promise<vo
     const wordLength = game.wordLength;
 
     // const modal = new ModalBuilder().setCustomId('handleMotusTryModal--' + message.id).setTitle('Essai Motus');
-    const modal = new ModalBuilder()
-        .setCustomId(`handleMotusTryModal`)
-        .setTitle('Essai Motus');
+    const modal = new ModalBuilder().setCustomId(`handleMotusTryModal`).setTitle('Essai Motus');
 
     const textInput = new TextInputBuilder()
         .setLabel(`Entrez un mot de ${wordLength} lettres`)

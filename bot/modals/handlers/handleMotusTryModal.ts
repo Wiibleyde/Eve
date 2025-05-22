@@ -54,7 +54,7 @@ export async function handleMotusTryModal(interaction: ModalSubmitInteraction): 
     const embedResult = await game.getEmbed();
     await message.edit({
         embeds: [embedResult.embed],
-        components: embedResult.components.length > 0 ? embedResult.components : []
+        components: embedResult.components.length > 0 ? embedResult.components : [],
     });
 
     // Clean up if game is finished
