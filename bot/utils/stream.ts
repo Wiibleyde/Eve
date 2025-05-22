@@ -13,7 +13,8 @@ async function getStreamDataForUser(userId: string): Promise<{
         roleId: string | null;
         messageId: string | null;
         twitchUserId: string;
-    }[]; success: boolean
+    }[];
+    success: boolean;
 }> {
     try {
         const streamDatas = await prisma.stream.findMany({

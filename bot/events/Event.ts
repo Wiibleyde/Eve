@@ -1,8 +1,11 @@
 import type { ClientEvents } from 'discord.js';
-import fs from 'fs';
-import path from 'path';
 import { client } from '../bot';
 import { logger } from '../..';
+
+// Import all event handlers directly
+import { event as interactionCreateEvent } from './handlers/InteractionCreate';
+import { event as clientReadyEvent } from './handlers/ClientReady';
+// Import any other event handlers you have
 
 export interface Event<K extends keyof ClientEvents> {
     name: K;
@@ -10,26 +13,29 @@ export interface Event<K extends keyof ClientEvents> {
     execute: (...args: ClientEvents[K]) => void | Promise<void>;
 }
 
+// Use a more generic approach to avoid type issues
+const eventHandlers = [
+    interactionCreateEvent,
+    clientReadyEvent,
+    // Add other event handlers here
+];
+
 export const loadEvents = () => {
-    const eventsPath = path.join(__dirname, '../events/handlers');
-    const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+    try {
+        for (const event of eventHandlers) {
+            if (event.once) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                client.once(event.name, (...args) => event.execute(...(args as any)));
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                client.on(event.name, (...args) => event.execute(...(args as any)));
+            }
 
-    for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file);
-        import(filePath)
-            .then((module) => {
-                const event = module.event as Event<keyof ClientEvents>;
+            logger.info(`Loaded event: ${event.name}`);
+        }
 
-                if (event.once) {
-                    client.once(event.name, (...args) => event.execute(...args));
-                } else {
-                    client.on(event.name, (...args) => event.execute(...args));
-                }
-
-                logger.info(`Loaded event: ${event.name}`);
-            })
-            .catch((error) => {
-                logger.error(`Failed to load event ${file}: ${error}`);
-            });
+        logger.info(`Total events loaded: ${eventHandlers.length}`);
+    } catch (error) {
+        logger.error(`Failed to load events: ${error}`);
     }
 };

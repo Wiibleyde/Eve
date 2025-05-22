@@ -465,14 +465,16 @@ class TwitchAPIManager {
     /**
      * Handles message deletion for removed streams
      */
-    private async deleteStreamMessages(streams: {
-        uuid: string;
-        guildId: string;
-        channelId: string;
-        roleId: string | null;
-        messageId: string | null;
-        twitchUserId: string;
-    }[]): Promise<void> {
+    private async deleteStreamMessages(
+        streams: {
+            uuid: string;
+            guildId: string;
+            channelId: string;
+            roleId: string | null;
+            messageId: string | null;
+            twitchUserId: string;
+        }[]
+    ): Promise<void> {
         for (const stream of streams) {
             try {
                 logger.debug(
