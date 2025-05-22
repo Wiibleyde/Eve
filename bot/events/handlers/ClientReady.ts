@@ -5,6 +5,7 @@ import { logger } from '../../..';
 import { birthdayCron } from '../../../cron/birthdayCron';
 import { statusCron } from '../../../cron/statusCron';
 import { streamCron } from '../../../cron/streamCron';
+import { initStreamsUpdate } from '../../../utils/stream/twitch';
 
 export const event: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -19,6 +20,8 @@ export const event: Event<Events.ClientReady> = {
                 },
             ],
         });
+
+        await initStreamsUpdate();
 
         await deployCommands();
 

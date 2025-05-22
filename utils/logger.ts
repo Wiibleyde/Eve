@@ -86,8 +86,7 @@ export class Logger {
 
             if (callerLine) {
                 // Formats like: at functionName (/path/to/file.js:line:column)
-                const match = callerLine.match(/\((.+?):(\d+):\d+\)/) ||
-                    callerLine.match(/at (.+?):(\d+):\d+/);
+                const match = callerLine.match(/\((.+?):(\d+):\d+\)/) || callerLine.match(/at (.+?):(\d+):\d+/);
 
                 if (match) {
                     const filePath = match[1];

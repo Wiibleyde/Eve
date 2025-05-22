@@ -1,5 +1,4 @@
 import {
-    ApplicationCommandOptionType,
     ChannelType,
     ChatInputCommandInteraction,
     InteractionContextType,
@@ -7,9 +6,10 @@ import {
     SlashCommandBuilder,
 } from 'discord.js';
 import type { ICommand } from '../command';
-import { getUserIdByLogin } from '../../../utils/stream/twitch';
+import { getUserIdByLogin, initSingleStreamUpdate, removeStreamFromCache } from '../../../utils/stream/twitch';
 import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { prisma } from '../../../utils/database';
+import { logger } from '../../..';
 
 export const streamer: ICommand = {
     data: new SlashCommandBuilder()
@@ -80,7 +80,7 @@ export const streamer: ICommand = {
                     return;
                 }
 
-                await prisma.stream.create({
+                const newStream = await prisma.stream.create({
                     data: {
                         twitchUserId: twitchUserId,
                         guildId: interaction.guildId as string,
@@ -89,14 +89,26 @@ export const streamer: ICommand = {
                     },
                 });
 
-                // Logic to add the streamer to the list
-                await interaction.editReply({
-                    embeds: [
-                        successStreamerEmbedGenerator(
-                            `Streamer ${streamerName} ajouté aux notifications (Le message peut mettre 10s à arriver)`
-                        ),
-                    ],
-                });
+                // Initialisation immédiate du streamer ajouté avec envoi forcé de notification
+                try {
+                    await initSingleStreamUpdate(twitchUserId, true);
+                    await interaction.editReply({
+                        embeds: [
+                            successStreamerEmbedGenerator(
+                                `Streamer ${streamerName} ajouté aux notifications (Configuration terminée)`
+                            ),
+                        ],
+                    });
+                } catch (error) {
+                    console.error("Erreur lors de l'initialisation du streamer:", error);
+                    await interaction.editReply({
+                        embeds: [
+                            errorStreamerEmbedGenerator(
+                                `Streamer ${streamerName} ajouté, mais une erreur est survenue lors de l'initialisation`
+                            ),
+                        ],
+                    });
+                }
                 break;
             }
             case 'remove': {
@@ -118,15 +130,37 @@ export const streamer: ICommand = {
                     });
                     return;
                 }
-                // Logic to remove the streamer from the list
-                await prisma.stream.delete({
-                    where: {
-                        uuid: existingStreamer.uuid,
-                    },
-                });
-                await interaction.editReply({
-                    embeds: [successStreamerEmbedGenerator(`Streamer ${streamerName} retiré des notifications`)],
-                });
+
+                try {
+                    // Suppression immédiate du message avant la suppression de la base de données
+                    if (existingStreamer.messageId) {
+                        const { deleteStreamMessage } = await import('../../../bot/utils/stream');
+                        await deleteStreamMessage(existingStreamer);
+                    }
+
+                    // Logic to remove the streamer from the list
+                    await prisma.stream.delete({
+                        where: {
+                            uuid: existingStreamer.uuid,
+                        },
+                    });
+
+                    // Suppression immédiate du streamer du cache
+                    await removeStreamFromCache(twitchUserId);
+
+                    await interaction.editReply({
+                        embeds: [successStreamerEmbedGenerator(`Streamer ${streamerName} retiré des notifications`)],
+                    });
+                } catch (error) {
+                    logger.error(`Error removing streamer ${streamerName}:`, error);
+                    await interaction.editReply({
+                        embeds: [
+                            errorStreamerEmbedGenerator(
+                                `Une erreur est survenue lors de la suppression du streamer ${streamerName}`
+                            ),
+                        ],
+                    });
+                }
                 break;
             }
         }

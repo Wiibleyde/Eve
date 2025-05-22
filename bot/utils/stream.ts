@@ -96,7 +96,9 @@ export async function handleStreamEnded(userData: TwitchUser): Promise<void> {
             // Update existing message if it exists
             if (streamData.messageId) {
                 try {
-                    const existingMessage = await (channel as GuildTextBasedChannel).messages.fetch(streamData.messageId);
+                    const existingMessage = await (channel as GuildTextBasedChannel).messages.fetch(
+                        streamData.messageId
+                    );
                     if (existingMessage) {
                         await existingMessage.edit({ embeds: [embed] });
                         continue; // Skip to next stream data if message was updated successfully
@@ -125,12 +127,12 @@ export async function handleStreamUpdated(streamer: StreamData, userData: Twitch
     const streamDatas = await prisma.stream.findMany({
         where: { twitchUserId: streamer.user_id },
     });
-    
+
     if (!streamDatas || streamDatas.length === 0) {
         logger.warn(`No stream data found for user ID: ${streamer.user_id} (Not supposed to happen)`);
         return;
     }
-    
+
     for (const streamData of streamDatas) {
         const channel = await client.channels.fetch(streamData.channelId);
         if (!channel?.isTextBased()) continue;
@@ -139,7 +141,9 @@ export async function handleStreamUpdated(streamer: StreamData, userData: Twitch
             // Only update the existing message if it exists
             if (streamData.messageId) {
                 try {
-                    const existingMessage = await (channel as GuildTextBasedChannel).messages.fetch(streamData.messageId);
+                    const existingMessage = await (channel as GuildTextBasedChannel).messages.fetch(
+                        streamData.messageId
+                    );
                     if (existingMessage) {
                         await existingMessage.edit({ embeds: [embed] });
                     }
@@ -190,7 +194,7 @@ export async function handleInitStreams(onlineStreamers: StreamData[], userData:
                         currentEmbed.title !== embed.data.title ||
                         (stream
                             ? currentEmbed.fields?.find((f) => f.name === 'Viewers')?.value !==
-                            String(stream.viewer_count)
+                              String(stream.viewer_count)
                             : false);
 
                     if (needsUpdate) {
@@ -207,17 +211,17 @@ export async function handleInitStreams(onlineStreamers: StreamData[], userData:
                 .setStyle(ButtonStyle.Link);
 
             const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
-            
+
             const message = await (channel as GuildTextBasedChannel).send({
                 embeds: [embed],
-                components: stream ? [actionRow] : []
+                components: stream ? [actionRow] : [],
             });
-            
+
             await prisma.stream.update({
                 where: { uuid: streamer.uuid },
                 data: { messageId: message.id },
             });
-            
+
             logger.info(`Created new message for streamer ${user.display_name} (${stream ? 'online' : 'offline'})`);
         } catch (error) {
             logger.error(`Failed to update stream message for ${streamer.twitchUserId}:`, error);
@@ -226,13 +230,41 @@ export async function handleInitStreams(onlineStreamers: StreamData[], userData:
 }
 
 // Helper function to delete stream messages
-async function deleteStreamMessage(streamer: { channelId: string; messageId?: string | null }): Promise<void> {
-    if (!streamer.messageId) return;
+export async function deleteStreamMessage(streamer: { channelId: string; messageId?: string | null }): Promise<void> {
+    if (!streamer.messageId) {
+        logger.debug(`No message ID found for stream in channel ${streamer.channelId}`);
+        return;
+    }
 
-    const channel = await client.channels.fetch(streamer.channelId).catch(() => null);
-    if (channel?.isTextBased()) {
-        const message = await (channel as GuildTextBasedChannel).messages.fetch(streamer.messageId).catch(() => null);
-        if (message) await message.delete().catch(() => null);
+    try {
+        const channel = await client.channels.fetch(streamer.channelId).catch((err) => {
+            logger.warn(`Could not fetch channel ${streamer.channelId}: ${err.message}`);
+            return null;
+        });
+
+        if (!channel || !channel.isTextBased()) {
+            logger.warn(`Channel ${streamer.channelId} not found or not a text channel`);
+            return;
+        }
+
+        logger.debug(`Attempting to fetch message ${streamer.messageId} from channel ${streamer.channelId}`);
+
+        const message = await (channel as GuildTextBasedChannel).messages.fetch(streamer.messageId).catch((err) => {
+            logger.warn(`Could not fetch message ${streamer.messageId}: ${err.message}`);
+            return null;
+        });
+
+        if (message) {
+            logger.debug(`Deleting message ${streamer.messageId}`);
+            await message.delete().catch((err) => {
+                logger.warn(`Could not delete message ${streamer.messageId}: ${err.message}`);
+            });
+            logger.debug(`Successfully deleted message ${streamer.messageId}`);
+        } else {
+            logger.warn(`Message ${streamer.messageId} not found in channel ${streamer.channelId}`);
+        }
+    } catch (error) {
+        logger.error(`Error in deleteStreamMessage for message ${streamer.messageId}:`, error);
     }
 }
 

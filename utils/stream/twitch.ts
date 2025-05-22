@@ -3,6 +3,8 @@ import { config } from '../config';
 import { logger } from '../..';
 import { prisma } from '../database';
 import { handleInitStreams, handleStreamEnded, handleStreamStarted, handleStreamUpdated } from '../../bot/utils/stream';
+import { client } from '../../bot/bot';
+import type { GuildTextBasedChannel } from 'discord.js';
 
 interface OAuthResponse {
     access_token: string;
@@ -131,7 +133,6 @@ async function getAccountsData(): Promise<TwitchUser[]> {
         const response = await axios.get<TwitchUserResponse>(url, { headers });
         const data = response.data.data;
         if (data.length === 0) {
-            logger.warn('No Twitch accounts found');
             return [];
         }
         return data.map((user) => ({
@@ -171,7 +172,6 @@ async function getStreamsData(): Promise<StreamData[]> {
         const response = await axios.get<StreamResponse>(url, { headers });
         const data = response.data.data;
         if (data.length === 0) {
-            logger.debug('No Twitch streams found');
             return [];
         }
         return data;
@@ -308,5 +308,172 @@ export async function initStreamsUpdate(): Promise<void> {
         handleInitStreams(oldOnlineStreamers, oldUserData);
     } catch (error) {
         logger.error('Error initializing Twitch stream update:', error);
+    }
+}
+
+/**
+ * Initializes a single streamer update
+ * @param streamerId The Twitch user ID of the streamer to initialize
+ * @param forceNotification Whether to force sending a notification even if the streamer is already in the cache
+ */
+export async function initSingleStreamUpdate(streamerId: string, forceNotification: boolean = false): Promise<void> {
+    try {
+        const token = await refreshOauthToken();
+
+        // Get user data
+        const userUrl = `https://api.twitch.tv/helix/users?id=${streamerId}`;
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'Client-Id': config.TWITCH_CLIENT_ID,
+        };
+
+        const userResponse = await axios.get<TwitchUserResponse>(userUrl, { headers });
+        const userData = userResponse.data.data;
+
+        if (userData.length === 0 || !userData[0]) {
+            logger.warn(`No Twitch user found for ID: ${streamerId}`);
+            return;
+        }
+
+        // Get stream data
+        const streamUrl = `https://api.twitch.tv/helix/streams?user_id=${streamerId}`;
+        const streamResponse = await axios.get<StreamResponse>(streamUrl, { headers });
+        const streamData = streamResponse.data.data;
+
+        // Update caches
+        const userInfo = userData[0];
+        logger.debug(
+            `Processing initSingleStreamUpdate for ${userInfo.display_name} (${streamerId}), force: ${forceNotification}`
+        );
+
+        // Add or update user in cache
+        const userIndex = oldUserData.findIndex((user) => user.id === userInfo.id);
+        if (userIndex >= 0) {
+            oldUserData[userIndex] = userInfo;
+        } else {
+            oldUserData.push(userInfo);
+        }
+
+        // Process stream data
+        if (streamData.length > 0) {
+            const streamInfo = streamData[0];
+            // Check if stream is already in cache
+            const existingStreamIndex = oldOnlineStreamers.findIndex((stream) => stream.user_id === streamerId);
+
+            if (existingStreamIndex >= 0) {
+                // Update existing stream data
+                if (streamInfo) {
+                    oldOnlineStreamers[existingStreamIndex] = streamInfo;
+                }
+            } else {
+                // Add new stream data to cache
+                if (streamInfo) {
+                    oldOnlineStreamers.push(streamInfo);
+                }
+            }
+
+            // If the streamer is online, always use handleStreamStarted
+            // This will create a proper stream notification with all the formatting
+            if (streamInfo && (forceNotification || existingStreamIndex < 0)) {
+                logger.debug(`Sending stream notification for ${userInfo.display_name}`);
+                await handleStreamStarted(streamInfo, userInfo);
+            }
+        } else {
+            // Streamer is offline, create an offline embed message instead
+            logger.debug(`Streamer ${userInfo.display_name} is offline, sending offline notification`);
+
+            // Use the handleStreamEnded function to create an offline message
+            if (forceNotification) {
+                await handleStreamEnded(userInfo);
+            }
+        }
+
+        logger.debug(`Single streamer initialization completed for: ${userInfo.display_name} (${streamerId})`);
+    } catch (error) {
+        logger.error(`Error initializing single streamer (${streamerId}):`, error);
+    }
+}
+
+/**
+ * Removes a streamer from the caches
+ * @param streamerId The Twitch user ID of the streamer to remove
+ */
+export async function removeStreamFromCache(streamerId: string): Promise<void> {
+    try {
+        // Retrieve streams to delete their messages before they're removed from the database
+        const streamsToRemove = await prisma.stream.findMany({
+            where: {
+                twitchUserId: streamerId,
+            },
+        });
+
+        // Delete associated messages for each stream
+        for (const stream of streamsToRemove) {
+            try {
+                // Log message details for debugging
+                logger.debug(
+                    `Attempting to delete message for stream ${stream.uuid} in channel ${stream.channelId}, messageId: ${stream.messageId || 'none'}`
+                );
+
+                if (stream.messageId) {
+                    // Force delete the message directly instead of updating to offline
+                    const channel = await client.channels.fetch(stream.channelId).catch((err) => {
+                        logger.warn(`Could not fetch channel ${stream.channelId}: ${err.message}`);
+                        return null;
+                    });
+
+                    if (channel?.isTextBased()) {
+                        try {
+                            const message = await (channel as GuildTextBasedChannel).messages.fetch(stream.messageId);
+                            if (message) {
+                                await message.delete();
+                                logger.debug(
+                                    `Successfully deleted message ${stream.messageId} from channel ${stream.channelId}`
+                                );
+                            }
+                        } catch (err) {
+                            logger.warn(
+                                `Could not fetch or delete message ${stream.messageId}: ${err instanceof Error ? err.message : String(err)}`
+                            );
+                        }
+                    }
+                }
+
+                logger.debug(`Finished processing message for stream ${stream.uuid}`);
+            } catch (error) {
+                logger.error(`Failed to delete message for stream ${stream.uuid}:`, error);
+            }
+        }
+
+        // Check if this is the last reference to this streamer
+        const remainingStreamerRefs = await prisma.stream.count({
+            where: {
+                twitchUserId: streamerId,
+            },
+        });
+
+        // Only remove from cache if no other guild is using this streamer
+        if (remainingStreamerRefs === 0) {
+            // Find and remove from oldOnlineStreamers
+            const streamIndex = oldOnlineStreamers.findIndex((stream) => stream.user_id === streamerId);
+            if (streamIndex >= 0) {
+                oldOnlineStreamers.splice(streamIndex, 1);
+            }
+
+            // Find and remove from oldUserData
+            const userIndex = oldUserData.findIndex((user) => user.id === streamerId);
+            if (userIndex >= 0) {
+                const userInfo = oldUserData[userIndex];
+                oldUserData.splice(userIndex, 1);
+
+                if (userInfo) {
+                    logger.debug(`Streamer removed from cache: ${userInfo.display_name} (${streamerId})`);
+                } else {
+                    logger.debug(`Streamer removed from cache: unknown display_name (${streamerId})`);
+                }
+            }
+        }
+    } catch (error) {
+        logger.error(`Error removing streamer from cache (${streamerId}):`, error);
     }
 }
