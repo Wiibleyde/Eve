@@ -5,7 +5,7 @@
         "prettier": "prettier --write ."
     },
     "devDependencies": {
-        "@types/bun": "^1.2.13",
+        "@types/bun": "^1.2.14",
         "prettier": "3.5.3"
     },
     "peerDependencies": {
