@@ -4,7 +4,8 @@ import * as path from 'path';
 export interface LoggerOptions {
     logDir?: string;
     minLevel?: 'debug' | 'info' | 'warn' | 'error';
-    format?: (level: string, message: string) => string;
+    format?: (level: string, message: string, fileInfo?: string) => string;
+    showFileInfo?: boolean;
 }
 
 const LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
@@ -16,21 +17,25 @@ const COLORS = {
     info: '\x1b[34m', // Bleu
     warn: '\x1b[33m', // Jaune
     error: '\x1b[31m', // Rouge
+    fileInfo: '\x1b[36m', // Cyan pour les infos de fichier
 };
 
 export class Logger {
     private logDir: string;
     private minLevel: number;
-    private formatFn: (level: string, message: string) => string;
+    private formatFn: (level: string, message: string, fileInfo?: string) => string;
+    private showFileInfo: boolean;
 
     private constructor(options: LoggerOptions = {}) {
         this.logDir = options.logDir || path.join(__dirname, '..', 'logs');
-        this.minLevel = LEVELS[options.minLevel || 'debug']; // Changé 'info' en 'debug' ici
+        this.minLevel = LEVELS[options.minLevel || 'debug'];
+        this.showFileInfo = options.showFileInfo !== undefined ? options.showFileInfo : true;
         this.formatFn =
             options.format ||
-            ((level, message) => {
+            ((level, message, fileInfo) => {
                 const timestamp = new Date().toISOString();
-                return `[${timestamp}] [${level.toUpperCase()}] ${message}\n`;
+                const fileInfoStr = fileInfo && this.showFileInfo ? ` (${fileInfo})` : '';
+                return `[${timestamp}] [${level.toUpperCase()}]${fileInfoStr} ${message}\n`;
             });
 
         if (!fs.existsSync(this.logDir)) {
@@ -48,12 +53,17 @@ export class Logger {
 
     private writeLog(level: keyof typeof LEVELS, message: string) {
         if (LEVELS[level] < this.minLevel) return;
-        const logMessage = this.formatFn(level, message);
+
+        const fileInfo = this.getCallerInfo();
+        const logMessage = this.formatFn(level, message, fileInfo);
         fs.appendFileSync(this.getLogFilePath(), logMessage, { encoding: 'utf8' });
 
-        // Affiche aussi dans la console avec des couleurs
         const colorCode = COLORS[level];
-        const coloredMessage = `${colorCode}${logMessage.trim()}${COLORS.reset}`;
+        let coloredMessage = `${colorCode}${logMessage.trim()}${COLORS.reset}`;
+
+        if (fileInfo && this.showFileInfo) {
+            coloredMessage = coloredMessage.replace(`(${fileInfo})`, `${COLORS.fileInfo}(${fileInfo})${colorCode}`);
+        }
 
         if (level === 'error') {
             console.error(coloredMessage);
@@ -64,6 +74,36 @@ export class Logger {
         } else if (level === 'debug') {
             console.debug(coloredMessage);
         }
+    }
+
+    private getCallerInfo(): string | undefined {
+        if (!this.showFileInfo) return undefined;
+
+        try {
+            const stackLines = new Error().stack?.split('\n') || [];
+            // Skip first 3 lines (Error, getCallerInfo, writeLog, and the actual logger method)
+            const callerLine = stackLines[4];
+
+            if (callerLine) {
+                // Formats like: at functionName (/path/to/file.js:line:column)
+                const match = callerLine.match(/\((.+?):(\d+):\d+\)/) ||
+                    callerLine.match(/at (.+?):(\d+):\d+/);
+
+                if (match) {
+                    const filePath = match[1];
+                    const lineNumber = match[2];
+                    // Get just the filename from the path
+                    if (filePath) {
+                        const fileName = path.basename(filePath);
+                        return `${fileName}:${lineNumber}`;
+                    }
+                }
+            }
+        } catch (err) {
+            // Silently fail if we can't get stack info
+        }
+
+        return undefined;
     }
 
     debug(...args: any[]) {
