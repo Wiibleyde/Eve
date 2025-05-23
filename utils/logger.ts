@@ -1,11 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { WebhookClient, EmbedBuilder } from 'discord.js';
+import { client } from '../bot/bot';
 
 export interface LoggerOptions {
     logDir?: string;
     minLevel?: 'debug' | 'info' | 'warn' | 'error';
     format?: (level: string, message: string, fileInfo?: string) => string;
     showFileInfo?: boolean;
+    discordWebhook?: string; // URL complète du webhook Discord
+    discordMinLevel?: 'debug' | 'info' | 'warn' | 'error';
 }
 
 const LEVELS = { debug: 0, info: 1, warn: 2, error: 3 };
@@ -20,16 +24,37 @@ const COLORS = {
     fileInfo: '\x1b[36m', // Cyan pour les infos de fichier
 };
 
+// Couleurs pour Discord (codes couleur hexadécimaux)
+const DISCORD_COLORS = {
+    debug: 0x00FF00, // Vert
+    info: 0x13B8EB,  // Bleu
+    warn: 0xFFFF00,  // Jaune
+    error: 0xFF0000, // Rouge
+};
+
 export class Logger {
     private logDir: string;
     private minLevel: number;
     private formatFn: (level: string, message: string, fileInfo?: string) => string;
     private showFileInfo: boolean;
+    private discordClient?: WebhookClient;
+    private discordMinLevel: number;
 
     private constructor(options: LoggerOptions = {}) {
         this.logDir = options.logDir || path.join(__dirname, '..', 'logs');
         this.minLevel = LEVELS[options.minLevel || 'debug'];
         this.showFileInfo = options.showFileInfo !== undefined ? options.showFileInfo : true;
+        this.discordMinLevel = LEVELS[options.discordMinLevel || 'warn']; // Par défaut, uniquement les warn et error
+        
+        // Initialiser le client Discord avec l'URL du webhook si fournie
+        if (options.discordWebhook) {
+            try {
+                this.discordClient = new WebhookClient({ url: options.discordWebhook });
+            } catch (error) {
+                console.error('Erreur lors de la configuration du webhook Discord:', error);
+            }
+        }
+        
         this.formatFn =
             options.format ||
             ((level, message, fileInfo) => {
@@ -74,6 +99,38 @@ export class Logger {
         } else if (level === 'debug') {
             console.debug(coloredMessage);
         }
+
+        if (this.discordClient && LEVELS[level] >= this.discordMinLevel) {
+            this.sendToDiscord(level, message, fileInfo);
+        }
+    }
+
+    private async sendToDiscord(level: keyof typeof LEVELS, message: string, fileInfo?: string): Promise<void> {
+        if (!this.discordClient) return;
+
+        try {
+            const timestamp = new Date();
+            const fileInfoStr = fileInfo && this.showFileInfo ? `\n**Source:** ${fileInfo}` : '';
+
+            const iconUrl = client.user?.displayAvatarURL();
+
+            const embed = new EmbedBuilder()
+                .setTitle(`${level.toUpperCase()}`)
+                .setDescription(message + fileInfoStr)
+                .setColor(DISCORD_COLORS[level])
+                .setTimestamp(timestamp)
+                .setFooter({ text: `Eve - Logs`, iconURL: iconUrl });
+
+            this.discordClient.send({
+                username: `Eve - ${level.toUpperCase()}`,
+                avatarURL: iconUrl,
+                embeds: [embed]
+            }).catch(error => {
+                console.error('Erreur lors de l\'envoi du message Discord:', error);
+            });
+        } catch (error) {
+            console.error('Erreur lors de la préparation du message Discord:', error);
+        }
     }
 
     private getCallerInfo(): string | undefined {
@@ -99,7 +156,7 @@ export class Logger {
                 }
             }
         } catch {
-            // Silently fail if we can't get stack info
+            return undefined;
         }
 
         return undefined;

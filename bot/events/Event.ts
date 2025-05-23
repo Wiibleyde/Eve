@@ -31,8 +31,6 @@ export const loadEvents = () => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 client.on(event.name, (...args) => event.execute(...(args as any)));
             }
-
-            logger.info(`Loaded event: ${event.name}`);
         }
 
         logger.info(`Total events loaded: ${eventHandlers.length}`);
