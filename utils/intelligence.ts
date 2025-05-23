@@ -80,7 +80,11 @@ function createChatForChannel(channelId: string): Chat {
  *
  * @throws Will not throw errors, but will return null and log errors internally.
  */
-export async function generateWithGoogle(channelId: string, prompt: string, userAsking: string): Promise<string | null> {
+export async function generateWithGoogle(
+    channelId: string,
+    prompt: string,
+    userAsking: string
+): Promise<string | null> {
     try {
         // Verify AI is active and initialized
         if (!isAiActive) {
@@ -95,7 +99,7 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
 
         // Validate parameters
         if (!channelId || !prompt || !userAsking) {
-            logger.error("Paramètres invalides pour generateWithGoogle. Tous les paramètres sont requis.");
+            logger.error('Paramètres invalides pour generateWithGoogle. Tous les paramètres sont requis.');
             return null;
         }
 
@@ -123,7 +127,9 @@ export async function generateWithGoogle(channelId: string, prompt: string, user
 
         return response.text;
     } catch (error) {
-        logger.error(`Erreur lors de la génération de la réponse: ${error instanceof Error ? error.message : String(error)}`);
+        logger.error(
+            `Erreur lors de la génération de la réponse: ${error instanceof Error ? error.message : String(error)}`
+        );
         return null;
     }
 }

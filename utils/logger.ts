@@ -26,10 +26,10 @@ const COLORS = {
 
 // Couleurs pour Discord (codes couleur hexadécimaux)
 const DISCORD_COLORS = {
-    debug: 0x00FF00, // Vert
-    info: 0x13B8EB,  // Bleu
-    warn: 0xFFFF00,  // Jaune
-    error: 0xFF0000, // Rouge
+    debug: 0x00ff00, // Vert
+    info: 0x13b8eb, // Bleu
+    warn: 0xffff00, // Jaune
+    error: 0xff0000, // Rouge
 };
 
 export class Logger {
@@ -45,7 +45,7 @@ export class Logger {
         this.minLevel = LEVELS[options.minLevel || 'debug'];
         this.showFileInfo = options.showFileInfo !== undefined ? options.showFileInfo : true;
         this.discordMinLevel = LEVELS[options.discordMinLevel || 'warn']; // Par défaut, uniquement les warn et error
-        
+
         // Initialiser le client Discord avec l'URL du webhook si fournie
         if (options.discordWebhook) {
             try {
@@ -54,7 +54,7 @@ export class Logger {
                 console.error('Erreur lors de la configuration du webhook Discord:', error);
             }
         }
-        
+
         this.formatFn =
             options.format ||
             ((level, message, fileInfo) => {
@@ -121,13 +121,15 @@ export class Logger {
                 .setTimestamp(timestamp)
                 .setFooter({ text: `Eve - Logs`, iconURL: iconUrl });
 
-            this.discordClient.send({
-                username: `Eve - ${level.toUpperCase()}`,
-                avatarURL: iconUrl,
-                embeds: [embed]
-            }).catch(error => {
-                console.error('Erreur lors de l\'envoi du message Discord:', error);
-            });
+            this.discordClient
+                .send({
+                    username: `Eve - ${level.toUpperCase()}`,
+                    avatarURL: iconUrl,
+                    embeds: [embed],
+                })
+                .catch((error) => {
+                    console.error("Erreur lors de l'envoi du message Discord:", error);
+                });
         } catch (error) {
             console.error('Erreur lors de la préparation du message Discord:', error);
         }

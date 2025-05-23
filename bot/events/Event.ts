@@ -15,11 +15,7 @@ export interface Event<K extends keyof ClientEvents> {
 }
 
 // Use a more generic approach to avoid type issues
-const eventHandlers = [
-    interactionCreateEvent,
-    clientReadyEvent,
-    messageCreateEvent,
-];
+const eventHandlers = [interactionCreateEvent, clientReadyEvent, messageCreateEvent];
 
 export const loadEvents = () => {
     try {

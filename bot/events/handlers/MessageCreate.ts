@@ -1,8 +1,8 @@
-import { Events, Message, type OmitPartialGroupDMChannel } from "discord.js";
-import type { Event } from "../event";
-import { logger } from "../../..";
-import { client } from "../../bot";
-import { generateWithGoogle } from "../../../utils/intelligence";
+import { Events, Message, type OmitPartialGroupDMChannel } from 'discord.js';
+import type { Event } from '../event';
+import { logger } from '../../..';
+import { client } from '../../bot';
+import { generateWithGoogle } from '../../../utils/intelligence';
 
 export const messageCreateEvent: Event<Events.MessageCreate> = {
     name: Events.MessageCreate,
@@ -15,7 +15,7 @@ export const messageCreateEvent: Event<Events.MessageCreate> = {
             await handleGuildMessage(message);
         } else {
             await message.reply({
-                content: "Je ne peux pas répondre aux messages privés.",
+                content: 'Je ne peux pas répondre aux messages privés.',
             });
         }
     },

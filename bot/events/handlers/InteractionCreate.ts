@@ -1,4 +1,10 @@
-import { ButtonInteraction, ChatInputCommandInteraction, Events, MessageFlags, ModalSubmitInteraction } from 'discord.js';
+import {
+    ButtonInteraction,
+    ChatInputCommandInteraction,
+    Events,
+    MessageFlags,
+    ModalSubmitInteraction,
+} from 'discord.js';
 import type { Event } from '../event';
 import { logger } from '../../..';
 import { commandsMap } from '../../commands/command';

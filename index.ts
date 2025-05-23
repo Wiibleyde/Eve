@@ -5,7 +5,12 @@ import { loadEvents } from './bot/events/event';
 import { disconnectDatabase } from './utils/database';
 import { initAi } from './utils/intelligence';
 
-export const logger = Logger.init({ minLevel: 'debug', discordMinLevel: 'info', discordWebhook: config.LOGS_WEBHOOK_URL, showFileInfo: false });
+export const logger = Logger.init({
+    minLevel: 'debug',
+    discordMinLevel: 'info',
+    discordWebhook: config.LOGS_WEBHOOK_URL,
+    showFileInfo: false,
+});
 
 async function main() {
     logger.info("Démarrage de l'application...");
