@@ -3,8 +3,9 @@ import { client } from '../bot';
 import { logger } from '../..';
 
 // Import all event handlers directly
-import { event as interactionCreateEvent } from './handlers/InteractionCreate';
-import { event as clientReadyEvent } from './handlers/ClientReady';
+import { interactionCreateEvent } from './handlers/InteractionCreate';
+import { clientReadyEvent } from './handlers/ClientReady';
+import { messageCreateEvent } from './handlers/MessageCreate';
 // Import any other event handlers you have
 
 export interface Event<K extends keyof ClientEvents> {
@@ -17,7 +18,7 @@ export interface Event<K extends keyof ClientEvents> {
 const eventHandlers = [
     interactionCreateEvent,
     clientReadyEvent,
-    // Add other event handlers here
+    messageCreateEvent,
 ];
 
 export const loadEvents = () => {

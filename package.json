@@ -2,8 +2,9 @@
     "name": "eve",
     "module": "index.ts",
     "scripts": {
-        "prettier": "prettier --write .",
-        "lint": "eslint ."
+        "format": "prettier --write \"**/*.{json,ts}\"",
+        "lint": "eslint .",
+        "build-bin": "bun build index.ts --compile --outfile eve-bot"
     },
     "devDependencies": {
         "@eslint/js": "^9.27.0",
@@ -19,6 +20,7 @@
     "private": true,
     "type": "module",
     "dependencies": {
+        "@google/genai": "^1.0.1",
         "@prisma/client": "^6.8.2",
         "axios": "^1.9.0",
         "blagues-api": "^2.1.1",

@@ -1,12 +1,16 @@
 import { Logger } from './utils/logger';
-import { client } from './bot/bot';
+import { client, stopBot } from './bot/bot';
 import { config } from './utils/config';
 import { loadEvents } from './bot/events/event';
+import { disconnectDatabase } from './utils/database';
+import { initAi } from './utils/intelligence';
 
 export const logger = Logger.init({ minLevel: 'debug' });
 
 async function main() {
     logger.info("Démarrage de l'application...");
+
+    initAi();
 
     try {
         logger.info('Connexion du bot Discord en cours...');
@@ -18,6 +22,18 @@ async function main() {
     }
 }
 
-main();
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    logger.info('SIGINT reçu, arrêt du bot Discord...');
+    await stopBot();
+    await disconnectDatabase();
+    process.exit(0);
+});
+process.on('SIGTERM', async () => {
+    logger.info('SIGTERM reçu, arrêt du bot Discord...');
+    await stopBot();
+    await disconnectDatabase();
+    process.exit(0);
+});
 
-//TODO: PREPARE FOR COMPILATION USING : bun build index.ts --compile --outfile eve-bot // WHICH COMPILE THE CODE AND CREATE A BINARY FILE
+main();
