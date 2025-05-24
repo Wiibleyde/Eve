@@ -1,12 +1,9 @@
 import type { ClientEvents } from 'discord.js';
 import { client } from '../bot';
 import { logger } from '../..';
-
-// Import all event handlers directly
-import { interactionCreateEvent } from './handlers/InteractionCreate';
-import { clientReadyEvent } from './handlers/ClientReady';
-import { messageCreateEvent } from './handlers/MessageCreate';
-// Import any other event handlers you have
+import { interactionCreateEvent } from './handlers/interactionCreate';
+import { clientReadyEvent } from './handlers/clientReady';
+import { messageCreateEvent } from './handlers/messageCreate';
 
 export interface Event<K extends keyof ClientEvents> {
     name: K;
