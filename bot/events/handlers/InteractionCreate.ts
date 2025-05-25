@@ -11,6 +11,15 @@ import { commandsMap } from '../../commands/command';
 import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
 
+// Function to parse button ID with arguments
+function parseButtonId(customId: string): { baseId: string, args: string | null } {
+    const parts = customId.split('--');
+    return {
+        baseId: parts[0] ?? '',
+        args: parts.length > 1 ? (parts[1] ?? null) : null
+    };
+}
+
 // Helper function to handle interactions with error handling and logging
 async function handleInteraction(
     interaction: ChatInputCommandInteraction | ButtonInteraction | ModalSubmitInteraction,
@@ -19,19 +28,39 @@ async function handleInteraction(
     interactionId: string
 ) {
     const startTime = Date.now();
+    
+    // Get context information
+    const guildName = interaction.guild ? interaction.guild.name : 'DM';
+    const guildId = interaction.guild ? interaction.guild.id : 'DM';
+    const channelName = interaction.channel ? 
+        ('name' in interaction.channel ? interaction.channel.name : 'unknown') : 
+        'unknown';
+    const channelId = interaction.channelId || 'unknown';
+    
+    // Get arguments for commands
+    let argumentsInfo = '';
+    if (interaction.isChatInputCommand()) {
+        const options = interaction.options.data;
+        if (options.length > 0) {
+            argumentsInfo = ` with args: ${options.map(opt => 
+                `${opt.name}=${opt.value ?? '[complex value]'}`
+            ).join(', ')}`;
+        }
+    }
 
     if (!handlerFn) {
         await interaction.reply({
             content: `Ce ${interactionType} n'existe pas.`,
             flags: [MessageFlags.Ephemeral],
         });
+        logger.warn(`Unknown ${interactionType} attempted: ${interactionId} by ${interaction.user.tag} (<@${interaction.user.id}>) in ${guildName} (${guildId}), channel: ${channelName} (<#${channelId}>)`);
         return;
     }
 
     try {
         await handlerFn();
     } catch (error) {
-        logger.error(`Error executing ${interactionType} ${interactionId}: ${error}`);
+        logger.error(`Error executing ${interactionType} ${interactionId}${argumentsInfo}: ${error}`);
         if (interaction.isRepliable()) {
             await interaction.reply({
                 content: `Une erreur est survenue lors de l'exécution du ${interactionType}.`,
@@ -42,7 +71,7 @@ async function handleInteraction(
     }
 
     logger.info(
-        `[${Date.now() - startTime}ms] ${interactionType} executed: ${interactionId} by ${interaction.user.tag}`
+        `[${Date.now() - startTime}ms] ${interactionType}: ${interactionId}${argumentsInfo} by ${interaction.user.tag} (<@${interaction.user.id}>) in ${guildName} (${guildId}), channel: ${channelName} (<#${channelId}>)`
     );
 }
 
@@ -59,12 +88,15 @@ export const interactionCreateEvent: Event<Events.InteractionCreate> = {
                 interaction.commandName
             );
         } else if (interaction.isButton()) {
-            const buttonHandler = buttons[interaction.customId];
+            // Parse the button ID to extract base ID and arguments
+            const { baseId, args } = parseButtonId(interaction.customId);
+            const buttonHandler = buttons[baseId];
+
             await handleInteraction(
                 interaction,
                 buttonHandler ? () => buttonHandler(interaction) : undefined,
                 'bouton',
-                interaction.customId
+                baseId + (args ? ` (args: ${args})` : '')
             );
         } else if (interaction.isModalSubmit()) {
             const modalHandler = modals[interaction.customId];

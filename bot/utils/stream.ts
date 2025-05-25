@@ -238,7 +238,7 @@ export async function handleInitStreams(onlineStreamers: StreamData[], userData:
                 });
             }
 
-            logger.info(`Updated message for streamer ${user.display_name} (${stream ? 'online' : 'offline'})`);
+            logger.debug(`Updated message for streamer ${user.display_name} (${stream ? 'online' : 'offline'})`);
         } catch (error) {
             logger.error(`Failed to update stream message for ${streamer.twitchUserId}:`, error);
         }

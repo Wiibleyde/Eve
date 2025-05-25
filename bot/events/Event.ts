@@ -11,7 +11,6 @@ export interface Event<K extends keyof ClientEvents> {
     execute: (...args: ClientEvents[K]) => void | Promise<void>;
 }
 
-// Use a more generic approach to avoid type issues
 const eventHandlers = [interactionCreateEvent, clientReadyEvent, messageCreateEvent];
 
 export const loadEvents = () => {
