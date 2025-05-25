@@ -1,7 +1,22 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ChatInputCommandInteraction,
+    MessageFlags,
+    SlashCommandBuilder,
+    TextChannel,
+} from 'discord.js';
 import type { ICommand } from '../../command';
 import { prisma } from '../../../../utils/database';
-import { quizEmbedGenerator, quizErrorEmbedGenerator, quizes, quizMaxTime, quizSuccessEmbedGenerator, type QuizType } from '../../../../utils/games/quiz';
+import {
+    quizEmbedGenerator,
+    quizErrorEmbedGenerator,
+    quizes,
+    quizMaxTime,
+    quizSuccessEmbedGenerator,
+    type QuizType,
+} from '../../../../utils/games/quiz';
 import { logger } from '../../../..';
 
 export const quiz: ICommand = {
@@ -63,7 +78,7 @@ export const quiz: ICommand = {
                     await interaction.reply({
                         embeds: [
                             quizErrorEmbedGenerator(
-                                'Aucun quiz n\'a été créé. Veuillez en créer un avant de lancer un quiz.'
+                                "Aucun quiz n'a été créé. Veuillez en créer un avant de lancer un quiz."
                             ),
                         ],
                         flags: [MessageFlags.Ephemeral],
@@ -80,11 +95,7 @@ export const quiz: ICommand = {
                 const quizJson = randomQuiz[0];
                 if (!quizJson) {
                     await interaction.editReply({
-                        embeds: [
-                            quizErrorEmbedGenerator(
-                                'Une erreur est survenue lors de la récupération du quiz.'
-                            ),
-                        ],
+                        embeds: [quizErrorEmbedGenerator('Une erreur est survenue lors de la récupération du quiz.')],
                     });
                     return;
                 }
@@ -100,7 +111,8 @@ export const quiz: ICommand = {
                 const shuffledAnswers = [quiz.answer, ...quiz.badAnswers].sort(() => Math.random() - 0.5);
                 quiz.shuffleAnswers = shuffledAnswers;
 
-                const formattedCategory = quiz.category.charAt(0).toUpperCase() + quiz.category.slice(1).replace(/_/g, ' ');
+                const formattedCategory =
+                    quiz.category.charAt(0).toUpperCase() + quiz.category.slice(1).replace(/_/g, ' ');
 
                 const invalidQuizTimestamp = quiz.createdAt + quizMaxTime;
 
@@ -110,10 +122,14 @@ export const quiz: ICommand = {
                         `${'```'}${quiz.question}${'```'}\n1) ${'`'}${shuffledAnswers[0]}${'`'}\n2) ${'`'}${shuffledAnswers[1]}${'`'}\n3) ${'`'}${shuffledAnswers[2]}${'`'}\n4) ${'`'}${shuffledAnswers[3]}${'`'}`
                     )
                     .addFields(
-                        { name: 'Catégorie / difficulté', value: `${formattedCategory} / ${quiz.difficulty}`, inline: true },
+                        {
+                            name: 'Catégorie / difficulté',
+                            value: `${formattedCategory} / ${quiz.difficulty}`,
+                            inline: true,
+                        },
                         { name: 'Invalide', value: `<t:${Math.floor(invalidQuizTimestamp / 1000)}:R>`, inline: true }
                     )
-                    .setColor(0x4b0082)
+                    .setColor(0x4b0082);
 
                 if (quizJson.author) {
                     quizEmbed.addFields({ name: 'Auteur', value: `<@${quizJson.author.userId}>`, inline: true });
@@ -133,7 +149,7 @@ export const quiz: ICommand = {
                 const channel = interaction.channel as TextChannel;
                 if (!channel) {
                     await interaction.editReply({
-                        embeds: [quizErrorEmbedGenerator('Le canal de discussion n\'est pas valide.')],
+                        embeds: [quizErrorEmbedGenerator("Le canal de discussion n'est pas valide.")],
                     });
                     return;
                 }
@@ -229,4 +245,3 @@ export const quiz: ICommand = {
         }
     },
 };
-

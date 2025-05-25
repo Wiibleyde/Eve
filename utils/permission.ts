@@ -6,14 +6,18 @@ import {
     ModalSubmitInteraction,
     type CacheType,
     type Interaction,
-    type Snowflake
+    type Snowflake,
 } from 'discord.js';
 import { config } from './config';
 
 /**
  * Type for supported interaction types in permission checking
  */
-export type SupportedInteraction = CommandInteraction | ButtonInteraction<CacheType> | ModalSubmitInteraction | Interaction<CacheType>;
+export type SupportedInteraction =
+    | CommandInteraction
+    | ButtonInteraction<CacheType>
+    | ModalSubmitInteraction
+    | Interaction<CacheType>;
 
 /**
  * Type representing permission requirements
@@ -35,8 +39,8 @@ export async function hasPermission(
     interaction: SupportedInteraction,
     requiredPermissions: PermissionRequirement[] = [],
     options: {
-        exact?: boolean,
-        allowedRoleIds?: Snowflake[]
+        exact?: boolean;
+        allowedRoleIds?: Snowflake[];
     } = {}
 ): Promise<boolean> {
     // Default options
@@ -61,27 +65,27 @@ export async function hasPermission(
     if (requiredPermissions.length === 0) return false;
 
     // Convert any permission names to their bitfield values
-    const permissionBits = requiredPermissions.map(perm => 
+    const permissionBits = requiredPermissions.map((perm) =>
         typeof perm === 'string' ? PermissionFlagsBits[perm] : perm
     );
 
     // Check required permissions
     if (exact) {
-        return permissionBits.every(permission => member.permissions.has(permission));
+        return permissionBits.every((permission) => member.permissions.has(permission));
     } else {
-        return permissionBits.some(permission => member.permissions.has(permission));
+        return permissionBits.some((permission) => member.permissions.has(permission));
     }
 }
 
 /**
  * Gets a guild member from an interaction.
- * 
+ *
  * @param interaction - The interaction to get the member from.
  * @returns The guild member, or null if not found.
  */
 async function getMember(interaction: SupportedInteraction): Promise<GuildMember | null> {
     try {
-        return await interaction.guild?.members.fetch(interaction.user.id) || null;
+        return (await interaction.guild?.members.fetch(interaction.user.id)) || null;
     } catch {
         return null;
     }
@@ -89,11 +93,11 @@ async function getMember(interaction: SupportedInteraction): Promise<GuildMember
 
 /**
  * Checks if a member has any of the specified roles.
- * 
+ *
  * @param member - The guild member to check.
  * @param roleIds - Array of role IDs to check for.
  * @returns True if the member has any of the roles, false otherwise.
  */
 function hasAnyRole(member: GuildMember, roleIds: Snowflake[]): boolean {
-    return roleIds.some(roleId => member.roles.cache.has(roleId));
+    return roleIds.some((roleId) => member.roles.cache.has(roleId));
 }

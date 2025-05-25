@@ -50,7 +50,7 @@ export const streamer: ICommand = {
 
         if (!(await hasPermission(interaction, []))) {
             await interaction.editReply({
-                embeds: [errorStreamerEmbedGenerator('Vous n\'avez pas la permission de gérer les streamers')],
+                embeds: [errorStreamerEmbedGenerator("Vous n'avez pas la permission de gérer les streamers")],
             });
             return;
         }

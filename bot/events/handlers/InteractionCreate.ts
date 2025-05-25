@@ -12,11 +12,11 @@ import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
 
 // Function to parse button ID with arguments
-function parseButtonId(customId: string): { baseId: string, args: string | null } {
+function parseButtonId(customId: string): { baseId: string; args: string | null } {
     const parts = customId.split('--');
     return {
         baseId: parts[0] ?? '',
-        args: parts.length > 1 ? (parts[1] ?? null) : null
+        args: parts.length > 1 ? (parts[1] ?? null) : null,
     };
 }
 
@@ -28,23 +28,25 @@ async function handleInteraction(
     interactionId: string
 ) {
     const startTime = Date.now();
-    
+
     // Get context information
     const guildName = interaction.guild ? interaction.guild.name : 'DM';
     const guildId = interaction.guild ? interaction.guild.id : 'DM';
-    const channelName = interaction.channel ? 
-        ('name' in interaction.channel ? interaction.channel.name : 'unknown') : 
-        'unknown';
+    const channelName = interaction.channel
+        ? 'name' in interaction.channel
+            ? interaction.channel.name
+            : 'unknown'
+        : 'unknown';
     const channelId = interaction.channelId || 'unknown';
-    
+
     // Get arguments for commands
     let argumentsInfo = '';
     if (interaction.isChatInputCommand()) {
         const options = interaction.options.data;
         if (options.length > 0) {
-            argumentsInfo = ` with args: ${options.map(opt => 
-                `${opt.name}=${opt.value ?? '[complex value]'}`
-            ).join(', ')}`;
+            argumentsInfo = ` with args: ${options
+                .map((opt) => `${opt.name}=${opt.value ?? '[complex value]'}`)
+                .join(', ')}`;
         }
     }
 
@@ -53,7 +55,9 @@ async function handleInteraction(
             content: `Ce ${interactionType} n'existe pas.`,
             flags: [MessageFlags.Ephemeral],
         });
-        logger.warn(`Unknown ${interactionType} attempted: ${interactionId} by ${interaction.user.tag} (<@${interaction.user.id}>) in ${guildName} (${guildId}), channel: ${channelName} (<#${channelId}>)`);
+        logger.warn(
+            `Unknown ${interactionType} attempted: ${interactionId} by ${interaction.user.tag} (<@${interaction.user.id}>) in ${guildName} (${guildId}), channel: ${channelName} (<#${channelId}>)`
+        );
         return;
     }
 

@@ -92,7 +92,7 @@ export const config: ICommand = {
 
         if (!(await hasPermission(interaction, [PermissionFlagsBits.ManageChannels]))) {
             await interaction.editReply({
-                embeds: [configEmbedGenerator().setDescription('Vous n\'avez pas la permission de gérer les salons.')],
+                embeds: [configEmbedGenerator().setDescription("Vous n'avez pas la permission de gérer les salons.")],
             });
             return;
         }
