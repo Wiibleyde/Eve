@@ -10,6 +10,7 @@ export const talk: ICommand = {
         .addStringOption((option) => option.setName('message').setDescription('The message to send').setRequired(true))
         .addUserOption((option) => option.setName('mp').setDescription('The user to send the message to')),
     execute: async (interaction: CommandInteraction) => {
+        //TODO: Check if the user has the required permissions to execute this command
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
         const message = interaction.options.get('message')?.value as string;

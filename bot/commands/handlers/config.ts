@@ -2,12 +2,14 @@ import {
     ChatInputCommandInteraction,
     InteractionContextType,
     MessageFlags,
+    PermissionFlagsBits,
     SlashCommandBuilder,
     type GuildBasedChannel,
 } from 'discord.js';
 import type { ICommand } from '../command';
 import { prisma } from '../../../utils/database';
 import { basicEmbedGenerator } from '../../utils/embeds';
+import { hasPermission } from '../../../utils/permission';
 
 export const config: ICommand = {
     data: new SlashCommandBuilder()
@@ -87,6 +89,13 @@ export const config: ICommand = {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],
         });
+
+        if (!(await hasPermission(interaction, [PermissionFlagsBits.ManageChannels]))) {
+            await interaction.editReply({
+                embeds: [configEmbedGenerator().setDescription('Vous n\'avez pas la permission de gérer les salons.')],
+            });
+            return;
+        }
 
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {

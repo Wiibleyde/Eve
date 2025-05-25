@@ -32,10 +32,13 @@ async function handleInteraction(
         await handlerFn();
     } catch (error) {
         logger.error(`Error executing ${interactionType} ${interactionId}: ${error}`);
-        await interaction.reply({
-            content: `Une erreur est survenue lors de l'exécution du ${interactionType}.`,
-            flags: [MessageFlags.Ephemeral],
-        });
+        if (interaction.isRepliable()) {
+            await interaction.reply({
+                content: `Une erreur est survenue lors de l'exécution du ${interactionType}.`,
+                flags: [MessageFlags.Ephemeral],
+            });
+            return;
+        }
     }
 
     logger.info(

@@ -10,6 +10,7 @@ import { getUserIdByLogin, initSingleStreamUpdate, removeStreamFromCache } from 
 import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { prisma } from '../../../utils/database';
 import { logger } from '../../..';
+import { hasPermission } from '../../../utils/permission';
 
 export const streamer: ICommand = {
     data: new SlashCommandBuilder()
@@ -46,6 +47,14 @@ export const streamer: ICommand = {
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
     execute: async (interaction) => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+
+        if (!(await hasPermission(interaction, []))) {
+            await interaction.editReply({
+                embeds: [errorStreamerEmbedGenerator('Vous n\'avez pas la permission de gérer les streamers')],
+            });
+            return;
+        }
+
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
             case 'add': {
