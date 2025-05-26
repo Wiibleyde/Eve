@@ -51,10 +51,17 @@ async function handleInteraction(
     }
 
     if (!handlerFn) {
-        await interaction.reply({
-            content: `Ce ${interactionType} n'existe pas.`,
-            flags: [MessageFlags.Ephemeral],
-        });
+        // Only reply if the interaction hasn't been replied to yet
+        if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+            try {
+                await interaction.reply({
+                    content: `Ce ${interactionType} n'existe pas.`,
+                    flags: [MessageFlags.Ephemeral],
+                });
+            } catch (replyError) {
+                logger.error(`Failed to reply to unknown ${interactionType}: ${replyError}`);
+            }
+        }
         logger.warn(
             `Unknown ${interactionType} attempted: ${interactionId} by ${interaction.user.tag} (<@${interaction.user.id}>) in ${guildName} (${guildId}), channel: ${channelName} (<#${channelId}>)`
         );
@@ -65,13 +72,27 @@ async function handleInteraction(
         await handlerFn();
     } catch (error) {
         logger.error(`Error executing ${interactionType} ${interactionId}${argumentsInfo}: ${error}`);
-        if (interaction.isRepliable()) {
-            await interaction.reply({
-                content: `Une erreur est survenue lors de l'exécution du ${interactionType}.`,
-                flags: [MessageFlags.Ephemeral],
-            });
-            return;
+        
+        // Only attempt to reply if the interaction is repliable and hasn't been replied to yet
+        if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+            try {
+                await interaction.reply({
+                    content: `Une erreur est survenue lors de l'exécution du ${interactionType}.`,
+                    flags: [MessageFlags.Ephemeral],
+                });
+            } catch (replyError: unknown) {
+                // If the error is not because the interaction was already replied to, log it
+                if (
+                    typeof replyError === 'object' &&
+                    replyError !== null &&
+                    'code' in replyError &&
+                    (replyError as { code?: string }).code !== 'InteractionAlreadyReplied'
+                ) {
+                    logger.error(`Failed to send error response: ${replyError}`);
+                }
+            }
         }
+        return;
     }
 
     logger.info(
