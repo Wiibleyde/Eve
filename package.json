@@ -5,7 +5,7 @@
         "format": "prettier --write \"**/*.{json,ts}\"",
         "lint": "eslint .",
         "generate": "prisma generate",
-        "build-js": "bun build ./index.ts --outdir ./dist --format esm --target node",
+        "build-js": "bun build ./index.ts --minify --outdir ./dist --format esm --target node",
         "postbuild": "cp -r node_modules/.prisma dist/",
         "build": "npm run generate && npm run build-js && npm run postbuild",
         "start": "node dist/index.js"

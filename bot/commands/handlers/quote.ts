@@ -1,14 +1,14 @@
-import { MessageFlags, SlashCommandBuilder, TextChannel, User } from "discord.js";
-import type { ICommand } from "../command";
-import { generateQuoteImage, insertQuoteInDatabase } from "../../../utils/quoteMaker";
-import { prisma } from "../../../utils/database";
-import { successEmbedGenerator } from "../../utils/embeds";
-import { logger } from "../../..";
+import { MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
+import type { ICommand } from '../command';
+import { generateQuoteImage, insertQuoteInDatabase } from '../../../utils/quoteMaker';
+import { prisma } from '../../../utils/database';
+import { successEmbedGenerator } from '../../utils/embeds';
+import { logger } from '../../..';
 
 export const quote: ICommand = {
     data: new SlashCommandBuilder()
-        .setName("quote")
-        .setDescription("Créer une citation")
+        .setName('quote')
+        .setDescription('Créer une citation')
         .addStringOption((option) => option.setName('citation').setDescription('La citation').setRequired(true))
         .addUserOption((option) => option.setName('auteur').setDescription("L'auteur de la citation").setRequired(true))
         .addStringOption((option) =>
@@ -48,16 +48,9 @@ export const quote: ICommand = {
         } else {
             channel = interaction.channel as TextChannel;
         }
-        const imageBuffer = await generateQuoteImage(
-            quote,
-            author.displayName,
-            date,
-            userProfilePicture,
-            context
-        );
+        const imageBuffer = await generateQuoteImage(quote, author.displayName, date, userProfilePicture, context);
 
-        await insertQuoteInDatabase(quote, author.id, context, interaction.guildId ?? undefined)
-
+        await insertQuoteInDatabase(quote, author.id, context, interaction.guildId ?? undefined);
 
         const messageSent = await channel.send({
             files: [imageBuffer],
@@ -66,5 +59,5 @@ export const quote: ICommand = {
         await interaction.editReply({
             embeds: [successEmbedGenerator(`Citation créée et envoyée ${messageSent.url}`)],
         });
-    }
-}
+    },
+};

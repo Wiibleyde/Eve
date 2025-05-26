@@ -72,7 +72,7 @@ async function handleInteraction(
         await handlerFn();
     } catch (error) {
         logger.error(`Error executing ${interactionType} ${interactionId}${argumentsInfo}: ${error}`);
-        
+
         // Only attempt to reply if the interaction is repliable and hasn't been replied to yet
         if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
             try {

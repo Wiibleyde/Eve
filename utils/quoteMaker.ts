@@ -13,7 +13,7 @@ export async function generateQuoteImage(
     author: string,
     date: string,
     userProfilePicture: string,
-    context?: string,
+    context?: string
 ): Promise<Buffer> {
     if (!quote) {
         throw new Error('Quote cannot be empty');
@@ -74,11 +74,11 @@ export async function generateQuoteImage(
     return buffer;
 }
 
-export async function  insertQuoteInDatabase(
+export async function insertQuoteInDatabase(
     quote: string,
     authorId: string,
     context?: string,
-    guildId?: string,
+    guildId?: string
 ): Promise<void> {
     // Assuming you have a Prisma client instance available as `prisma`
     await prisma.quote.create({
@@ -99,5 +99,4 @@ export async function  insertQuoteInDatabase(
             createdAt: new Date(),
         },
     });
-
 }
