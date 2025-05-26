@@ -12,7 +12,7 @@ import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
 
 // Function to parse button ID with arguments
-function parseButtonId(customId: string): { baseId: string; args: string | null } {
+function parseCustomId(customId: string): { baseId: string; args: string | null } {
     const parts = customId.split('--');
     return {
         baseId: parts[0] ?? '',
@@ -114,7 +114,7 @@ export const interactionCreateEvent: Event<Events.InteractionCreate> = {
             );
         } else if (interaction.isButton()) {
             // Parse the button ID to extract base ID and arguments
-            const { baseId, args } = parseButtonId(interaction.customId);
+            const { baseId, args } = parseCustomId(interaction.customId);
             const buttonHandler = buttons[baseId];
 
             await handleInteraction(
