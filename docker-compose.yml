@@ -1,0 +1,20 @@
+services:
+  eve:
+    build: .
+    image: wiibleyde/eve:latest
+    container_name: eve
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - DISCORD_TOKEN=your_discord_token_here
+      - DISCORD_CLIENT_ID=your_discord_client_id_here
+      - EVE_HOME_GUILD=your_eve_home_guild_id_here
+      - MP_CHANNEL=your_mp_channel_id_here
+      - BLAGUE_API_TOKEN=your_blague_api_token_here
+      - OWNER_ID=your_owner_id_here
+      - LOGS_WEBHOOK_URL=your_logs_webhook_url_here
+      - DATABASE_URL=mysql://user:password@localhost:3306/eve
+      - GOOGLE_API_KEY=your_google_api_key_here
+      - TWITCH_CLIENT_ID=your_twitch_client_id_here
+      - TWITCH_CLIENT_SECRET=your_twitch_client_secret_here
