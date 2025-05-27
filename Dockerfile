@@ -17,6 +17,6 @@ WORKDIR /app
 COPY --from=builder /app/dist ./
 
 # For dev
-COPY --from=builder /app/.env ./
+# COPY --from=builder /app/.env ./
 
 CMD [ "node", "index.js" ]
