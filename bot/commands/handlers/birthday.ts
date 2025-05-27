@@ -28,7 +28,7 @@ export const birthday: ICommand = {
                 .setName('set')
                 .setDescription('Définir votre anniversaire')
                 .addStringOption((option) =>
-                    option.setName('date').setDescription('Date de votre anniversaire (JJ/MM)').setRequired(true)
+                    option.setName('date').setDescription('Date de votre anniversaire (JJ/MM/AAAA)').setRequired(true)
                 )
         )
         .addSubcommand((subcommand) =>
