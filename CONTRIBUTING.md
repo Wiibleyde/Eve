@@ -64,7 +64,7 @@ If you want to contribute code, please:
 2. Install dependencies:
 
     ```bash
-    npm install
+    bun install
     ```
 
 3. Create a `.env` file based on the [Installation section in the README](README.md#installation).
@@ -72,7 +72,7 @@ If you want to contribute code, please:
 4. Run the bot locally:
 
     ```bash
-    npm start
+    bun index.ts
     ```
 
 ## Pull Request Guidelines
