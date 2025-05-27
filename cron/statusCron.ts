@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
 import { ActivityType } from 'discord.js';
 import { client } from '../bot/bot';
+import { isMaintenanceMode } from '../utils/maintenance';
 
 const possibleStatus: { name: string; type: ActivityType }[] = [
     { name: `les merveilles de ce monde.`, type: ActivityType.Watching },
@@ -38,6 +39,20 @@ const areInPeriod = (period: { start: Date; end: Date }) => {
 let statusIndex: number = 0;
 
 export const statusCron = new CronJob('0,10,20,30,40,50 * * * * *', () => {
+    if (isMaintenanceMode()) {
+        client.user?.setPresence({
+            status: 'dnd',
+            afk: true,
+            activities: [
+                {
+                    name: 'la maintenance',
+                    type: ActivityType.Watching,
+                },
+            ],
+        });
+        return;
+    }
+
     let statusList: { name: string; type: ActivityType }[];
     if (areInPeriod(halloweenPeriod)) {
         statusList = possibleHalloweenStatus;

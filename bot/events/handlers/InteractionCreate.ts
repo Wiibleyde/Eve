@@ -10,6 +10,9 @@ import { logger } from '../../..';
 import { commandsMap } from '../../commands/command';
 import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
+import { isMaintenanceMode } from '../../../utils/maintenance';
+import { warningEmbedGenerator } from '../../utils/embeds';
+import { config } from '../../../utils/config';
 
 // Function to parse button ID with arguments
 function parseCustomId(customId: string): { baseId: string; args: string | null } {
@@ -28,6 +31,25 @@ async function handleInteraction(
     interactionId: string
 ) {
     const startTime = Date.now();
+
+    if (isMaintenanceMode() && interaction.user.id !== config.OWNER_ID) {
+        logger.warn(`Maintenance mode is enabled, interaction ${interactionType} ${interactionId} ignored.`);
+        if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+            try {
+                await interaction.reply({
+                    embeds: [
+                        warningEmbedGenerator(
+                            `Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard.`
+                        ),
+                    ],
+                    flags: [MessageFlags.Ephemeral],
+                });
+            } catch (replyError) {
+                logger.error(`Failed to reply to ${interactionType} in maintenance mode: ${replyError}`);
+            }
+        }
+        return;
+    }
 
     // Get context information
     const guildName = interaction.guild ? interaction.guild.name : 'DM';

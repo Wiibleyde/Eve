@@ -3,10 +3,16 @@ import { logger } from '..';
 import { prisma } from '../utils/database';
 import { client } from '../bot/bot';
 import { birthdayEmbedGenerator } from '../bot/commands/handlers/birthday';
+import { isMaintenanceMode } from '../utils/maintenance';
 
 export const birthdayCron = new CronJob(
     '0 0 * * *', // Runs every day at midnight
     async () => {
+        if (isMaintenanceMode()) {
+            logger.warn('Maintenance mode is enabled, skipping birthday check.');
+            return;
+        }
+
         logger.info('Checking birthdays...');
         const today = new Date();
         const todayDay = today.getDate();

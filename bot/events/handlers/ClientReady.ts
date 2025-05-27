@@ -6,6 +6,7 @@ import { birthdayCron } from '../../../cron/birthdayCron';
 import { statusCron } from '../../../cron/statusCron';
 import { streamCron } from '../../../cron/streamCron';
 import { initStreamsUpdate } from '../../../utils/stream/twitch';
+import { initMpThreads } from '../../../utils/mpManager';
 
 export const clientReadyEvent: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -20,6 +21,8 @@ export const clientReadyEvent: Event<Events.ClientReady> = {
                 },
             ],
         });
+
+        await initMpThreads();
 
         await initStreamsUpdate();
 
