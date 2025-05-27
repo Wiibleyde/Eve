@@ -3,6 +3,10 @@ import type { Event } from '../event';
 import { logger } from '../../..';
 import { client } from '../../bot';
 import { generateWithGoogle } from '../../../utils/intelligence';
+import { isMaintenanceMode } from '../../../utils/maintenance';
+import { warningEmbedGenerator } from '../../utils/embeds';
+import { config } from '../../../utils/config';
+import { handleMessageSend, isNewMessageInMpThread, recieveMessage } from '../../../utils/mpManager';
 
 export const messageCreateEvent: Event<Events.MessageCreate> = {
     name: Events.MessageCreate,
@@ -11,12 +15,19 @@ export const messageCreateEvent: Event<Events.MessageCreate> = {
         // Ignore messages from bots
         if (message.author.bot) return;
 
+        if (isMaintenanceMode() && message.author.id !== config.OWNER_ID) {
+            await message.reply({
+                embeds: [
+                    warningEmbedGenerator('Le bot est actuellement en mode maintenance. Veuillez réessayer plus tard.'),
+                ],
+            });
+            return;
+        }
+
         if (message.guild) {
             await handleGuildMessage(message);
         } else {
-            await message.reply({
-                content: 'Je ne peux pas répondre aux messages privés.',
-            });
+            await handleDirectMessage(message);
         }
     },
 };
@@ -28,6 +39,17 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
 
     if (!guildId || !channelId) {
         logger.error(`Guild ou channel non trouvé pour le message de <@${message.author.id}>`);
+        return;
+    }
+
+    if (
+        guildId === config.EVE_HOME_GUILD &&
+        message.author.id !== client.user?.id &&
+        isNewMessageInMpThread(channelId)
+    ) {
+        const messageStickers = Array.from(message.stickers.values());
+        const messageAttachments = Array.from(message.attachments.values());
+        handleMessageSend(channelId, message.content, messageStickers, messageAttachments);
         return;
     }
 
@@ -45,4 +67,18 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
             );
         }
     }
+}
+
+async function handleDirectMessage(message: OmitPartialGroupDMChannel<Message<boolean>>) {
+    const startTime = Date.now();
+    const userId = message.author.id;
+
+    const messageStickers = Array.from(message.stickers.values());
+    const messageAttachments = Array.from(message.attachments.values());
+
+    await recieveMessage(userId, message.content, messageStickers, messageAttachments);
+
+    logger.info(
+        `[${Date.now() - startTime}ms] Message privé reçu de <@${userId}> : "${message.content}" avec ${messageStickers.length} stickers et ${messageAttachments.length} pièces jointes`
+    );
 }

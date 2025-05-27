@@ -14,6 +14,7 @@ import { motus } from './handlers/fun/motus';
 import { quiz } from './handlers/fun/quiz';
 import { quote } from './handlers/quote';
 import { debug } from './handlers/debug';
+import { maintenance } from './handlers/maintenance';
 
 // Type pour représenter une commande avec sa définition et son exécution
 export interface ICommand {
@@ -22,7 +23,19 @@ export interface ICommand {
 }
 
 // Collection des commandes disponibles
-export const commands: ICommand[] = [ping, talk, birthday, blague, config, streamer, motus, quiz, quote, debug];
+export const commands: ICommand[] = [
+    ping,
+    talk,
+    birthday,
+    blague,
+    config,
+    streamer,
+    motus,
+    quiz,
+    quote,
+    debug,
+    maintenance,
+];
 
 // Map pour accéder aux commandes rapidement par leur nom
 export const commandsMap = new Map<string, ICommand>(commands.map((command) => [command.data.name, command]));
