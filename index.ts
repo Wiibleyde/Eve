@@ -9,7 +9,7 @@ export const logger = Logger.init({
     minLevel: 'debug',
     discordMinLevel: 'info',
     discordWebhook: config.LOGS_WEBHOOK_URL,
-    showFileInfo: true,
+    showFileInfo: false,
 });
 
 async function main() {
