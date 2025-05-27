@@ -126,7 +126,8 @@ export async function handleQuizButton(interaction: ButtonInteraction): Promise<
         },
     });
 
-    if (isCorrect) {
+    // Update the message with modified fields regardless of answer correctness
+    if (message.embeds[0]) {
         const buttons = [
             new ButtonBuilder().setCustomId('handleQuizButton--1').setLabel('1').setStyle(ButtonStyle.Primary),
             new ButtonBuilder().setCustomId('handleQuizButton--2').setLabel('2').setStyle(ButtonStyle.Primary),
@@ -135,16 +136,22 @@ export async function handleQuizButton(interaction: ButtonInteraction): Promise<
         ];
 
         const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
-
-        // Mettre à jour le message uniquement si nécessaire
-        if (message.embeds[0]) {
-            // Exécuter la mise à jour en parallèle avec la réponse à l'interaction
-            await Promise.all([
-                message.edit({ embeds: [message.embeds[0]], components: [actionRow] }),
-                interaction.editReply({ content: responseContent }),
-            ]);
-            return;
-        }
+        
+        // Create a new embed object that keeps all original properties but updates fields
+        const updatedEmbed = {
+            ...message.embeds[0].toJSON(), // Preserve all original properties
+            fields: messageFields
+        };
+        
+        // Execute the update in parallel with the response to the interaction
+        await Promise.all([
+            message.edit({ 
+                embeds: [updatedEmbed], 
+                components: [actionRow]
+            }),
+            interaction.editReply({ content: responseContent }),
+        ]);
+        return;
     }
 
     await interaction.editReply({ content: responseContent });
