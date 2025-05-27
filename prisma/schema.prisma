@@ -1,6 +1,6 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -96,12 +96,24 @@ model MpThreads {
 }
 
 model Stream {
-    uuid              String  @id @default(uuid())
-    guildId           String
-    channelId         String
-    roleId            String?
-    messageId         String?
-    twitchUserId      String
+    uuid         String  @id @default(uuid())
+    guildId      String
+    channelId    String
+    roleId       String?
+    messageId    String?
+    twitchUserId String
+
+    @@index([guildId])
+}
+
+model LsmsDutyManager {
+    uuid         String  @id @default(uuid())
+    guildId      String
+    channelId    String
+    messageId    String?
+    dutyRoleId   String?
+    onCallRoleId String?
+    logsChannelId String?
 
     @@index([guildId])
 }

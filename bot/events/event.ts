@@ -4,6 +4,7 @@ import { logger } from '../..';
 import { interactionCreateEvent } from './handlers/interactionCreate';
 import { clientReadyEvent } from './handlers/clientReady';
 import { messageCreateEvent } from './handlers/messageCreate';
+import { guildMemberUpdateEvent } from './handlers/guildMemberUpdate';
 
 export interface Event<K extends keyof ClientEvents> {
     name: K;
@@ -11,7 +12,7 @@ export interface Event<K extends keyof ClientEvents> {
     execute: (...args: ClientEvents[K]) => void | Promise<void>;
 }
 
-const eventHandlers = [interactionCreateEvent, clientReadyEvent, messageCreateEvent];
+const eventHandlers = [interactionCreateEvent, clientReadyEvent, messageCreateEvent, guildMemberUpdateEvent];
 
 export const loadEvents = () => {
     try {
