@@ -30,7 +30,7 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/dist ./
 
 # For dev
-COPY --from=builder /app/.env ./
+# COPY --from=builder /app/.env ./
 
 # Copy the entrypoint script
 COPY --from=builder /app/docker-entrypoint.sh ./
