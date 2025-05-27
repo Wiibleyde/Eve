@@ -7,6 +7,7 @@ import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
 import { config } from '../../../utils/core/config';
 import { handleMessageSend, isNewMessageInMpThread, recieveMessage } from '../../../utils/mpManager';
+import { detectPattern, generateResponse } from '../../../utils/messageManager';
 
 export const messageCreateEvent: Event<Events.MessageCreate> = {
     name: Events.MessageCreate,
@@ -64,6 +65,17 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
             await message.channel.send(aiResponse);
             logger.info(
                 `[${Date.now() - startTime}ms] Réponse de l'IA envoyée dans <#${channelId}> par <@${message.author.id}> : "${message.content}"  : ${aiResponse}`
+            );
+        }
+    }
+
+    const pattern = detectPattern(message.content);
+    if (pattern) {
+        const response = generateResponse(pattern);
+        if (response) {
+            await message.channel.send(response);
+            logger.info(
+                `[${Date.now() - startTime}ms] Réponse générée pour le motif "${pattern.name}" dans <#${channelId}> par <@${message.author.id}> : "${message.content}"  : ${response}`
             );
         }
     }
