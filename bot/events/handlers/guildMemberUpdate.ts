@@ -40,6 +40,8 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
             },
         });
 
+        let actionPerformed = false;
+
         for (const dutyData of lsmsDutyData) {
             const guild = await client.guilds.fetch(dutyData.guildId);
             // Update the message if either duty or oncall role was added OR removed
@@ -77,15 +79,18 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
                                     embeds: [newEmbed],
                                     components: [actionRow],
                                 });
+                                actionPerformed = true;
                             }
                         }
                     }
                 }
             }
         }
-        logger.info(
-            `[${Date.now() - startTime}ms] ${newMember.user.tag} (${newMember.id}) updated roles in ${newMember.guild.name} (${newMember.guild.id})`
-        );
+        if (actionPerformed) {
+            logger.info(
+                `[${Date.now() - startTime}ms] Updated duty message due to role change for ${newMember.user.tag} (${newMember.id}) in ${newMember.guild.name} (${newMember.guild.id})`
+            );
+        }
         return;
     },
 };
