@@ -31,6 +31,19 @@ export function lsmsSuccessEmbedGenerator(message: string) {
         .setDescription(message);
 }
 
+export function lsmsDutyUpdateEmbedGenerator(userUpdated: User, take: boolean) {
+    return lsmsEmbedGenerator()
+        .setColor(take ? 0x00ff00 : 0xff0000)
+        .setTitle(`${take ? "Prise de" : "Fin de"} service`)
+        .setDescription(`<@${userUpdated.id}> a ${take ? "pris" : "terminé"} son service.`)
+}
+
+export function lsmsOnCallUpdateEmbedGenerator(userUpdated: User, take: boolean) {
+    return lsmsEmbedGenerator()
+        .setColor(take ? 0x00ff00 : 0xff0000)
+        .setTitle(`${take ? "Début d'" : "Fin d'"}astreinte`)
+        .setDescription(`<@${userUpdated.id}> a ${take ? "débuté" : "terminé"} son astreinte.`)
+}
 
 export function lsmsDutyEmbedGenerator(onDutyPeople: User[], onCallPeople: User[]): { embed: EmbedBuilder, actionRow: ActionRowBuilder<ButtonBuilder> } {
     const dutyList = onDutyPeople.length > 0 ? onDutyPeople.map(user => `<@${user.id}>`).join("\n") : "Personne n'est en service :(";

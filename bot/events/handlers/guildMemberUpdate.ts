@@ -2,7 +2,7 @@ import { Events } from 'discord.js';
 import type { Event } from '../event';
 import { prisma } from '../../../utils/core/database';
 import { client } from '../../bot';
-import { lsmsDutyEmbedGenerator } from '../../../utils/rp/lsms';
+import { lsmsDutyEmbedGenerator, lsmsDutyUpdateEmbedGenerator, lsmsOnCallUpdateEmbedGenerator } from '../../../utils/rp/lsms';
 import { logger } from '../../..';
 
 export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
@@ -79,6 +79,18 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
                                     embeds: [newEmbed],
                                     components: [actionRow],
                                 });
+                                // Log to channel (use lsmsDutyUpdateEmbedGenerator or lsmsOnCallUpdateEmbedGenerator)
+                                const logChannel = dutyData.logsChannelId ? guild.channels.cache.get(dutyData.logsChannelId) : null;
+                                if (logChannel && logChannel.isTextBased()) {
+                                    // Determine if role was added (true) or removed (false)
+                                    const isDutyRoleAdded = dutyData.dutyRoleId && roleChanges.some(role => role.id === dutyData.dutyRoleId);
+                                    const isOnCallRoleAdded = dutyData.onCallRoleId && roleChanges.some(role => role.id === dutyData.onCallRoleId);
+
+                                    const embed = dutyData.dutyRoleId && (isDutyRoleAdded || roleRemovals.some(role => role.id === dutyData.dutyRoleId))
+                                        ? lsmsDutyUpdateEmbedGenerator(newMember.user, !!isDutyRoleAdded)
+                                        : lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
+                                    await logChannel.send({ embeds: [embed] });
+                                }
                                 actionPerformed = true;
                             }
                         }
