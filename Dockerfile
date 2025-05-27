@@ -14,6 +14,9 @@ FROM node:24.1.0-slim
 
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl
+
 COPY --from=builder /app/dist ./
 
 # For dev
