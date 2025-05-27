@@ -8,6 +8,9 @@ COPY bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY . .
+
+# Ensure Prisma generates binaries for both the builder and the target environment
+RUN bun prisma generate
 RUN bun run build
 
 FROM node:24.1.0-slim
