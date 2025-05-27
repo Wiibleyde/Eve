@@ -1,43 +1,22 @@
-FROM golang:1.24 AS builder
+FROM oven/bun:latest AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY package.json ./
+COPY bun.lock ./
+
+RUN bun install --frozen-lockfile
 
 COPY . .
+RUN bun run build
 
-RUN go run github.com/steebchen/prisma-client-go prefetch
-RUN go run github.com/steebchen/prisma-client-go generate
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o app .
-
-# Image finale : Node + Prisma CLI + app Go + certificats
-FROM node:20-slim
+FROM node:24.1.0-slim
 
 WORKDIR /app
 
-# 🛠️ Ajout de OpenSSL + certificats CA
-RUN apt-get update && apt-get install -y \
-    openssl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/dist ./
 
-# Prisma CLI (pour migrate deploy)
-COPY package.json ./
-RUN npm install --omit=dev
+# For dev
+COPY --from=builder /app/.env ./
 
-# Prisma schema
-COPY prisma ./prisma
-
-# App Go + assets
-COPY --from=builder /app/app .
-COPY --from=builder /app/assets ./assets
-
-# Script d'entrée
-COPY docker-entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
-
-EXPOSE 3000
-
-ENTRYPOINT ["./entrypoint.sh"]
+CMD [ "node", "index.js" ]

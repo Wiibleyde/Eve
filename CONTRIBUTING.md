@@ -6,10 +6,10 @@ Thank you for considering contributing to Eve! This guide will help you understa
 
 - [Code of Conduct](#code-of-conduct)
 - [How Can I Contribute?](#how-can-i-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Features](#suggesting-features)
-  - [Improving Documentation](#improving-documentation)
-  - [Contributing Code](#contributing-code)
+    - [Reporting Bugs](#reporting-bugs)
+    - [Suggesting Features](#suggesting-features)
+    - [Improving Documentation](#improving-documentation)
+    - [Contributing Code](#contributing-code)
 - [Development Workflow](#development-workflow)
 - [Pull Request Guidelines](#pull-request-guidelines)
 
@@ -56,24 +56,24 @@ If you want to contribute code, please:
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/wiibleyde/eve.git
-   cd eve
-   ```
+    ```bash
+    git clone https://github.com/wiibleyde/eve.git
+    cd eve
+    ```
 
 2. Install dependencies:
 
-   ```bash
-   npm install
-   ```
+    ```bash
+    bun install
+    ```
 
 3. Create a `.env` file based on the [Installation section in the README](README.md#installation).
 
 4. Run the bot locally:
 
-   ```bash
-   npm start
-   ```
+    ```bash
+    bun index.ts
+    ```
 
 ## Pull Request Guidelines
 
@@ -86,4 +86,3 @@ If you want to contribute code, please:
 ---
 
 Thank you for contributing to Eve! Your efforts help make this project better for everyone.
-

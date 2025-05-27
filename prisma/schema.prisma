@@ -1,5 +1,5 @@
 generator client {
-    provider = "go run github.com/steebchen/prisma-client-go"
+    provider = "prisma-client-js"
 }
 
 datasource db {
@@ -18,22 +18,6 @@ model GlobalUserData {
     MpThreads       MpThreads[]
 
     @@index([userId])
-}
-
-model LogLevel {
-    id   Int    @id @default(autoincrement())
-    name String @unique
-    logs Logs[]
-}
-
-model Logs {
-    id        Int      @id @default(autoincrement())
-    message   String   @db.MediumText
-    levelId   Int
-    createdAt DateTime @default(now())
-    level     LogLevel @relation(fields: [levelId], references: [id])
-
-    @@index([levelId], map: "Logs_levelId_fkey")
 }
 
 model Config {
@@ -116,7 +100,7 @@ model Stream {
     channelId         String
     roleId            String?
     messageId         String?
-    twitchChannelName String
+    twitchUserId      String
 
     @@index([guildId])
 }

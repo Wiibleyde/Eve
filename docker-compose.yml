@@ -5,7 +5,7 @@ services:
     container_name: eve
     restart: unless-stopped
     volumes:
-      - ./logs:/root/logs
+      - ./logs:/app/logs
     environment:
       - DISCORD_TOKEN=your_discord_token_here
       - DISCORD_CLIENT_ID=your_discord_client_id_here
@@ -18,4 +18,3 @@ services:
       - GOOGLE_API_KEY=your_google_api_key_here
       - TWITCH_CLIENT_ID=your_twitch_client_id_here
       - TWITCH_CLIENT_SECRET=your_twitch_client_secret_here
-

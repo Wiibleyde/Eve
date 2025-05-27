@@ -1,9 +1,9 @@
-logs/
-LICENSE
-README.md
-CONTRIBUTING.md
-.gitignore
-.git/
-.env
+.git
+.github
+node_modules
+dist
+.prettierrc
+
+.vscode
 Dockerfile
-docker-compose.yml
+.dockerignore
