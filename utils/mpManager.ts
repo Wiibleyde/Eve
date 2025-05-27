@@ -35,93 +35,154 @@ export function isNewMessageInMpThread(threadId: string) {
 }
 
 function sendMpMessage(threadId: string, message: string, stickers: Sticker[], attachments: Attachment[]) {
-    if (opennedMp.has(threadId)) {
-        const userId = opennedMp.get(threadId);
-        if (userId) {
-            sendMp(userId, message, stickers, attachments);
-        }
+    const userId = opennedMp.get(threadId);
+    if (userId) {
+        sendMp(userId, message, stickers, attachments);
     }
 }
 
-export async function sendMp(userId: string, message: string, stickers: Sticker[], attachments: Attachment[]) {
-    const user = await client.users.fetch(userId);
+/**
+ * Sends a direct message to a user
+ */
+export async function sendMp(
+    userId: string,
+    message: string,
+    stickers: Sticker[] = [],
+    attachments: Attachment[] = []
+) {
     try {
-        const validStickers = stickers.filter((sticker) => sticker.available);
+        const user = await client.users.fetch(userId);
+        const validStickers = getValidStickers(stickers);
+
         await user.send({
             content: message,
             stickers: validStickers.map((sticker) => sticker.id),
             files: attachments.map((attachment) => attachment.url),
         });
     } catch (error) {
-        logger.error(error);
+        logger.error(`Error sending MP to user ${userId}:`, error);
     }
 }
 
+/**
+ * Creates a new thread for private messages with a user
+ */
 export async function createMpThread(userId: string): Promise<string> {
-    const channel = (await client.channels.fetch(config.MP_CHANNEL)) as TextChannel;
-    if (!channel) {
-        return '';
-    }
-    const user = await client.users.fetch(userId);
-    if (!user) {
-        return '';
-    }
-    const message = await channel.send({
-        content: `Messages privés avec <@${user.id}>`,
-    });
-    const thread = await message.startThread({
-        name: `MP avec ${user.username}`,
-        autoArchiveDuration: 60,
-    });
-    opennedMp.set(thread.id, userId);
-    await prisma.mpThreads.create({
-        data: {
-            threadId: thread.id,
-            user: {
-                connectOrCreate: {
-                    where: {
-                        userId,
-                    },
-                    create: {
-                        userId,
+    try {
+        const channel = (await client.channels.fetch(config.MP_CHANNEL)) as TextChannel;
+        if (!channel) {
+            logger.error('MP channel not found');
+            return '';
+        }
+
+        const user = await client.users.fetch(userId);
+        if (!user) {
+            logger.error(`User ${userId} not found`);
+            return '';
+        }
+
+        const message = await channel.send({
+            content: `Messages privés avec <@${user.id}>`,
+        });
+
+        const thread = await message.startThread({
+            name: `MP avec ${user.username}`,
+            autoArchiveDuration: 60,
+        });
+
+        opennedMp.set(thread.id, userId);
+        await prisma.mpThreads.create({
+            data: {
+                threadId: thread.id,
+                user: {
+                    connectOrCreate: {
+                        where: { userId },
+                        create: { userId },
                     },
                 },
             },
-        },
-    });
-    return thread.id;
+        });
+
+        return thread.id;
+    } catch (error) {
+        logger.error(`Error creating MP thread for user ${userId}:`, error);
+        return '';
+    }
 }
 
-export async function recieveMessage(userId: string, message: string, stickers: Sticker[], attachments: Attachment[]) {
-    let threadId = '';
-    for (const [key, value] of opennedMp.entries()) {
-        if (value === userId) {
-            threadId = key;
-            break;
-        }
-    }
+/**
+ * Finds or creates a thread for a user
+ */
+async function findOrCreateThreadForUser(userId: string): Promise<ThreadChannel | null> {
+    // Find existing thread
+    let threadId = findThreadIdForUser(userId);
+
+    // Create new thread if none exists
     if (!threadId) {
         threadId = await createMpThread(userId);
+        if (!threadId) return null;
     }
-    let thread: ThreadChannel;
+
+    // Fetch the thread
     try {
-        thread = (await client.channels.fetch(threadId)) as ThreadChannel;
-    } catch {
-        logger.error('Error while fetching the thread, recreating it');
-        await prisma.mpThreads.delete({
-            where: {
-                threadId,
-            },
-        });
+        return (await client.channels.fetch(threadId)) as ThreadChannel;
+    } catch (error) {
+        logger.error(`Error fetching thread ${threadId}, recreating it:`, error);
+
+        // Cleanup failed thread
+        await prisma.mpThreads.delete({ where: { threadId } });
+        opennedMp.delete(threadId);
+
+        // Create new thread
         threadId = await createMpThread(userId);
-        thread = (await client.channels.fetch(threadId)) as ThreadChannel;
+        if (!threadId) return null;
+
+        return (await client.channels.fetch(threadId)) as ThreadChannel;
     }
-    const validStickers = stickers.filter((sticker) => sticker.available);
+}
+
+/**
+ * Finds the thread ID for a user
+ */
+function findThreadIdForUser(userId: string): string {
+    for (const [threadId, id] of opennedMp.entries()) {
+        if (id === userId) {
+            return threadId;
+        }
+    }
+    return '';
+}
+
+/**
+ * Filters out stickers that aren't available
+ */
+function getValidStickers(stickers: Sticker[]): Sticker[] {
+    return stickers.filter((sticker) => sticker.available);
+}
+
+/**
+ * Handles receiving a message from a user
+ */
+export async function recieveMessage(
+    userId: string,
+    message: string,
+    stickers: Sticker[] = [],
+    attachments: Attachment[] = []
+) {
+    const thread = await findOrCreateThreadForUser(userId);
+    if (!thread) {
+        logger.error(`Failed to find or create thread for user ${userId}`);
+        return;
+    }
+
+    const validStickers = getValidStickers(stickers);
+
     await thread.send({
         content: `<@${config.OWNER_ID}> ${message}`,
         stickers: validStickers.map((sticker) => sticker.id),
         files: attachments.map((attachment) => attachment.url),
     });
+
     if (validStickers.length < stickers.length) {
         await thread.send({
             content: "Certains stickers n'ont pas pu être envoyés car ils ne sont pas disponibles.",
