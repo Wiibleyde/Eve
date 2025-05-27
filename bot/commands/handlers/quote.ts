@@ -1,7 +1,7 @@
 import { MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
 import type { ICommand } from '../command';
 import { generateQuoteImage, insertQuoteInDatabase } from '../../../utils/quoteMaker';
-import { prisma } from '../../../utils/database';
+import { prisma } from '../../../utils/core/database';
 import { successEmbedGenerator } from '../../utils/embeds';
 import { logger } from '../../..';
 

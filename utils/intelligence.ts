@@ -1,5 +1,5 @@
 import { Chat, GoogleGenAI, HarmBlockThreshold, HarmCategory } from '@google/genai';
-import { config } from './config';
+import { config } from './core/config';
 import { logger } from '..';
 import { client } from '../bot/bot';
 

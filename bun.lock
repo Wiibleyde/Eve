@@ -4,7 +4,7 @@
     "": {
       "name": "eve",
       "dependencies": {
-        "@google/genai": "^1.0.1",
+        "@google/genai": "^1.1.0",
         "@prisma/client": "^6.8.2",
         "axios": "^1.9.0",
         "blagues-api": "^2.1.1",
@@ -58,7 +58,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.3.1", "", { "dependencies": { "@eslint/core": "^0.14.0", "levn": "^0.4.1" } }, "sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w=="],
 
-    "@google/genai": ["@google/genai@1.0.1", "", { "dependencies": { "google-auth-library": "^9.14.2", "ws": "^8.18.0", "zod": "^3.22.4", "zod-to-json-schema": "^3.22.4" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.11.0" } }, "sha512-qf8sq9vpuKUeBKukAn43z2eC1I/Jw63b9wo6O+1x3EIroF3oDouJOtW1AzwvfO+9gzCPfLjuCUONhMKiBC8vkQ=="],
+    "@google/genai": ["@google/genai@1.1.0", "", { "dependencies": { "google-auth-library": "^9.14.2", "ws": "^8.18.0", "zod": "^3.22.4", "zod-to-json-schema": "^3.22.4" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.11.0" } }, "sha512-7JydliYhv6eGmfoy6YlOD8PRw6nd8fqjK+gMNATYV6UJ5hbSfP9j5EiGPmHhTi15SmlMnW5s/OiPPJIX4aJ3JA=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 

@@ -1,7 +1,7 @@
 import { logger } from '..';
 import { client } from '../bot/bot';
-import { config } from './config';
-import { prisma } from './database';
+import { config } from './core/config';
+import { prisma } from './core/database';
 import { Attachment, Sticker, TextChannel, ThreadChannel } from 'discord.js';
 
 const opennedMp = new Map<string, string>();

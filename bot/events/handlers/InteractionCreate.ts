@@ -10,9 +10,9 @@ import { logger } from '../../..';
 import { commandsMap } from '../../commands/command';
 import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
-import { isMaintenanceMode } from '../../../utils/maintenance';
+import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
-import { config } from '../../../utils/config';
+import { config } from '../../../utils/core/config';
 
 // Function to parse button ID with arguments
 function parseCustomId(customId: string): { baseId: string; args: string | null } {

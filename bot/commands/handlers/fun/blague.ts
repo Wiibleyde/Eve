@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ICommand } from '../../command';
 import BlaguesAPI from 'blagues-api';
-import { config } from '../../../../utils/config';
+import { config } from '../../../../utils/core/config';
 import type { Category } from 'blagues-api/dist/types/types';
 import { basicEmbedGenerator, errorEmbedGenerator, successEmbedGenerator } from '../../../utils/embeds';
 

@@ -7,7 +7,7 @@ import {
     type GuildBasedChannel,
 } from 'discord.js';
 import type { ICommand } from '../command';
-import { prisma } from '../../../utils/database';
+import { prisma } from '../../../utils/core/database';
 import { basicEmbedGenerator } from '../../utils/embeds';
 import { hasPermission } from '../../../utils/permission';
 

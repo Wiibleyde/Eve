@@ -8,7 +8,7 @@ import {
     TextChannel,
 } from 'discord.js';
 import type { ICommand } from '../../command';
-import { prisma } from '../../../../utils/database';
+import { prisma } from '../../../../utils/core/database';
 import {
     quizEmbedGenerator,
     quizErrorEmbedGenerator,

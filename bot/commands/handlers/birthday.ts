@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ICommand } from '../command';
 import { basicEmbedGenerator, errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
-import { prisma } from '../../../utils/database';
+import { prisma } from '../../../utils/core/database';
 import { client } from '../../bot';
 
 const months = {

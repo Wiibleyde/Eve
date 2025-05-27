@@ -1,9 +1,9 @@
 import { CronJob } from 'cron';
 import { logger } from '..';
-import { prisma } from '../utils/database';
+import { prisma } from '../utils/core/database';
 import { client } from '../bot/bot';
 import { birthdayEmbedGenerator } from '../bot/commands/handlers/birthday';
-import { isMaintenanceMode } from '../utils/maintenance';
+import { isMaintenanceMode } from '../utils/core/maintenance';
 
 export const birthdayCron = new CronJob(
     '0 0 * * *', // Runs every day at midnight

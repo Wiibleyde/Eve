@@ -8,7 +8,7 @@ import {
     type Interaction,
     type Snowflake,
 } from 'discord.js';
-import { config } from './config';
+import { config } from './core/config';
 
 /**
  * Type for supported interaction types in permission checking

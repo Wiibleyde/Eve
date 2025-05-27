@@ -1,8 +1,8 @@
-import { Logger } from './utils/logger';
+import { Logger } from './utils/core/logger';
 import { client, stopBot } from './bot/bot';
-import { config } from './utils/config';
+import { config } from './utils/core/config';
 import { loadEvents } from './bot/events/event';
-import { disconnectDatabase } from './utils/database';
+import { disconnectDatabase } from './utils/core/database';
 import { initAi } from './utils/intelligence';
 
 export const logger = Logger.init({

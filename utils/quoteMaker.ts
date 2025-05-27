@@ -1,5 +1,5 @@
 import { Jimp, JimpMime, loadFont, measureText, measureTextHeight, ResizeStrategy } from 'jimp';
-import { prisma } from './database';
+import { prisma } from './core/database';
 
 const background = 'assets/img/quote.png';
 const smoke = 'assets/img/smoke.png';

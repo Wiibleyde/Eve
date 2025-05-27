@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { config } from '../config';
+import { config } from '../core/config';
 import { logger } from '../..';
-import { prisma } from '../database';
+import { prisma } from '../core/database';
 import { handleInitStreams, handleStreamEnded, handleStreamStarted, handleStreamUpdated } from '../../bot/utils/stream';
 import { client } from '../../bot/bot';
 import type { GuildTextBasedChannel } from 'discord.js';

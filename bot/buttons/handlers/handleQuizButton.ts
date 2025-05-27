@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, type ButtonInteraction } from 'discord.js';
 import { quizErrorEmbedGenerator, quizes, quizMaxTime } from '../../../utils/games/quiz';
-import { prisma } from '../../../utils/database';
+import { prisma } from '../../../utils/core/database';
 
 export async function handleQuizButton(interaction: ButtonInteraction): Promise<void> {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });

@@ -3,9 +3,9 @@ import type { Event } from '../event';
 import { logger } from '../../..';
 import { client } from '../../bot';
 import { generateWithGoogle } from '../../../utils/intelligence';
-import { isMaintenanceMode } from '../../../utils/maintenance';
+import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
-import { config } from '../../../utils/config';
+import { config } from '../../../utils/core/config';
 import { handleMessageSend, isNewMessageInMpThread, recieveMessage } from '../../../utils/mpManager';
 
 export const messageCreateEvent: Event<Events.MessageCreate> = {

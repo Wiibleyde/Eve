@@ -1,7 +1,7 @@
 import { CronJob } from 'cron';
 import { ActivityType } from 'discord.js';
 import { client } from '../bot/bot';
-import { isMaintenanceMode } from '../utils/maintenance';
+import { isMaintenanceMode } from '../utils/core/maintenance';
 
 const possibleStatus: { name: string; type: ActivityType }[] = [
     { name: `les merveilles de ce monde.`, type: ActivityType.Watching },

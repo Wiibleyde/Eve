@@ -1,8 +1,8 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ICommand } from '../command';
 import { successEmbedGenerator, warningEmbedGenerator } from '../../utils/embeds';
-import { toggleMaintenanceMode } from '../../../utils/maintenance';
-import { config } from '../../../utils/config';
+import { toggleMaintenanceMode } from '../../../utils/core/maintenance';
+import { config } from '../../../utils/core/config';
 
 export const maintenance: ICommand = {
     data: new SlashCommandBuilder().setName('maintenance').setDescription('Mettre le bot en mode maintenance'),

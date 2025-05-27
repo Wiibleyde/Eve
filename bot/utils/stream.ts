@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, type GuildTextBasedChannel } from 'discord.js';
-import { prisma } from '../../utils/database';
+import { prisma } from '../../utils/core/database';
 import type { StreamData, TwitchUser } from '../../utils/stream/twitch';
 import { client } from '../bot';
 import { logger } from '../..';

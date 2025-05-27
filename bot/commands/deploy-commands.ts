@@ -1,7 +1,7 @@
 import { REST, Routes } from 'discord.js';
 import { commands } from './command';
 import { logger } from '../..';
-import { config } from '../../utils/config';
+import { config } from '../../utils/core/config';
 
 export async function deployCommands(): Promise<void> {
     try {

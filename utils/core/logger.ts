@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { WebhookClient, EmbedBuilder } from 'discord.js';
-import { client } from '../bot/bot';
+import { client } from '../../bot/bot';
 
 export interface LoggerOptions {
     logDir?: string;

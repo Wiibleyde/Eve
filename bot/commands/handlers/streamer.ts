@@ -8,7 +8,7 @@ import {
 import type { ICommand } from '../command';
 import { getUserIdByLogin, initSingleStreamUpdate, removeStreamFromCache } from '../../../utils/stream/twitch';
 import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
-import { prisma } from '../../../utils/database';
+import { prisma } from '../../../utils/core/database';
 import { logger } from '../../..';
 import { hasPermission } from '../../../utils/permission';
 
