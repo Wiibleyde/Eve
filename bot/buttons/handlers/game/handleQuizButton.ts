@@ -84,7 +84,9 @@ export async function handleQuizButton(interaction: ButtonInteraction): Promise<
     const userAnswer = quiz.shuffleAnswers[userAnswerIndex];
 
     const isCorrect = userAnswer === answer;
-    const responseContent = isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse.';
+    const responseContent = isCorrect
+        ? 'Bonne réponse !'
+        : `Mauvaise réponse. La bonne réponse était : \`${answer}\``;
     const fieldName = isCorrect ? 'Bonne(s) réponse(s)' : 'Mauvaise(s) réponse(s)';
     const usersList = isCorrect ? 'rightUsers' : 'wrongUsers';
 
