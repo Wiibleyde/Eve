@@ -15,6 +15,7 @@ import { quiz } from './handlers/fun/quiz';
 import { quote } from './handlers/quote';
 import { debug } from './handlers/debug';
 import { maintenance } from './handlers/maintenance';
+import { lsms } from './handlers/rp/lsms';
 
 // Type pour représenter une commande avec sa définition et son exécution
 export interface ICommand {
@@ -35,6 +36,7 @@ export const commands: ICommand[] = [
     quote,
     debug,
     maintenance,
+    lsms,
 ];
 
 // Map pour accéder aux commandes rapidement par leur nom

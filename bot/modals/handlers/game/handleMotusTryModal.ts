@@ -1,7 +1,7 @@
 import { MessageFlags, ModalSubmitInteraction, TextChannel } from 'discord.js';
-import { GameState, motusGames, TryReturn } from '../../../utils/games/motus';
-import { errorEmbedGenerator } from '../../utils/embeds';
-import { client } from '../../bot';
+import { GameState, motusGames, TryReturn } from '../../../../utils/games/motus';
+import { errorEmbedGenerator } from '../../../utils/embeds';
+import { client } from '../../../bot';
 
 export async function handleMotusTryModal(interaction: ModalSubmitInteraction): Promise<void> {
     // Early validation for required objects

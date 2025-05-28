@@ -82,7 +82,10 @@ export const streamer: ICommand = {
                     return;
                 }
 
-                if (!channel || channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildAnnouncement) {
+                if (
+                    !channel ||
+                    (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildAnnouncement)
+                ) {
                     await interaction.editReply({
                         embeds: [errorStreamerEmbedGenerator('Le salon doit être un salon textuel')],
                     });

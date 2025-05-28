@@ -7,8 +7,8 @@ import {
     TextInputStyle,
     type ModalActionRowComponentBuilder,
 } from 'discord.js';
-import { GameState, motusGames } from '../../../utils/games/motus';
-import { errorEmbedGenerator } from '../../utils/embeds';
+import { GameState, motusGames } from '../../../../utils/games/motus';
+import { errorEmbedGenerator } from '../../../utils/embeds';
 
 export async function handleMotusTry(interaction: ButtonInteraction): Promise<void> {
     const message = interaction.message;

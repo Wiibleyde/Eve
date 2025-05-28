@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, type ButtonInteraction } from 'discord.js';
-import { quizErrorEmbedGenerator, quizes, quizMaxTime } from '../../../utils/games/quiz';
-import { prisma } from '../../../utils/core/database';
+import { quizErrorEmbedGenerator, quizes, quizMaxTime } from '../../../../utils/games/quiz';
+import { prisma } from '../../../../utils/core/database';
 
 export async function handleQuizButton(interaction: ButtonInteraction): Promise<void> {
     await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
@@ -84,7 +84,9 @@ export async function handleQuizButton(interaction: ButtonInteraction): Promise<
     const userAnswer = quiz.shuffleAnswers[userAnswerIndex];
 
     const isCorrect = userAnswer === answer;
-    const responseContent = isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse.';
+    const responseContent = isCorrect
+        ? 'Bonne réponse !'
+        : `Mauvaise réponse. La bonne réponse était : \`${answer}\``;
     const fieldName = isCorrect ? 'Bonne(s) réponse(s)' : 'Mauvaise(s) réponse(s)';
     const usersList = isCorrect ? 'rightUsers' : 'wrongUsers';
 
@@ -136,18 +138,18 @@ export async function handleQuizButton(interaction: ButtonInteraction): Promise<
         ];
 
         const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
-        
+
         // Create a new embed object that keeps all original properties but updates fields
         const updatedEmbed = {
             ...message.embeds[0].toJSON(), // Preserve all original properties
-            fields: messageFields
+            fields: messageFields,
         };
-        
+
         // Execute the update in parallel with the response to the interaction
         await Promise.all([
-            message.edit({ 
-                embeds: [updatedEmbed], 
-                components: [actionRow]
+            message.edit({
+                embeds: [updatedEmbed],
+                components: [actionRow],
             }),
             interaction.editReply({ content: responseContent }),
         ]);
