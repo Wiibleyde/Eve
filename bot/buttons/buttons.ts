@@ -1,9 +1,9 @@
 import type { ButtonInteraction } from 'discord.js';
 import { jokeSetPublicButton } from './handlers/jokeSetPublic';
-import { handleMotusTry } from './handlers/handleMotusTry';
-import { handleQuizButton } from './handlers/handleQuizButton';
-import { handleLsmsDuty } from './handlers/handleLsmsDuty';
-import { handleLsmsOnCall } from './handlers/handleLsmsOnCall';
+import { handleMotusTry } from './handlers/game/handleMotusTry';
+import { handleQuizButton } from './handlers/game/handleQuizButton';
+import { handleLsmsDuty } from './handlers/rp/handleLsmsDuty';
+import { handleLsmsOnCall } from './handlers/rp/handleLsmsOnCall';
 
 export const buttons: Record<string, (interaction: ButtonInteraction) => Promise<void>> = {
     jokeSetPublicButton: jokeSetPublicButton,
