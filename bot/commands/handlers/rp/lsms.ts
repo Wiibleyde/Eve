@@ -19,7 +19,7 @@ export const lsms: ICommand = {
         .setDescription('Commandes utiles pour le LSMS')
         .addSubcommand((subcommand) =>
             subcommand
-                .setName('duty')
+                .setName('addduty')
                 .setDescription('Créer un gestionnaire de service')
                 .addRoleOption((option) =>
                     option.setName('duty').setDescription('Rôle à assigner pour le service').setRequired(true)
@@ -29,8 +29,19 @@ export const lsms: ICommand = {
                 )
                 .addChannelOption((option) =>
                     option
-                        .setName('channel')
+                        .setName('logchannel')
                         .setDescription('Salon où seront envoyés les logs des services')
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('removeduty')
+                .setDescription('Supprimer un gestionnaire de service')
+                .addStringOption((option) =>
+                    option
+                        .setName('messageid')
+                        .setDescription("ID du message du gestionnaire de service à supprimer")
                         .setRequired(true)
                 )
         )
@@ -49,7 +60,7 @@ export const lsms: ICommand = {
 
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
-            case 'duty': {
+            case 'addduty': {
                 const dutyRole = interaction.options.get('duty', true).role as Role;
                 const onCallRole = interaction.options.get('oncall', true).role as Role;
                 const logsChannel = interaction.options.get('channel', true).channel as GuildBasedChannel;
@@ -133,6 +144,66 @@ export const lsms: ICommand = {
                     },
                 });
 
+                break;
+            }
+            case 'removeduty': {
+                const messageId = interaction.options.get('messageid', true).value as string;
+                if (!interaction.guild) {
+                    await interaction.editReply({
+                        embeds: [
+                            lsmsEmbedGenerator().setDescription(
+                                'Cette commande ne peut être utilisée que dans un serveur.'
+                            ),
+                        ],
+                    });
+                    return;
+                }
+
+                // Recherche du duty manager dans la base de données
+                const dutyManager = await prisma.lsmsDutyManager.findFirst({
+                    where: {
+                        guildId: interaction.guild.id,
+                        messageId: messageId,
+                    },
+                });
+
+                if (!dutyManager) {
+                    await interaction.editReply({
+                        embeds: [
+                            lsmsEmbedGenerator().setDescription(
+                                "Aucun gestionnaire de service trouvé avec cet ID de message."
+                            ),
+                        ],
+                    });
+                    return;
+                }
+
+                // Suppression du message si possible
+                try {
+                    const channel = await interaction.guild.channels.fetch(dutyManager.channelId);
+                    if (channel?.isTextBased()) {
+                        const msg = await channel.messages.fetch(messageId);
+                        if (msg) await msg.delete();
+                    }
+                } catch {
+                    // Ignore si le message n'existe plus ou n'est pas accessible
+                }
+
+                // Suppression de la base de données
+                await prisma.lsmsDutyManager.deleteMany({
+                    where: {
+                        guildId: interaction.guild.id,
+                        messageId: messageId,
+                    },
+                });
+
+                await interaction.editReply({
+                    embeds: [
+                        lsmsEmbedGenerator().setDescription(
+                            "Le gestionnaire de service a été supprimé."
+                        ),
+                    ],
+                });
                 break;
             }
             default:
