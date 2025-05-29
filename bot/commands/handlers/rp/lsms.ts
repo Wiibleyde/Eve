@@ -41,7 +41,7 @@ export const lsms: ICommand = {
                 .addStringOption((option) =>
                     option
                         .setName('messageid')
-                        .setDescription("ID du message du gestionnaire de service à supprimer")
+                        .setDescription('ID du message du gestionnaire de service à supprimer')
                         .setRequired(true)
                 )
         )
@@ -171,7 +171,7 @@ export const lsms: ICommand = {
                     await interaction.editReply({
                         embeds: [
                             lsmsEmbedGenerator().setDescription(
-                                "Aucun gestionnaire de service trouvé avec cet ID de message."
+                                'Aucun gestionnaire de service trouvé avec cet ID de message.'
                             ),
                         ],
                     });
@@ -198,11 +198,7 @@ export const lsms: ICommand = {
                 });
 
                 await interaction.editReply({
-                    embeds: [
-                        lsmsEmbedGenerator().setDescription(
-                            "Le gestionnaire de service a été supprimé."
-                        ),
-                    ],
+                    embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de service a été supprimé.')],
                 });
                 break;
             }
