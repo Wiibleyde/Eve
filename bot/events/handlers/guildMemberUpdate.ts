@@ -113,21 +113,13 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
 
             // Log pour chaque dutyData concerné
             for (const d of dutyDatas) {
-                const logChannel = d.logsChannelId
-                    ? guild.channels.cache.get(d.logsChannelId)
-                    : null;
+                const logChannel = d.logsChannelId ? guild.channels.cache.get(d.logsChannelId) : null;
                 if (logChannel && logChannel.isTextBased()) {
-                    const isDutyRoleAdded =
-                        d.dutyRoleId &&
-                        roleChanges.some((role) => role.id === d.dutyRoleId);
-                    const isOnCallRoleAdded =
-                        d.onCallRoleId &&
-                        roleChanges.some((role) => role.id === d.onCallRoleId);
+                    const isDutyRoleAdded = d.dutyRoleId && roleChanges.some((role) => role.id === d.dutyRoleId);
+                    const isOnCallRoleAdded = d.onCallRoleId && roleChanges.some((role) => role.id === d.onCallRoleId);
 
                     const embed =
-                        d.dutyRoleId &&
-                        (isDutyRoleAdded ||
-                            roleRemovals.some((role) => role.id === d.dutyRoleId))
+                        d.dutyRoleId && (isDutyRoleAdded || roleRemovals.some((role) => role.id === d.dutyRoleId))
                             ? lsmsDutyUpdateEmbedGenerator(newMember.user, !!isDutyRoleAdded)
                             : lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
                     await logChannel.send({ embeds: [embed] });

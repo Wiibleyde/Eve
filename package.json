@@ -1,6 +1,19 @@
 {
     "name": "eve",
     "module": "index.ts",
+    "author": {
+        "name": "Wiibleyde",
+        "email": "nathan@bonnell.fr"
+    },
+    "version": "3.0.2",
+    "description": "Eve is a Discord bot that provides various features such as image processing, AI interactions, and more.",
+    "license": "GPL-2.0-only",
+    "maintainers": [
+        {
+            "name": "Wiibleyde",
+            "email": "nathan@bonnell.fr"
+        }
+    ],
     "scripts": {
         "format": "prettier --write \"**/*.{json,ts}\"",
         "lint": "eslint .",
@@ -16,7 +29,7 @@
         "eslint": "^9.27.0",
         "globals": "^16.2.0",
         "prettier": "3.5.3",
-        "typescript-eslint": "^8.32.1"
+        "typescript-eslint": "^8.33.0"
     },
     "peerDependencies": {
         "typescript": "^5.8.3"
