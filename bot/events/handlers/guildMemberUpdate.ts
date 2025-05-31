@@ -6,6 +6,8 @@ import {
     lsmsDutyEmbedGenerator,
     lsmsDutyUpdateEmbedGenerator,
     lsmsOnCallUpdateEmbedGenerator,
+    onCallUser,
+    onDutyUser,
 } from '../../../utils/rp/lsms';
 import { logger } from '../../..';
 
@@ -80,6 +82,27 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
 
             const embed = dutyMessage.embeds[0];
             if (!embed) continue;
+
+            // Ici, on sait qu'un rôle duty ou onCall a été modifié pour ce message
+            if (
+                dutyDatas.some(
+                    (d) =>
+                        d.dutyRoleId &&
+                        (roleChanges.some((role) => role.id === d.dutyRoleId) ||
+                            roleRemovals.some((role) => role.id === d.dutyRoleId))
+                )
+            ) {
+                onDutyUser(dutyData.guildId, newMember.user.id);
+            } else if (
+                dutyDatas.some(
+                    (d) =>
+                        d.onCallRoleId &&
+                        (roleChanges.some((role) => role.id === d.onCallRoleId) ||
+                            roleRemovals.some((role) => role.id === d.onCallRoleId))
+                )
+            ) {
+                onCallUser(dutyData.guildId, newMember.user.id);
+            }
 
             // Utilise le cache local des membres si possible
             let allMembers = guild.members.cache;
