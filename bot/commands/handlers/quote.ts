@@ -3,7 +3,6 @@ import type { ICommand } from '../command';
 import { generateQuoteImage, insertQuoteInDatabase } from '../../../utils/quoteMaker';
 import { prisma } from '../../../utils/core/database';
 import { successEmbedGenerator } from '../../utils/embeds';
-import { logger } from '../../..';
 
 export const quote: ICommand = {
     data: new SlashCommandBuilder()
@@ -24,14 +23,6 @@ export const quote: ICommand = {
         const context = interaction.options.get('contexte')?.value as string;
         const date = new Date().toLocaleDateString('fr-FR');
         const userProfilePicture = author.displayAvatarURL({ size: 512, extension: 'png', forceStatic: true });
-
-        logger.debug('quote:', {
-            quote,
-            author: author.displayName,
-            context,
-            date,
-            userProfilePicture,
-        });
 
         let channelWhereToPost = null;
         if (interaction.guildId != null) {

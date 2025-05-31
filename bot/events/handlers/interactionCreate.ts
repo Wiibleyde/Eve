@@ -2,8 +2,10 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     Events,
+    MessageContextMenuCommandInteraction,
     MessageFlags,
     ModalSubmitInteraction,
+    UserContextMenuCommandInteraction,
 } from 'discord.js';
 import type { Event } from '../event';
 import { logger } from '../../..';
@@ -13,6 +15,8 @@ import { modals } from '../../modals/modals';
 import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
 import { config } from '../../../utils/core/config';
+import { messageContextMenuCommandsMap } from '../../contextMenu/message/contextMenuMessage';
+import { userContextMenuCommandsMap } from '../../contextMenu/user/contextMenuUser';
 
 // Function to parse button ID with arguments
 function parseCustomId(customId: string): { baseId: string; args: string | null } {
@@ -25,7 +29,12 @@ function parseCustomId(customId: string): { baseId: string; args: string | null 
 
 // Helper function to handle interactions with error handling and logging
 async function handleInteraction(
-    interaction: ChatInputCommandInteraction | ButtonInteraction | ModalSubmitInteraction,
+    interaction:
+        | ChatInputCommandInteraction
+        | ButtonInteraction
+        | ModalSubmitInteraction
+        | MessageContextMenuCommandInteraction
+        | UserContextMenuCommandInteraction,
     handlerFn: (() => Promise<void>) | undefined,
     interactionType: string,
     interactionId: string
@@ -153,6 +162,24 @@ export const interactionCreateEvent: Event<Events.InteractionCreate> = {
                 'modal',
                 interaction.customId
             );
+        } else if (interaction.isContextMenuCommand()) {
+            if (interaction.isMessageContextMenuCommand()) {
+                const command = messageContextMenuCommandsMap.get(interaction.commandName);
+                await handleInteraction(
+                    interaction,
+                    command ? () => command.execute(interaction) : undefined,
+                    'commande de menu contextuel',
+                    interaction.commandName
+                );
+            } else if (interaction.isUserContextMenuCommand()) {
+                const command = userContextMenuCommandsMap.get(interaction.commandName);
+                await handleInteraction(
+                    interaction,
+                    command ? () => command.execute(interaction) : undefined,
+                    'commande de menu contextuel utilisateur',
+                    interaction.commandName
+                );
+            }
         } else {
             logger.warn(`Interaction not handled: ${interaction.type}`);
             if (interaction.isRepliable()) {
