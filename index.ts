@@ -1,5 +1,5 @@
 import { Logger } from './utils/core/logger';
-import { client, stopBot } from './bot/bot';
+import { client, endingScripts, stopBot } from './bot/bot';
 import { config } from './utils/core/config';
 import { loadEvents } from './bot/events/event';
 import { disconnectDatabase } from './utils/core/database';
@@ -30,12 +30,14 @@ async function main() {
 // Graceful shutdown
 process.on('SIGINT', async () => {
     logger.info('SIGINT reçu, arrêt du bot Discord...');
+    await endingScripts();
     await stopBot();
     await disconnectDatabase();
     process.exit(0);
 });
 process.on('SIGTERM', async () => {
     logger.info('SIGTERM reçu, arrêt du bot Discord...');
+    await endingScripts();
     await stopBot();
     await disconnectDatabase();
     process.exit(0);

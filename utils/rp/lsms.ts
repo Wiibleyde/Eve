@@ -1,5 +1,40 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, type EmbedBuilder, type User } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, TextChannel, type EmbedBuilder, type User } from 'discord.js';
 import { basicEmbedGenerator } from '../../bot/utils/embeds';
+import { prisma } from '../core/database';
+import { client } from '../../bot/bot';
+import { logger } from '../..';
+
+// Interface used to save LSMS duty data and send a summary at the reboot
+interface LsmsDutySaveData {
+    usersOnDuty: string[];
+    usersOnCall: string[];
+}
+
+const lsmsDutySaveData: Map<string, LsmsDutySaveData> = new Map(); // Map to store duty data by guild ID
+
+export function onDutyUser(guildId: string, userId: string) {
+    if (!lsmsDutySaveData.has(guildId)) {
+        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [] });
+    }
+    const dutyData = lsmsDutySaveData.get(guildId)!;
+    if (!dutyData.usersOnDuty.includes(userId)) {
+        dutyData.usersOnDuty.push(userId);
+    }
+}
+
+export function onCallUser(guildId: string, userId: string) {
+    if (!lsmsDutySaveData.has(guildId)) {
+        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [] });
+    }
+    const dutyData = lsmsDutySaveData.get(guildId)!;
+    if (!dutyData.usersOnCall.includes(userId)) {
+        dutyData.usersOnCall.push(userId);
+    }
+}
+
+export function getLsmsSummary(guildId: string): LsmsDutySaveData | undefined {
+    return lsmsDutySaveData.get(guildId);
+}
 
 export function lsmsEmbedGenerator() {
     return basicEmbedGenerator().setAuthor({
@@ -87,4 +122,35 @@ export function lsmsDutyEmbedGenerator(
         embed,
         actionRow,
     };
+}
+
+export async function prepareLsmsSummary() {
+    const uptime = process.uptime();
+    await prisma.lsmsDutyManager.findMany().then((dutyManagers) => {
+        dutyManagers.forEach(async (dutyManager) => {
+            const lastRebootDutyData = getLsmsSummary(dutyManager.guildId);
+            if (lastRebootDutyData) {
+                const dutyFieldFormatted = lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', ');
+                const onCallFieldFormatted = lastRebootDutyData.usersOnCall.map((user) => `<@${user}>`).join(', ');
+                const dutyEmbed = lsmsEmbedGenerator()
+                    .setTitle(`**Récapitulatif du service**`)
+                    .setDescription(
+                        `Période du <t:${(new Date(Date.now() - uptime * 1000).getTime() / 1000) | 0}:f> au <t:${(Date.now() / 1000) | 0}:f>`
+                    )
+                    .addFields(
+                        { name: 'Service', value: dutyFieldFormatted || 'Aucun :(' },
+                        { name: 'Astreinte', value: onCallFieldFormatted || 'Aucun :(' }
+                    );
+
+                if (dutyManager.logsChannelId) {
+                    const channel = (await client.channels.fetch(dutyManager.logsChannelId)) as TextChannel;
+                    if (channel && channel.isTextBased()) {
+                        await channel.send({ embeds: [dutyEmbed] });
+                    } else {
+                        logger.error(`Le channel de logs LSMS n'est pas valide dans le serveur ${dutyManager.guildId}`);
+                    }
+                }
+            }
+        });
+    });
 }
