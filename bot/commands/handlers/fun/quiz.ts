@@ -18,6 +18,7 @@ import {
     type QuizType,
 } from '../../../../utils/games/quiz';
 import { logger } from '../../../..';
+import { client } from '../../../bot';
 
 export const quiz: ICommand = {
     data: new SlashCommandBuilder()
@@ -62,6 +63,31 @@ export const quiz: ICommand = {
                             {
                                 name: 'Difficile',
                                 value: 'difficile',
+                            }
+                        )
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('leaderboard')
+                .setDescription('Affiche le classement des meilleurs joueurs de quiz')
+                .addStringOption((option) =>
+                    option
+                        .setName('choice')
+                        .setDescription('Choisissez le type de classement')
+                        .addChoices(
+                            {
+                                name: 'Meilleurs scores',
+                                value: 'best_scores',
+                            },
+                            {
+                                name: 'Meilleurs ratios',
+                                value: 'best_ratios',
+                            },
+                            {
+                                name: 'Pires scores',
+                                value: 'worst_scores',
                             }
                         )
                         .setRequired(true)
@@ -241,7 +267,70 @@ export const quiz: ICommand = {
                 }
 
                 await interaction.editReply({ embeds: [quizSuccessEmbedGenerator('Question ajoutée avec succès !')] });
+                break;
+            }
+            case 'leaderboard': {
+                const choice = interaction.options.get('choice')?.value as string;
+                let users = await prisma.globalUserData.findMany({
+                    select: {
+                        userId: true,
+                        quizGoodAnswers: true,
+                        quizBadAnswers: true,
+                    },
+                });
+
+                users = users.filter((user) => user.quizGoodAnswers + user.quizBadAnswers > 0);
+                users = users.filter((user) => user.userId !== client.user?.id);
+
+                let stringChoice = '';
+
+                switch (choice) {
+                    case 'best_ratios':
+                        stringChoice = 'Meilleurs ratios';
+                        users.sort((a, b) => {
+                            const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers) || 0;
+                            const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers) || 0;
+                            return ratioB - ratioA;
+                        });
+                        break;
+                    case 'best_scores':
+                        stringChoice = 'Meilleurs scores';
+                        users.sort((a, b) => {
+                            return b.quizGoodAnswers - a.quizGoodAnswers;
+                        });
+                        break;
+                    case 'worst_scores':
+                        stringChoice = 'Pires scores';
+                        users.sort((a, b) => {
+                            return b.quizBadAnswers - a.quizBadAnswers;
+                        });
+                        break;
+                }
+                users = users.slice(0, 10);
+
+                const leaderboardEmbed = quizEmbedGenerator()
+                    .setTitle('Classement des joueurs de quiz')
+                    .setDescription(`Voici le classement des joueurs de quiz pour ${stringChoice} :`)
+                    .setColor(0x4b0082);
+                users.forEach(async (user, index) => {
+                    const userId = user.userId;
+                    const userTag = await client.users.fetch(userId).then((user) => user.tag).catch(() => 'Utilisateur inconnu');
+                    if (!userTag) {
+                        return;
+                    }
+                    const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
+                    leaderboardEmbed.addFields({
+                        name: `${index + 1}. ${userTag}`,
+                        value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${ratio.toFixed(2)}`,
+                        inline: false,
+                    });
+                });
+
+                await interaction.editReply({
+                    embeds: [leaderboardEmbed],
+                });
+                break;
             }
         }
     },
-};
+}
