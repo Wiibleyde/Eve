@@ -317,9 +317,6 @@ export const quiz: ICommand = {
                 await Promise.all(users.map(async (user, index) => {
                     const userId = user.userId;
                     const userTag = await client.users.fetch(userId).then((user) => user.tag).catch(() => 'Utilisateur inconnu');
-                    if (!userTag) {
-                        return;
-                    }
                     const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
                     leaderboardEmbed.addFields({
                         name: `${index + 1}. ${userTag}`,
