@@ -150,6 +150,8 @@ export async function prepareLsmsSummary() {
                         logger.error(`Le channel de logs LSMS n'est pas valide dans le serveur ${dutyManager.guildId}`);
                     }
                 }
+            } else {
+                logger.warn(`Aucune donnée de service trouvée pour le serveur ${dutyManager.guildId}`);
             }
         });
     });
