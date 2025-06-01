@@ -312,27 +312,21 @@ export const quiz: ICommand = {
                     .setTitle('Classement des joueurs de quiz')
                     .setDescription(`Voici le classement des joueurs de quiz pour ${stringChoice} :`)
                     .setColor(0x4b0082);
-                const leaderboardFields = await Promise.all(
-                    users.map(async (user, index) => {
-                        const userId = user.userId;
-                        const userTag = await client.users.fetch(userId).then((user) => user.tag).catch(() => 'Utilisateur inconnu');
-                        if (!userTag) {
-                            return null;
-                        }
-                        const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
-                        return {
-                            name: `${index + 1}. ${userTag}`,
-                            value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${ratio.toFixed(2)}`,
-                            inline: false,
-                        };
-                    })
-                );
 
-                leaderboardFields.forEach((field) => {
-                    if (field) {
-                        leaderboardEmbed.addFields(field);
+                // Fetch user tags and add fields before sending the embed
+                await Promise.all(users.map(async (user, index) => {
+                    const userId = user.userId;
+                    const userTag = await client.users.fetch(userId).then((user) => user.tag).catch(() => 'Utilisateur inconnu');
+                    if (!userTag) {
+                        return;
                     }
-                });
+                    const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
+                    leaderboardEmbed.addFields({
+                        name: `${index + 1}. ${userTag}`,
+                        value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${ratio.toFixed(2)}`,
+                        inline: false,
+                    });
+                }));
 
                 await interaction.editReply({
                     embeds: [leaderboardEmbed],
