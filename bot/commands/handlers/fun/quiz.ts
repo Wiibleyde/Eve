@@ -86,7 +86,7 @@ export const quiz: ICommand = {
                                 value: 'best_ratios',
                             },
                             {
-                                name: 'Pires scores',
+                                name: 'Scores les plus bas',
                                 value: 'worst_scores',
                             }
                         )
