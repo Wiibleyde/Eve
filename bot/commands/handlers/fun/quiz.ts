@@ -287,9 +287,11 @@ export const quiz: ICommand = {
                 switch (choice) {
                     case 'best_ratios':
                         stringChoice = 'Meilleurs ratios';
+                        // Garde uniquement les utilisateurs ayant au moins 10 réponses
+                        users = users.filter((user) => (user.quizGoodAnswers + user.quizBadAnswers) >= 10);
                         users.sort((a, b) => {
-                            const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers) || 0;
-                            const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers) || 0;
+                            const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers);
+                            const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers);
                             return ratioB - ratioA;
                         });
                         break;
@@ -320,7 +322,7 @@ export const quiz: ICommand = {
                     const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
                     leaderboardEmbed.addFields({
                         name: `${index + 1}. ${userTag}`,
-                        value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${ratio.toFixed(2)}`,
+                        value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${(ratio * 100).toFixed(1)}%`,
                         inline: false,
                     });
                 }));
