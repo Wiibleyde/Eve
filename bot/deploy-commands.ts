@@ -1,9 +1,9 @@
 import { REST, Routes } from 'discord.js';
-import { commands } from './command';
-import { logger } from '../..';
-import { config } from '../../utils/core/config';
-import { messageContextMenuCommands } from '../contextMenu/message/contextMenuMessage';
-import { userContextMenuCommands } from '../contextMenu/user/contextMenuUser';
+import { commands } from './commands/command';
+import { logger } from '..';
+import { config } from '../utils/core/config';
+import { messageContextMenuCommands } from './contextMenu/message/contextMenuMessage';
+import { userContextMenuCommands } from './contextMenu/user/contextMenuUser';
 
 export async function deployCommands(): Promise<void> {
     try {
