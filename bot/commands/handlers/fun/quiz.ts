@@ -287,8 +287,8 @@ export const quiz: ICommand = {
                 switch (choice) {
                     case 'best_ratios':
                         stringChoice = 'Meilleurs ratios';
-                        // Garde uniquement les utilisateurs ayant au moins 10 réponses
-                        users = users.filter((user) => (user.quizGoodAnswers + user.quizBadAnswers) >= 10);
+                        // Garde tous les utilisateurs ayant au moins une réponse
+                        users = users.filter((user) => (user.quizGoodAnswers + user.quizBadAnswers) > 0);
                         users.sort((a, b) => {
                             const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers);
                             const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers);
@@ -303,8 +303,9 @@ export const quiz: ICommand = {
                         break;
                     case 'worst_scores':
                         stringChoice = 'Pires scores';
+                        // Trie par le moins de bonnes réponses (et non le plus de mauvaises)
                         users.sort((a, b) => {
-                            return b.quizBadAnswers - a.quizBadAnswers;
+                            return a.quizGoodAnswers - b.quizGoodAnswers;
                         });
                         break;
                 }
@@ -317,7 +318,9 @@ export const quiz: ICommand = {
 
                 await Promise.all(users.map(async (user, index) => {
                     const userId = user.userId;
-                    const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
+                    const ratio = user.quizGoodAnswers + user.quizBadAnswers > 0
+                        ? user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers)
+                        : 0;
                     leaderboardEmbed.addFields({
                         name: `${index + 1}. Ratio : ${(ratio * 100).toFixed(1)}%`,
                         value: `<@${userId}> - Bonnes réponses : ${user.quizGoodAnswers}, Mauvaises réponses : ${user.quizBadAnswers}`,
