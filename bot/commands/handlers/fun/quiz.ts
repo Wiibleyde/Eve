@@ -315,14 +315,12 @@ export const quiz: ICommand = {
                     .setDescription(`Voici le classement des joueurs de quiz pour ${stringChoice} :`)
                     .setColor(0x4b0082);
 
-                // Fetch user tags and add fields before sending the embed
                 await Promise.all(users.map(async (user, index) => {
                     const userId = user.userId;
-                    const userTag = await client.users.fetch(userId).then((user) => user.tag).catch(() => 'Utilisateur inconnu');
                     const ratio = user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers) || 0;
                     leaderboardEmbed.addFields({
-                        name: `${index + 1}. ${userTag}`,
-                        value: `Score : ${user.quizGoodAnswers} | Mauvais : ${user.quizBadAnswers} | Ratio : ${(ratio * 100).toFixed(1)}%`,
+                        name: `${index + 1}. Ratio : ${(ratio * 100).toFixed(1)}%`,
+                        value: `<@${userId}> - Bonnes réponses : ${user.quizGoodAnswers}, Mauvaises réponses : ${user.quizBadAnswers}`,
                         inline: false,
                     });
                 }));
