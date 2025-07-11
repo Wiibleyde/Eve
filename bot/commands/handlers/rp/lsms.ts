@@ -63,7 +63,7 @@ export const lsms: ICommand = {
             case 'addduty': {
                 const dutyRole = interaction.options.get('duty', true).role as Role;
                 const onCallRole = interaction.options.get('oncall', true).role as Role;
-                const logsChannel = interaction.options.get('channel', true).channel as GuildBasedChannel;
+                const logsChannel = interaction.options.get('logchannel', true).channel as GuildBasedChannel;
                 const interactionChannel = interaction.channel;
                 if (!interactionChannel) {
                     await interaction.editReply({
