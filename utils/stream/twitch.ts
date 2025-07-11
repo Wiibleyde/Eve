@@ -239,7 +239,7 @@ class TwitchAPIManager {
             // Check if we have streamers to monitor before making API calls
             const streamers = await this.getStreamers();
             if (streamers.length === 0) {
-                logger.info('No streamers to monitor in database, skipping update check');
+                logger.debug('No streamers to monitor in database, skipping update check');
                 return;
             }
 

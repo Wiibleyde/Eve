@@ -288,7 +288,7 @@ export const quiz: ICommand = {
                     case 'best_ratios':
                         stringChoice = 'Meilleurs ratios';
                         // Garde tous les utilisateurs ayant au moins une réponse
-                        users = users.filter((user) => (user.quizGoodAnswers + user.quizBadAnswers) > 0);
+                        users = users.filter((user) => user.quizGoodAnswers + user.quizBadAnswers > 0);
                         users.sort((a, b) => {
                             const ratioA = a.quizGoodAnswers / (a.quizGoodAnswers + a.quizBadAnswers);
                             const ratioB = b.quizGoodAnswers / (b.quizGoodAnswers + b.quizBadAnswers);
@@ -316,17 +316,20 @@ export const quiz: ICommand = {
                     .setDescription(`Voici le classement des joueurs de quiz pour ${stringChoice} :`)
                     .setColor(0x4b0082);
 
-                await Promise.all(users.map(async (user, index) => {
-                    const userId = user.userId;
-                    const ratio = user.quizGoodAnswers + user.quizBadAnswers > 0
-                        ? user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers)
-                        : 0;
-                    leaderboardEmbed.addFields({
-                        name: `${index + 1}. Ratio : ${(ratio * 100).toFixed(1)}%`,
-                        value: `<@${userId}> - Bonnes réponses : ${user.quizGoodAnswers}, Mauvaises réponses : ${user.quizBadAnswers}`,
-                        inline: false,
-                    });
-                }));
+                await Promise.all(
+                    users.map(async (user, index) => {
+                        const userId = user.userId;
+                        const ratio =
+                            user.quizGoodAnswers + user.quizBadAnswers > 0
+                                ? user.quizGoodAnswers / (user.quizGoodAnswers + user.quizBadAnswers)
+                                : 0;
+                        leaderboardEmbed.addFields({
+                            name: `${index + 1}. Ratio : ${(ratio * 100).toFixed(1)}%`,
+                            value: `<@${userId}> - Bonnes réponses : ${user.quizGoodAnswers}, Mauvaises réponses : ${user.quizBadAnswers}`,
+                            inline: false,
+                        });
+                    })
+                );
 
                 await interaction.editReply({
                     embeds: [leaderboardEmbed],
@@ -335,4 +338,4 @@ export const quiz: ICommand = {
             }
         }
     },
-}
+};
