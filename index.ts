@@ -43,4 +43,13 @@ process.on('SIGTERM', async () => {
     process.exit(0);
 });
 
+process.on('uncaughtException', (error) => {
+    logger.error(`Exception non gérée: ${error}`);
+});
+
+process.on('unhandledRejection', (reason) => {
+    logger.error(`Rejet de promesse non géré: ${reason}`);
+});
+
+
 main();

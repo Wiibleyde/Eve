@@ -125,11 +125,15 @@ export function lsmsDutyEmbedGenerator(
 }
 
 export async function prepareLsmsSummary() {
+    logger.info('Préparation du résumé LSMS...');
     const uptime = process.uptime();
     await prisma.lsmsDutyManager.findMany().then((dutyManagers) => {
+        logger.info(`Found ${dutyManagers.length} LSMS duty managers.`);
         dutyManagers.forEach(async (dutyManager) => {
+            logger.info(`Processing duty manager for guild ${dutyManager.guildId}`);
             const lastRebootDutyData = getLsmsSummary(dutyManager.guildId);
             if (lastRebootDutyData) {
+                logger.info(lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', '), lastRebootDutyData.usersOnCall.map((user) => `<@${user}>`).join(', '));
                 const dutyFieldFormatted = lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', ');
                 const onCallFieldFormatted = lastRebootDutyData.usersOnCall.map((user) => `<@${user}>`).join(', ');
                 const dutyEmbed = lsmsEmbedGenerator()
