@@ -105,7 +105,11 @@ export function lsmsDutyEmbedGenerator(
                 value: callList,
                 inline: true,
             }
-        );
+        )
+        .setFooter({
+            iconURL: lsmsEmbedGenerator().data.footer?.icon_url || '',
+            text: '⚠️ Cela peut prendre 5 secondes pour que les changements soient pris en compte.',
+        });
     const buttons = [
         new ButtonBuilder()
             .setCustomId('handleLsmsDuty')
