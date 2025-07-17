@@ -128,14 +128,19 @@ export function lsmsDutyEmbedGenerator(
     };
 }
 
-export async function prepareLsmsSummary() {
-    logger.info('Préparation du résumé LSMS...');
-    const uptime = process.uptime();
-    await prisma.lsmsDutyManager.findMany().then((dutyManagers) => {
+export async function prepareLsmsSummary(): Promise<void> {
+    try {
+        logger.info('Préparation du résumé LSMS...');
+        const uptime = process.uptime();
+
+        const dutyManagers = await prisma.lsmsDutyManager.findMany();
         logger.info(`Found ${dutyManagers.length} LSMS duty managers.`);
-        dutyManagers.forEach(async (dutyManager) => {
+
+        // Utiliser Promise.all pour attendre toutes les opérations asynchrones
+        await Promise.all(dutyManagers.map(async (dutyManager) => {
             logger.info(`Processing duty manager for guild ${dutyManager.guildId}`);
             const lastRebootDutyData = getLsmsSummary(dutyManager.guildId);
+
             if (lastRebootDutyData) {
                 logger.info(lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', '), lastRebootDutyData.usersOnCall.map((user) => `<@${user}>`).join(', '));
                 const dutyFieldFormatted = lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', ');
@@ -150,17 +155,31 @@ export async function prepareLsmsSummary() {
                         { name: 'Astreinte', value: onCallFieldFormatted || 'Aucun :(' }
                     );
 
+                logger.info(`Sending duty summary embed to logs channel for guild ${dutyManager.guildId}`);
+
                 if (dutyManager.logsChannelId) {
-                    const channel = (await client.channels.fetch(dutyManager.logsChannelId)) as TextChannel;
-                    if (channel && channel.isTextBased()) {
-                        await channel.send({ embeds: [dutyEmbed] });
-                    } else {
-                        logger.error(`Le channel de logs LSMS n'est pas valide dans le serveur ${dutyManager.guildId}`);
+                    logger.info(`Logs channel ID: ${dutyManager.logsChannelId}`);
+                    try {
+                        const channel = (await client.channels.fetch(dutyManager.logsChannelId)) as TextChannel;
+                        if (channel && channel.isTextBased()) {
+                            logger.info(`Sending embed to channel ${channel.name} (${channel.id})`);
+                            await channel.send({ embeds: [dutyEmbed] });
+                            logger.info(`Embed sent successfully to channel ${channel.name} (${channel.id})`);
+                        } else {
+                            logger.error(`Le channel de logs LSMS n'est pas valide dans le serveur ${dutyManager.guildId}`);
+                        }
+                    } catch (channelError) {
+                        logger.error(`Erreur lors de l'envoi du résumé LSMS au channel ${dutyManager.logsChannelId}: ${channelError}`);
                     }
                 }
             } else {
                 logger.warn(`Aucune donnée de service trouvée pour le serveur ${dutyManager.guildId}`);
             }
-        });
-    });
+        }));
+
+        logger.info('Résumé LSMS préparé avec succès.');
+    } catch (error) {
+        logger.error(`Erreur lors de la préparation du résumé LSMS: ${error}`);
+        throw error;
+    }
 }
