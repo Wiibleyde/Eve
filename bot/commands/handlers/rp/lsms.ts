@@ -61,9 +61,9 @@ export const lsms: ICommand = {
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
             case 'addduty': {
-                const dutyRole = interaction.options.get('duty', true).role as Role;
-                const onCallRole = interaction.options.get('oncall', true).role as Role;
-                const logsChannel = interaction.options.get('logchannel', true).channel as GuildBasedChannel;
+                const dutyRole = (interaction as ChatInputCommandInteraction).options.get('duty', true).role as Role;
+                const onCallRole = (interaction as ChatInputCommandInteraction).options.get('oncall', true).role as Role;
+                const logsChannel = (interaction as ChatInputCommandInteraction).options.get('logchannel', true).channel as GuildBasedChannel;
                 const interactionChannel = interaction.channel;
                 if (!interactionChannel) {
                     await interaction.editReply({
@@ -144,10 +144,14 @@ export const lsms: ICommand = {
                     },
                 });
 
+                await interaction.editReply({
+                    embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de service a été créé.')],
+                });
+
                 break;
             }
             case 'removeduty': {
-                const messageId = interaction.options.get('messageid', true).value as string;
+                const messageId = (interaction as ChatInputCommandInteraction).options.get('messageid', true).value as string;
                 if (!interaction.guild) {
                     await interaction.editReply({
                         embeds: [
@@ -200,6 +204,7 @@ export const lsms: ICommand = {
                 await interaction.editReply({
                     embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de service a été supprimé.')],
                 });
+
                 break;
             }
             default:
