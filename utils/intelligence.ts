@@ -5,6 +5,11 @@ import { client } from '../bot/bot';
 
 const chats = new Map<string, Chat>();
 
+export const iaDisabledServers = [
+    '872119977946263632',
+    '1152704209192501388',
+];
+
 export let isAiActive = true;
 export let ai: GoogleGenAI;
 /**
