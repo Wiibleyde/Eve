@@ -13,6 +13,10 @@ type PatternDetector = {
     defaultResponse: string;
 };
 
+export const jokeIgnoredServers = [
+    '872119977946263632',
+];
+
 // Quoi detector configuration
 const quoiDetector: PatternDetector = {
     name: 'quoi',

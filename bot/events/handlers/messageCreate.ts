@@ -2,12 +2,12 @@ import { Events, Message, type OmitPartialGroupDMChannel } from 'discord.js';
 import type { Event } from '../event';
 import { logger } from '../../..';
 import { client } from '../../bot';
-import { generateWithGoogle } from '../../../utils/intelligence';
+import { generateWithGoogle, iaDisabledServers } from '../../../utils/intelligence';
 import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
 import { config } from '../../../utils/core/config';
 import { handleMessageSend, isNewMessageInMpThread, recieveMessage } from '../../../utils/mpManager';
-import { detectPattern, generateResponse } from '../../../utils/messageManager';
+import { detectPattern, generateResponse, jokeIgnoredServers } from '../../../utils/messageManager';
 
 export const messageCreateEvent: Event<Events.MessageCreate> = {
     name: Events.MessageCreate,
@@ -55,6 +55,11 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
     }
 
     if (message.mentions.has(client.user?.id as string) && !message.mentions.everyone) {
+        const guildIdStr = String(guildId);
+        if (iaDisabledServers.includes(guildIdStr)) {
+            logger.info(`IA désactivée pour le serveur ${guildIdStr}. Message ignoré de <@${message.author.id}> : "${message.content}"`);
+            return;
+        }
         message.channel.sendTyping();
         const aiResponse = await generateWithGoogle(channelId, message.content, message.author.id).catch((error) => {
             logger.error(`Erreur lors de la génération de réponse IA: ${error}`);
@@ -71,6 +76,11 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
 
     const pattern = detectPattern(message.content);
     if (pattern) {
+        const guildIdStr = String(guildId);
+        if (jokeIgnoredServers.includes(guildIdStr)) {
+            logger.info(`Message ignoré dans le serveur ${guildIdStr} de <@${message.author.id}> : "${message.content}"`);
+            return;
+        }
         const response = generateResponse(pattern);
         if (response) {
             await message.channel.send(response);
