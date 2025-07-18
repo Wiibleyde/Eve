@@ -15,7 +15,6 @@ type PatternDetector = {
 
 export const jokeIgnoredServers = [
     '872119977946263632',
-    '1152704209192501388',
 ];
 
 // Quoi detector configuration
