@@ -17,8 +17,13 @@ import { debug } from './handlers/debug';
 import { maintenance } from './handlers/maintenance';
 import { lsms } from './handlers/rp/lsms';
 
+// Base interface for all command types
+export interface IBaseCommand {
+    guildIds?: string[];
+}
+
 // Type pour représenter une commande avec sa définition et son exécution
-export interface ICommand {
+export interface ICommand extends IBaseCommand {
     data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
     execute: (interaction: CommandInteraction) => Promise<void>;
 }

@@ -100,8 +100,8 @@ export const config: ICommand = {
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
             case 'set': {
-                const option = interaction.options.get('option')?.value as string;
-                const channel = interaction.options.get('channel')?.channel as GuildBasedChannel;
+                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
+                const channel = (interaction as ChatInputCommandInteraction).options.get('channel')?.channel as GuildBasedChannel;
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -144,7 +144,7 @@ export const config: ICommand = {
                 break;
             }
             case 'get': {
-                const option = interaction.options.get('option')?.value as string;
+                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -176,7 +176,7 @@ export const config: ICommand = {
                 break;
             }
             case 'reset': {
-                const option = interaction.options.get('option')?.value as string;
+                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
                 await prisma.config.deleteMany({
                     where: {
                         AND: [

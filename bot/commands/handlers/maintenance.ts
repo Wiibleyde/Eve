@@ -6,6 +6,7 @@ import { config } from '../../../utils/core/config';
 
 export const maintenance: ICommand = {
     data: new SlashCommandBuilder().setName('maintenance').setDescription('Mettre le bot en mode maintenance'),
+    guildIds: [config.EVE_HOME_GUILD], // Only available in the owner's guild
     execute: async (interaction) => {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],

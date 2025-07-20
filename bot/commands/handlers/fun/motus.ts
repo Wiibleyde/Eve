@@ -9,7 +9,7 @@ export const motus: ICommand = {
     execute: async (interaction) => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
         const word = await getRandomWord();
-        logger.debug('Motus word: ', word);
+        logger.info('Motus word: ', word);
         const game = new MotusGame(word, interaction.user.id);
 
         const embed = await game.getEmbed();
