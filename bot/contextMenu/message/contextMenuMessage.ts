@@ -1,8 +1,9 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction } from 'discord.js';
 import { createQuote } from './handlers/createQuote';
+import type { IBaseCommand } from '../../commands/command';
 
 // Type pour représenter une commande avec sa définition et son exécution
-export interface IContextMenuMessageCommand {
+export interface IContextMenuMessageCommand extends IBaseCommand {
     data: ContextMenuCommandBuilder;
     execute: (interaction: MessageContextMenuCommandInteraction) => Promise<void>;
 }

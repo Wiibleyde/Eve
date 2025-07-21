@@ -1,4 +1,4 @@
-import { MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
 import type { ICommand } from '../command';
 import { generateQuoteImage, insertQuoteInDatabase } from '../../../utils/quoteMaker';
 import { prisma } from '../../../utils/core/database';
@@ -18,9 +18,9 @@ export const quote: ICommand = {
             withResponse: true,
             flags: [MessageFlags.Ephemeral],
         });
-        const quote = interaction.options.get('citation')?.value as string;
-        const author = interaction.options.get('auteur')?.user as User;
-        const context = interaction.options.get('contexte')?.value as string;
+        const quote = (interaction as ChatInputCommandInteraction).options.get('citation')?.value as string;
+        const author = (interaction as ChatInputCommandInteraction).options.get('auteur')?.user as User;
+        const context = (interaction as ChatInputCommandInteraction).options.get('contexte')?.value as string;
         const date = new Date().toLocaleDateString('fr-FR');
         const userProfilePicture = author.displayAvatarURL({ size: 512, extension: 'png', forceStatic: true });
 

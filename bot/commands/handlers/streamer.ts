@@ -58,9 +58,9 @@ export const streamer: ICommand = {
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
             case 'add': {
-                const streamerName = interaction.options.get('streamer', true).value as string;
-                const channel = interaction.options.get('channel', true).channel;
-                const role = interaction.options.get('role')?.role;
+                const streamerName = (interaction as ChatInputCommandInteraction).options.get('streamer', true).value as string;
+                const channel = (interaction as ChatInputCommandInteraction).options.get('channel', true).channel;
+                const role = (interaction as ChatInputCommandInteraction).options.get('role')?.role;
 
                 // Prepare the insert data in the database
                 const twitchUserId = await getUserIdByLogin(streamerName);
@@ -125,7 +125,7 @@ export const streamer: ICommand = {
                 break;
             }
             case 'remove': {
-                const streamerName = interaction.options.get('streamer', true).value as string;
+                const streamerName = (interaction as ChatInputCommandInteraction).options.get('streamer', true).value as string;
                 const twitchUserId = await getUserIdByLogin(streamerName);
                 if (!twitchUserId) {
                     await interaction.editReply({ embeds: [errorStreamerEmbedGenerator('Nom de streamer invalide')] });

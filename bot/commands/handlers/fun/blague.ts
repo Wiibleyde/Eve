@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ICommand } from '../../command';
 import BlaguesAPI from 'blagues-api';
 import { config } from '../../../../utils/core/config';
@@ -45,7 +45,7 @@ export const blague: ICommand = {
         ),
     execute: async (interaction) => {
         await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
-        const type = interaction.options.get('type')?.value as Category;
+        const type = (interaction as ChatInputCommandInteraction).options.get('type')?.value as Category;
         const blague = await blagues.randomCategorized(type);
         const embed = jokeBasicEmbedGenerator();
         embed.setDescription(blague.joke);

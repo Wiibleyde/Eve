@@ -12,6 +12,7 @@ import type { ICommand } from '../../command';
 import { hasPermission } from '../../../../utils/permission';
 import { lsmsDutyEmbedGenerator, lsmsEmbedGenerator } from '../../../../utils/rp/lsms';
 import { prisma } from '../../../../utils/core/database';
+import { config } from '@utils/core/config';
 
 export const lsms: ICommand = {
     data: new SlashCommandBuilder()
@@ -46,6 +47,7 @@ export const lsms: ICommand = {
                 )
         )
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
+    guildIds: ['872119977946263632', config.EVE_HOME_GUILD], // This command is available in all guilds
     execute: async (interaction) => {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],

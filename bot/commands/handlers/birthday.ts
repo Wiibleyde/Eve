@@ -43,7 +43,7 @@ export const birthday: ICommand = {
         const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
         switch (subcommand) {
             case 'set': {
-                const dateArg = interaction.options.get('date')?.value as string;
+                const dateArg = (interaction as ChatInputCommandInteraction).options.get('date')?.value as string;
                 const dateParts = dateArg.split('/');
                 if (dateParts.length !== 3) {
                     const errorEmbed = errorBirthdayEmbedGenerator(

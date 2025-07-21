@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
+import { ChatInputCommandInteraction, CommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
 import type { ICommand } from '../command';
 import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { logger } from '../../..';
@@ -19,8 +19,8 @@ export const talk: ICommand = {
         }
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
-        const message = interaction.options.get('message')?.value as string;
-        const targetUser = interaction.options.get('mp')?.user as User | null;
+        const message = (interaction as ChatInputCommandInteraction).options.get('message')?.value as string;
+        const targetUser = (interaction as ChatInputCommandInteraction).options.get('mp')?.user as User | null;
 
         try {
             if (targetUser) {

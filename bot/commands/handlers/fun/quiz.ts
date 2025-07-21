@@ -200,13 +200,13 @@ export const quiz: ICommand = {
                 break;
             }
             case 'create': {
-                const question = interaction.options.get('question')?.value as string;
-                const answer = interaction.options.get('answer')?.value as string;
-                const badAnswer1 = interaction.options.get('bad1')?.value as string;
-                const badAnswer2 = interaction.options.get('bad2')?.value as string;
-                const badAnswer3 = interaction.options.get('bad3')?.value as string;
-                const category = interaction.options.get('category')?.value as string;
-                const difficulty = interaction.options.get('difficulty')?.value as string;
+                const question = (interaction as ChatInputCommandInteraction).options.get('question')?.value as string;
+                const answer = (interaction as ChatInputCommandInteraction).options.get('answer')?.value as string;
+                const badAnswer1 = (interaction as ChatInputCommandInteraction).options.get('bad1')?.value as string;
+                const badAnswer2 = (interaction as ChatInputCommandInteraction).options.get('bad2')?.value as string;
+                const badAnswer3 = (interaction as ChatInputCommandInteraction).options.get('bad3')?.value as string;
+                const category = (interaction as ChatInputCommandInteraction).options.get('category')?.value as string;
+                const difficulty = (interaction as ChatInputCommandInteraction).options.get('difficulty')?.value as string;
 
                 const guildId = interaction.guildId;
                 if (!guildId) {
@@ -270,7 +270,7 @@ export const quiz: ICommand = {
                 break;
             }
             case 'leaderboard': {
-                const choice = interaction.options.get('choice')?.value as string;
+                const choice = (interaction as ChatInputCommandInteraction).options.get('choice')?.value as string;
                 let users = await prisma.globalUserData.findMany({
                     select: {
                         userId: true,
