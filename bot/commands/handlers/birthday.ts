@@ -3,6 +3,7 @@ import type { ICommand } from '../command';
 import { basicEmbedGenerator, errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { prisma } from '../../../utils/core/database';
 import { client } from '../../bot';
+import { getStringOption, getSubcommand } from '../../utils/commandOptions';
 
 const months = {
     '01': 'Janvier',
@@ -38,12 +39,12 @@ export const birthday: ICommand = {
         .addSubcommand((subcommand) =>
             subcommand.setName('list').setDescription('Lister les anniversaires de la communauté')
         ),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-        const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+        const subcommand = getSubcommand(interaction);
         switch (subcommand) {
             case 'set': {
-                const dateArg = (interaction as ChatInputCommandInteraction).options.get('date')?.value as string;
+                const dateArg = getStringOption(interaction, 'date', true);
                 const dateParts = dateArg.split('/');
                 if (dateParts.length !== 3) {
                     const errorEmbed = errorBirthdayEmbedGenerator(

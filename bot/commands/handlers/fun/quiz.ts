@@ -19,6 +19,7 @@ import {
 } from '../../../../utils/games/quiz';
 import { logger } from '../../../..';
 import { client } from '../../../bot';
+import { getStringOption, getSubcommand } from '../../../utils/commandOptions';
 
 export const quiz: ICommand = {
     data: new SlashCommandBuilder()
@@ -93,9 +94,9 @@ export const quiz: ICommand = {
                         .setRequired(true)
                 )
         ),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-        const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+        const subcommand = getSubcommand(interaction);
         switch (subcommand) {
             case 'launch': {
                 // Logic to launch a quiz
@@ -200,13 +201,13 @@ export const quiz: ICommand = {
                 break;
             }
             case 'create': {
-                const question = (interaction as ChatInputCommandInteraction).options.get('question')?.value as string;
-                const answer = (interaction as ChatInputCommandInteraction).options.get('answer')?.value as string;
-                const badAnswer1 = (interaction as ChatInputCommandInteraction).options.get('bad1')?.value as string;
-                const badAnswer2 = (interaction as ChatInputCommandInteraction).options.get('bad2')?.value as string;
-                const badAnswer3 = (interaction as ChatInputCommandInteraction).options.get('bad3')?.value as string;
-                const category = (interaction as ChatInputCommandInteraction).options.get('category')?.value as string;
-                const difficulty = (interaction as ChatInputCommandInteraction).options.get('difficulty')?.value as string;
+                const question = getStringOption(interaction, 'question', true);
+                const answer = getStringOption(interaction, 'answer', true);
+                const badAnswer1 = getStringOption(interaction, 'bad1', true);
+                const badAnswer2 = getStringOption(interaction, 'bad2', true);
+                const badAnswer3 = getStringOption(interaction, 'bad3', true);
+                const category = getStringOption(interaction, 'category', true);
+                const difficulty = getStringOption(interaction, 'difficulty', true);
 
                 const guildId = interaction.guildId;
                 if (!guildId) {
@@ -270,7 +271,7 @@ export const quiz: ICommand = {
                 break;
             }
             case 'leaderboard': {
-                const choice = (interaction as ChatInputCommandInteraction).options.get('choice')?.value as string;
+                const choice = getStringOption(interaction, 'choice', true);
                 let users = await prisma.globalUserData.findMany({
                     select: {
                         userId: true,

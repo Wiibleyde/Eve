@@ -13,6 +13,7 @@ import { hasPermission } from '../../../../utils/permission';
 import { lsmsDutyEmbedGenerator, lsmsEmbedGenerator } from '../../../../utils/rp/lsms';
 import { prisma } from '../../../../utils/core/database';
 import { config } from '@utils/core/config';
+import { getSubcommand, getRoleOption, getChannelOption, getStringOption } from '../../../utils/commandOptions';
 
 export const lsms: ICommand = {
     data: new SlashCommandBuilder()
@@ -48,7 +49,7 @@ export const lsms: ICommand = {
         )
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
     guildIds: ['872119977946263632', config.EVE_HOME_GUILD], // This command is available in all guilds
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],
         });
@@ -60,12 +61,12 @@ export const lsms: ICommand = {
             return;
         }
 
-        const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+        const subcommand = getSubcommand(interaction);
         switch (subcommand) {
             case 'addduty': {
-                const dutyRole = (interaction as ChatInputCommandInteraction).options.get('duty', true).role as Role;
-                const onCallRole = (interaction as ChatInputCommandInteraction).options.get('oncall', true).role as Role;
-                const logsChannel = (interaction as ChatInputCommandInteraction).options.get('logchannel', true).channel as GuildBasedChannel;
+                const dutyRole = getRoleOption(interaction, 'duty', true) as Role;
+                const onCallRole = getRoleOption(interaction, 'oncall', true) as Role;
+                const logsChannel = getChannelOption(interaction, 'logchannel', true) as GuildBasedChannel;
                 const interactionChannel = interaction.channel;
                 if (!interactionChannel) {
                     await interaction.editReply({
@@ -153,7 +154,7 @@ export const lsms: ICommand = {
                 break;
             }
             case 'removeduty': {
-                const messageId = (interaction as ChatInputCommandInteraction).options.get('messageid', true).value as string;
+                const messageId = getStringOption(interaction, 'messageid', true);
                 if (!interaction.guild) {
                     await interaction.editReply({
                         embeds: [

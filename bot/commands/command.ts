@@ -1,5 +1,5 @@
 import {
-    CommandInteraction,
+    ChatInputCommandInteraction,
     SlashCommandBuilder,
     type SlashCommandOptionsOnlyBuilder,
     type SlashCommandSubcommandsOnlyBuilder,
@@ -25,7 +25,7 @@ export interface IBaseCommand {
 // Type pour représenter une commande avec sa définition et son exécution
 export interface ICommand extends IBaseCommand {
     data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
-    execute: (interaction: CommandInteraction) => Promise<void>;
+    execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
 // Collection des commandes disponibles
