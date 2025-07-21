@@ -2,7 +2,7 @@ import { Logger } from './utils/core/logger';
 import { client, endingScripts, stopBot } from './bot/bot';
 import { config } from './utils/core/config';
 import { loadEvents } from './bot/events/event';
-import { disconnectDatabase } from './utils/core/database';
+import { disconnectDatabase, connectDatabase } from './utils/core/database';
 import { initAi } from './utils/intelligence';
 
 export const logger = Logger.init({
@@ -14,6 +14,15 @@ export const logger = Logger.init({
 
 async function main() {
     logger.info("Démarrage de l'application...");
+
+    // Test de la connexion à la base de données
+    logger.info('Test de la connexion à la base de données...');
+    const isDatabaseConnected = await connectDatabase();
+    if (!isDatabaseConnected) {
+        logger.error('Impossible de se connecter à la base de données. Arrêt de l\'application.');
+        process.exit(1);
+    }
+    logger.info('Connexion à la base de données réussie.');
 
     initAi();
 
