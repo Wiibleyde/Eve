@@ -15,6 +15,7 @@ const {
     NASA_API_KEY,
     TWITCH_CLIENT_ID,
     TWITCH_CLIENT_SECRET,
+    TWITCH_ACCESS_TOKEN,
 } = process.env;
 
 const { MUSIC_MODULE: MUSIC_MODULE_STRING } = process.env;
@@ -67,6 +68,7 @@ const MUSIC_MODULE = MUSIC_MODULE_STRING?.toLowerCase() === 'true' ? true : fals
  * @property {boolean} MUSIC_MODULE - Flag indicating whether the music module is enabled.
  * @property {string} TWITCH_CLIENT_ID - The client ID for Twitch API authentication.
  * @property {string} TWITCH_CLIENT_SECRET - The client secret for Twitch API authentication.
+ * @property {string} TWITCH_ACCESS_TOKEN - The access token for Twitch chat bot authentication.
  */
 export const config = {
     DISCORD_TOKEN,
@@ -82,4 +84,5 @@ export const config = {
     MUSIC_MODULE,
     TWITCH_CLIENT_ID,
     TWITCH_CLIENT_SECRET,
+    TWITCH_ACCESS_TOKEN,
 };
