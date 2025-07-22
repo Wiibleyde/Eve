@@ -1,4 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ChatInputCommandInteraction,
+    MessageFlags,
+    SlashCommandBuilder,
+} from 'discord.js';
 import type { ICommand } from '../../command';
 import BlaguesAPI from 'blagues-api';
 import { config } from '../../../../utils/core/config';

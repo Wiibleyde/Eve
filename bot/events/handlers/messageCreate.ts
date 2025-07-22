@@ -57,7 +57,9 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
     if (message.mentions.has(client.user?.id as string) && !message.mentions.everyone) {
         const guildIdStr = String(guildId);
         if (iaDisabledServers.includes(guildIdStr)) {
-            logger.info(`IA désactivée pour le serveur ${guildIdStr}. Message ignoré de <@${message.author.id}> : "${message.content}"`);
+            logger.info(
+                `IA désactivée pour le serveur ${guildIdStr}. Message ignoré de <@${message.author.id}> : "${message.content}"`
+            );
             return;
         }
         message.channel.sendTyping();
@@ -78,7 +80,9 @@ async function handleGuildMessage(message: OmitPartialGroupDMChannel<Message<boo
     if (pattern) {
         const guildIdStr = String(guildId);
         if (jokeIgnoredServers.includes(guildIdStr)) {
-            logger.info(`Message ignoré dans le serveur ${guildIdStr} de <@${message.author.id}> : "${message.content}"`);
+            logger.info(
+                `Message ignoré dans le serveur ${guildIdStr} de <@${message.author.id}> : "${message.content}"`
+            );
             return;
         }
         const response = generateResponse(pattern);

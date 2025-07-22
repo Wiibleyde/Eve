@@ -12,13 +12,16 @@ import {
 import { logger } from '../../..';
 
 // Buffer pour regrouper les modifications de rôles
-const updateBuffer = new Map<string, {
-    timeout: NodeJS.Timeout;
-    oldMember: GuildMember | PartialGuildMember;
-    newMember: GuildMember;
-    allRoleChanges: Set<string>;
-    allRoleRemovals: Set<string>;
-}>();
+const updateBuffer = new Map<
+    string,
+    {
+        timeout: NodeJS.Timeout;
+        oldMember: GuildMember | PartialGuildMember;
+        newMember: GuildMember;
+        allRoleChanges: Set<string>;
+        allRoleRemovals: Set<string>;
+    }
+>();
 
 const BUFFER_DELAY = 1500; // 1.5 secondes
 
@@ -83,19 +86,11 @@ const processRoleUpdate = async (
         if (!embed) continue;
 
         // Ici, on sait qu'un rôle duty ou onCall a été modifié pour ce message
-        if (
-            dutyDatas.some(
-                (d) =>
-                    d.dutyRoleId &&
-                    (roleChanges.has(d.dutyRoleId) || roleRemovals.has(d.dutyRoleId))
-            )
-        ) {
+        if (dutyDatas.some((d) => d.dutyRoleId && (roleChanges.has(d.dutyRoleId) || roleRemovals.has(d.dutyRoleId)))) {
             onDutyUser(dutyData.guildId, newMember.user.id);
         } else if (
             dutyDatas.some(
-                (d) =>
-                    d.onCallRoleId &&
-                    (roleChanges.has(d.onCallRoleId) || roleRemovals.has(d.onCallRoleId))
+                (d) => d.onCallRoleId && (roleChanges.has(d.onCallRoleId) || roleRemovals.has(d.onCallRoleId))
             )
         ) {
             onCallUser(dutyData.guildId, newMember.user.id);
@@ -183,19 +178,19 @@ export const guildMemberUpdateEvent: Event<Events.GuildMemberUpdate> = {
             clearTimeout(existingBuffer.timeout);
 
             // Accumuler les changements
-            roleChanges.forEach(role => existingBuffer.allRoleChanges.add(role.id));
-            roleRemovals.forEach(role => existingBuffer.allRoleRemovals.add(role.id));
+            roleChanges.forEach((role) => existingBuffer.allRoleChanges.add(role.id));
+            roleRemovals.forEach((role) => existingBuffer.allRoleRemovals.add(role.id));
 
             // Mettre à jour le newMember le plus récent
             existingBuffer.newMember = newMember;
         } else {
             // Créer un nouveau buffer
             updateBuffer.set(bufferKey, {
-                timeout: setTimeout(() => { }, 0), // Sera remplacé ci-dessous
+                timeout: setTimeout(() => {}, 0), // Sera remplacé ci-dessous
                 oldMember,
                 newMember,
-                allRoleChanges: new Set(roleChanges.map(role => role.id)),
-                allRoleRemovals: new Set(roleRemovals.map(role => role.id)),
+                allRoleChanges: new Set(roleChanges.map((role) => role.id)),
+                allRoleRemovals: new Set(roleRemovals.map((role) => role.id)),
             });
         }
 

@@ -19,7 +19,7 @@ async function main() {
     logger.info('Test de la connexion à la base de données...');
     const isDatabaseConnected = await connectDatabase();
     if (!isDatabaseConnected) {
-        logger.error('Impossible de se connecter à la base de données. Arrêt de l\'application.');
+        logger.error("Impossible de se connecter à la base de données. Arrêt de l'application.");
         process.exit(1);
     }
     logger.info('Connexion à la base de données réussie.');
@@ -59,6 +59,5 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason) => {
     logger.error(`Rejet de promesse non géré: ${reason}`);
 });
-
 
 main();

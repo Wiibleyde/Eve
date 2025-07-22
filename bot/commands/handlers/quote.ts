@@ -40,7 +40,13 @@ export const quote: ICommand = {
         } else {
             channel = interaction.channel as TextChannel;
         }
-        const imageBuffer = await generateQuoteImage(quote, author.displayName, date, userProfilePicture, context ?? undefined);
+        const imageBuffer = await generateQuoteImage(
+            quote,
+            author.displayName,
+            date,
+            userProfilePicture,
+            context ?? undefined
+        );
 
         await insertQuoteInDatabase(quote, author.id, context ?? undefined, interaction.guildId ?? undefined);
 
