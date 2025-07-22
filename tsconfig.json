@@ -26,7 +26,8 @@
         "noPropertyAccessFromIndexSignature": false,
         "paths": {
             "@bot/*": ["./bot/*"],
-            "@utils/*": ["./utils/*"]
+            "@utils/*": ["./utils/*"],
+            "@cron/*": ["./cron/*"]
         }
     }
 }
