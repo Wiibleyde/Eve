@@ -4,12 +4,12 @@ import {
     MessageFlags,
     PermissionFlagsBits,
     SlashCommandBuilder,
-    type GuildBasedChannel,
 } from 'discord.js';
 import type { ICommand } from '../command';
 import { prisma } from '../../../utils/core/database';
 import { basicEmbedGenerator } from '../../utils/embeds';
 import { hasPermission } from '../../../utils/permission';
+import { getStringOption, getChannelOption, getSubcommand } from '../../utils/commandOptions';
 
 export const config: ICommand = {
     data: new SlashCommandBuilder()
@@ -85,7 +85,7 @@ export const config: ICommand = {
             subcommand.setName('list').setDescription('Liste toutes les options de configuration')
         )
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({
             flags: [MessageFlags.Ephemeral],
         });
@@ -97,11 +97,11 @@ export const config: ICommand = {
             return;
         }
 
-        const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+        const subcommand = getSubcommand(interaction);
         switch (subcommand) {
             case 'set': {
-                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
-                const channel = (interaction as ChatInputCommandInteraction).options.get('channel')?.channel as GuildBasedChannel;
+                const option = getStringOption(interaction, 'option', true);
+                const channel = getChannelOption(interaction, 'channel', true);
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -144,7 +144,7 @@ export const config: ICommand = {
                 break;
             }
             case 'get': {
-                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
+                const option = getStringOption(interaction, 'option', true);
                 const actualDatabase = await prisma.config.findFirst({
                     where: {
                         AND: [
@@ -176,7 +176,7 @@ export const config: ICommand = {
                 break;
             }
             case 'reset': {
-                const option = (interaction as ChatInputCommandInteraction).options.get('option')?.value as string;
+                const option = getStringOption(interaction, 'option', true);
                 await prisma.config.deleteMany({
                     where: {
                         AND: [

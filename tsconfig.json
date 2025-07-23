@@ -27,6 +27,7 @@
         "paths": {
             "@bot/*": ["./bot/*"],
             "@utils/*": ["./utils/*"],
+            "@cron/*": ["./cron/*"]
         }
     }
 }

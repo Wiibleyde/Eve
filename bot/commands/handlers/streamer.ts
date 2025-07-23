@@ -11,6 +11,7 @@ import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { prisma } from '../../../utils/core/database';
 import { logger } from '../../..';
 import { hasPermission } from '../../../utils/permission';
+import { getStringOption, getChannelOption, getRoleOption, getSubcommand } from '../../utils/commandOptions';
 
 export const streamer: ICommand = {
     data: new SlashCommandBuilder()
@@ -45,7 +46,7 @@ export const streamer: ICommand = {
                 )
         )
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
         if (!(await hasPermission(interaction, []))) {
@@ -55,12 +56,12 @@ export const streamer: ICommand = {
             return;
         }
 
-        const subcommand = (interaction as ChatInputCommandInteraction).options.getSubcommand();
+        const subcommand = getSubcommand(interaction);
         switch (subcommand) {
             case 'add': {
-                const streamerName = (interaction as ChatInputCommandInteraction).options.get('streamer', true).value as string;
-                const channel = (interaction as ChatInputCommandInteraction).options.get('channel', true).channel;
-                const role = (interaction as ChatInputCommandInteraction).options.get('role')?.role;
+                const streamerName = getStringOption(interaction, 'streamer', true);
+                const channel = getChannelOption(interaction, 'channel', true);
+                const role = getRoleOption(interaction, 'role');
 
                 // Prepare the insert data in the database
                 const twitchUserId = await getUserIdByLogin(streamerName);
@@ -125,7 +126,7 @@ export const streamer: ICommand = {
                 break;
             }
             case 'remove': {
-                const streamerName = (interaction as ChatInputCommandInteraction).options.get('streamer', true).value as string;
+                const streamerName = getStringOption(interaction, 'streamer', true);
                 const twitchUserId = await getUserIdByLogin(streamerName);
                 if (!twitchUserId) {
                     await interaction.editReply({ embeds: [errorStreamerEmbedGenerator('Nom de streamer invalide')] });

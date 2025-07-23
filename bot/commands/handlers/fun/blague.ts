@@ -1,9 +1,17 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ChatInputCommandInteraction,
+    MessageFlags,
+    SlashCommandBuilder,
+} from 'discord.js';
 import type { ICommand } from '../../command';
 import BlaguesAPI from 'blagues-api';
 import { config } from '../../../../utils/core/config';
 import type { Category } from 'blagues-api/dist/types/types';
 import { basicEmbedGenerator, errorEmbedGenerator, successEmbedGenerator } from '../../../utils/embeds';
+import { getStringOption } from '../../../utils/commandOptions';
 
 const blagues = new BlaguesAPI(config.BLAGUE_API_TOKEN);
 
@@ -43,9 +51,9 @@ export const blague: ICommand = {
                 } */
                 ])
         ),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({ withResponse: true, flags: [MessageFlags.Ephemeral] });
-        const type = (interaction as ChatInputCommandInteraction).options.get('type')?.value as Category;
+        const type = getStringOption(interaction, 'type', true) as Category;
         const blague = await blagues.randomCategorized(type);
         const embed = jokeBasicEmbedGenerator();
         embed.setDescription(blague.joke);

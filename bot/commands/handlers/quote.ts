@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel } from 'discord.js';
 import type { ICommand } from '../command';
 import { generateQuoteImage, insertQuoteInDatabase } from '../../../utils/quoteMaker';
 import { prisma } from '../../../utils/core/database';
 import { successEmbedGenerator } from '../../utils/embeds';
+import { getStringOption, getUserOption } from '../../utils/commandOptions';
 
 export const quote: ICommand = {
     data: new SlashCommandBuilder()
@@ -13,14 +14,14 @@ export const quote: ICommand = {
         .addStringOption((option) =>
             option.setName('contexte').setDescription('[Optionnel] Le contexte de la citation').setRequired(false)
         ),
-    execute: async (interaction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({
             withResponse: true,
             flags: [MessageFlags.Ephemeral],
         });
-        const quote = (interaction as ChatInputCommandInteraction).options.get('citation')?.value as string;
-        const author = (interaction as ChatInputCommandInteraction).options.get('auteur')?.user as User;
-        const context = (interaction as ChatInputCommandInteraction).options.get('contexte')?.value as string;
+        const quote = getStringOption(interaction, 'citation', true);
+        const author = getUserOption(interaction, 'auteur', true);
+        const context = getStringOption(interaction, 'contexte');
         const date = new Date().toLocaleDateString('fr-FR');
         const userProfilePicture = author.displayAvatarURL({ size: 512, extension: 'png', forceStatic: true });
 
@@ -39,9 +40,15 @@ export const quote: ICommand = {
         } else {
             channel = interaction.channel as TextChannel;
         }
-        const imageBuffer = await generateQuoteImage(quote, author.displayName, date, userProfilePicture, context);
+        const imageBuffer = await generateQuoteImage(
+            quote,
+            author.displayName,
+            date,
+            userProfilePicture,
+            context ?? undefined
+        );
 
-        await insertQuoteInDatabase(quote, author.id, context, interaction.guildId ?? undefined);
+        await insertQuoteInDatabase(quote, author.id, context ?? undefined, interaction.guildId ?? undefined);
 
         const messageSent = await channel.send({
             files: [imageBuffer],

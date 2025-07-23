@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, CommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, TextChannel, User } from 'discord.js';
 import type { ICommand } from '../command';
 import { errorEmbedGenerator, successEmbedGenerator } from '../../utils/embeds';
 import { logger } from '../../..';
 import { hasPermission } from '../../../utils/permission';
+import { getStringOption, getUserOption } from '../../utils/commandOptions';
 
 export const talk: ICommand = {
     data: new SlashCommandBuilder()
@@ -10,7 +11,7 @@ export const talk: ICommand = {
         .setDescription('Make the bot talk')
         .addStringOption((option) => option.setName('message').setDescription('The message to send').setRequired(true))
         .addUserOption((option) => option.setName('mp').setDescription('The user to send the message to')),
-    execute: async (interaction: CommandInteraction) => {
+    execute: async (interaction: ChatInputCommandInteraction) => {
         if (!(await hasPermission(interaction, []))) {
             await interaction.editReply({
                 embeds: [errorEmbedGenerator("Vous n'avez pas la permission de gérer les messages")],
@@ -19,8 +20,8 @@ export const talk: ICommand = {
         }
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
-        const message = (interaction as ChatInputCommandInteraction).options.get('message')?.value as string;
-        const targetUser = (interaction as ChatInputCommandInteraction).options.get('mp')?.user as User | null;
+        const message = getStringOption(interaction, 'message', true);
+        const targetUser = getUserOption(interaction, 'mp');
 
         try {
             if (targetUser) {
@@ -56,7 +57,7 @@ async function sendDirectMessage(user: User, message: string): Promise<void> {
 /**
  * Send a message to the current channel
  */
-async function sendChannelMessage(interaction: CommandInteraction, message: string): Promise<void> {
+async function sendChannelMessage(interaction: ChatInputCommandInteraction, message: string): Promise<void> {
     const channel = interaction.channel as TextChannel;
     if (!channel) {
         throw new Error('Impossible de trouver le salon de discussion');

@@ -5,9 +5,7 @@ import { client } from '../bot/bot';
 
 const chats = new Map<string, Chat>();
 
-export const iaDisabledServers = [
-    '872119977946263632',
-];
+export const iaDisabledServers = ['872119977946263632'];
 
 export let isAiActive = true;
 export let ai: GoogleGenAI;

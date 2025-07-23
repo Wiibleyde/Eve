@@ -25,11 +25,11 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.31.0",
-        "@types/bun": "^1.2.18",
+        "@types/bun": "^1.2.19",
         "eslint": "^9.31.0",
         "globals": "^16.3.0",
         "prettier": "3.6.2",
-        "typescript-eslint": "^8.36.0"
+        "typescript-eslint": "^8.37.0"
     },
     "peerDependencies": {
         "typescript": "^5.8.3"
@@ -37,14 +37,14 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "@google/genai": "^1.9.0",
-        "@prisma/client": "^6.11.1",
+        "@google/genai": "^1.10.0",
+        "@prisma/client": "^6.12.0",
         "axios": "^1.10.0",
         "blagues-api": "^2.1.1",
         "cron": "^4.3.2",
         "discord.js": "^14.21.0",
         "dotenv": "^17.2.0",
         "jimp": "^1.6.0",
-        "prisma": "^6.11.1"
+        "prisma": "^6.12.0"
     }
 }
