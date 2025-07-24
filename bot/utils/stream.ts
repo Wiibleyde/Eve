@@ -287,7 +287,9 @@ function generateOnlineStreamEmbed(streamer: StreamData, userData: TwitchUser): 
     return new EmbedBuilder()
         .setTitle(streamer.title)
         .setDescription(`**${userData.display_name}** est en direct !`)
-        .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${userData.login.toLowerCase()}.jpg?r=${streamer.started_at}`) // Full-size thumbnail
+        .setImage(
+            `https://static-cdn.jtvnw.net/previews-ttv/live_user_${userData.login.toLowerCase()}.jpg?r=${streamer.started_at}`
+        ) // Full-size thumbnail
         .setThumbnail(`https://static-cdn.jtvnw.net/ttv-boxart/${streamer.game_id}.jpg`)
         .setURL(`https://www.twitch.tv/${userData.login}`)
         .setColor('#9146FF')

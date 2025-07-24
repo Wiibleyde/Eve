@@ -86,14 +86,14 @@ const processRoleUpdate = async (
         if (!embed) continue;
 
         // Ici, on sait qu'un rôle duty ou onCall a été modifié pour ce message
-        if (dutyDatas.some((d) => d.dutyRoleId && (roleChanges.has(d.dutyRoleId) || roleRemovals.has(d.dutyRoleId)))) {
-            onDutyUser(dutyData.guildId, newMember.user.id);
-        } else if (
-            dutyDatas.some(
-                (d) => d.onCallRoleId && (roleChanges.has(d.onCallRoleId) || roleRemovals.has(d.onCallRoleId))
-            )
-        ) {
-            onCallUser(dutyData.guildId, newMember.user.id);
+        // Tracker les utilisateurs selon les rôles modifiés
+        for (const d of dutyDatas) {
+            if (d.dutyRoleId && (roleChanges.has(d.dutyRoleId) || roleRemovals.has(d.dutyRoleId))) {
+                onDutyUser(dutyData.guildId, newMember.user.id);
+            }
+            if (d.onCallRoleId && (roleChanges.has(d.onCallRoleId) || roleRemovals.has(d.onCallRoleId))) {
+                onCallUser(dutyData.guildId, newMember.user.id);
+            }
         }
 
         // Utilise le cache local des membres si possible
@@ -131,13 +131,21 @@ const processRoleUpdate = async (
             const logChannel = d.logsChannelId ? guild.channels.cache.get(d.logsChannelId) : null;
             if (logChannel && logChannel.isTextBased()) {
                 const isDutyRoleAdded = d.dutyRoleId && roleChanges.has(d.dutyRoleId);
+                const isDutyRoleRemoved = d.dutyRoleId && roleRemovals.has(d.dutyRoleId);
                 const isOnCallRoleAdded = d.onCallRoleId && roleChanges.has(d.onCallRoleId);
+                const isOnCallRoleRemoved = d.onCallRoleId && roleRemovals.has(d.onCallRoleId);
 
-                const embed =
-                    d.dutyRoleId && (isDutyRoleAdded || roleRemovals.has(d.dutyRoleId))
-                        ? lsmsDutyUpdateEmbedGenerator(newMember.user, !!isDutyRoleAdded)
-                        : lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
-                await logChannel.send({ embeds: [embed] });
+                // Gérer les changements de rôle de service
+                if (isDutyRoleAdded || isDutyRoleRemoved) {
+                    const dutyEmbed = lsmsDutyUpdateEmbedGenerator(newMember.user, !!isDutyRoleAdded);
+                    await logChannel.send({ embeds: [dutyEmbed] });
+                }
+
+                // Gérer les changements de rôle d'astreinte
+                if (isOnCallRoleAdded || isOnCallRoleRemoved) {
+                    const onCallEmbed = lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
+                    await logChannel.send({ embeds: [onCallEmbed] });
+                }
             }
         }
         actionPerformed = true;
