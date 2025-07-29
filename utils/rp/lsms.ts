@@ -75,8 +75,8 @@ export function lsmsDutyUpdateEmbedGenerator(userUpdated: User, take: boolean) {
 export function lsmsOnCallUpdateEmbedGenerator(userUpdated: User, take: boolean) {
     return lsmsEmbedGenerator()
         .setColor(take ? 0x00ff00 : 0xff0000)
-        .setTitle(`${take ? "Début d'" : "Fin d'"}astreinte`)
-        .setDescription(`<@${userUpdated.id}> a ${take ? 'débuté' : 'terminé'} son astreinte.`);
+        .setTitle(`${take ? "Début du" : "Fin du"} semi service`)
+        .setDescription(`<@${userUpdated.id}> a ${take ? 'débuté' : 'terminé'} son semi service.`);
 }
 
 export function lsmsDutyEmbedGenerator(
@@ -90,7 +90,7 @@ export function lsmsDutyEmbedGenerator(
     const callList =
         onCallPeople.length > 0
             ? onCallPeople.map((user) => `<@${user.id}>`).join('\n')
-            : "Personne n'est en astreinte :(";
+            : "Personne n'est en semi service :(";
     const embed = lsmsEmbedGenerator()
         .setTitle('Gestionnaire de service')
         .setDescription('Cliquez sur les boutons ci-dessous pour gérer les services.')
@@ -101,7 +101,7 @@ export function lsmsDutyEmbedGenerator(
                 inline: true,
             },
             {
-                name: 'En astreinte :',
+                name: 'En semi service :',
                 value: callList,
                 inline: true,
             }
@@ -117,7 +117,7 @@ export function lsmsDutyEmbedGenerator(
             .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
             .setCustomId('handleLsmsOnCall')
-            .setLabel("Prendre/Quitter l'astreinte")
+            .setLabel("Prendre/Quitter le semi service")
             .setStyle(ButtonStyle.Secondary),
     ];
     const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
@@ -156,7 +156,7 @@ export async function prepareLsmsSummary(): Promise<void> {
                         )
                         .addFields(
                             { name: 'Service', value: dutyFieldFormatted || 'Aucun :(' },
-                            { name: 'Astreinte', value: onCallFieldFormatted || 'Aucun :(' }
+                            { name: 'Semi service', value: onCallFieldFormatted || 'Aucun :(' }
                         );
 
                     logger.info(`Sending duty summary embed to logs channel for guild ${dutyManager.guildId}`);

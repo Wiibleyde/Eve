@@ -141,7 +141,7 @@ const processRoleUpdate = async (
                     await logChannel.send({ embeds: [dutyEmbed] });
                 }
 
-                // Gérer les changements de rôle d'astreinte
+                // Gérer les changements de rôle de semi service
                 if (isOnCallRoleAdded || isOnCallRoleRemoved) {
                     const onCallEmbed = lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
                     await logChannel.send({ embeds: [onCallEmbed] });
