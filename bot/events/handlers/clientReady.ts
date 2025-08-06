@@ -7,6 +7,7 @@ import { initMpThreads } from '../../../utils/mpManager';
 import { birthdayCron } from '@cron/birthdayCron';
 import { statusCron } from '@cron/statusCron';
 import { streamCron } from '@cron/streamCron';
+import { lsmsCron } from '@cron/lsmsCron';
 
 export const clientReadyEvent: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -31,6 +32,7 @@ export const clientReadyEvent: Event<Events.ClientReady> = {
         birthdayCron.start();
         statusCron.start();
         streamCron.start();
+        lsmsCron.start();
 
         logger.info(`Logged in as ${client.user?.tag}`);
     },
