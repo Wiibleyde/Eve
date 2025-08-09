@@ -37,11 +37,11 @@ export async function handleLsmsOnCall(interaction: ButtonInteraction): Promise<
     let successMessage = '';
 
     if (hasOnCallRole) {
-        // Retirer le rôle d'astreinte s'il est déjà présent
+        // Retirer le rôle de semi service s'il est déjà présent
         await memberRoles.remove(lsmsDutyData.onCallRoleId);
-        successMessage = 'Vous avez quitté votre astreinte.';
+        successMessage = 'Vous avez quitté votre semi service.';
     } else {
-        // Ajouter le rôle d'astreinte
+        // Ajouter le rôle de semi service
         const hasDutyRole = lsmsDutyData.dutyRoleId && memberRoles.cache.has(lsmsDutyData.dutyRoleId);
 
         const rolePromises = [];
@@ -53,7 +53,7 @@ export async function handleLsmsOnCall(interaction: ButtonInteraction): Promise<
         rolePromises.push(memberRoles.add(lsmsDutyData.onCallRoleId));
         await Promise.all(rolePromises);
 
-        successMessage = 'Vous êtes maintenant en astreinte.';
+        successMessage = 'Vous êtes maintenant en semi service.';
         if (hasDutyRole) {
             successMessage += ' Votre service a été désactivé.';
         }

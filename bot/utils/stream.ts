@@ -44,37 +44,6 @@ async function getTextChannel(channelId: string): Promise<GuildTextBasedChannel 
     }
 }
 
-async function updateOrCreateMessage(
-    channel: GuildTextBasedChannel,
-    embed: EmbedBuilder,
-    existingMessageId?: string | null,
-    roleId?: string | null,
-    addButton = true,
-    streamerName?: string
-): Promise<string | null> {
-    try {
-        // Try to update existing message
-        if (existingMessageId) {
-            try {
-                const existingMessage = await channel.messages.fetch(existingMessageId);
-                if (existingMessage) {
-                    const components = addButton && streamerName ? [createStreamButton(streamerName)] : [];
-                    await existingMessage.edit({ embeds: [embed], components });
-                    return existingMessageId;
-                }
-            } catch {
-                logger.warn(`Message ${existingMessageId} not found, creating new message`);
-            }
-        }
-
-        // Create new message if needed
-        return await sendStreamMessage(channel, embed, roleId, addButton, streamerName);
-    } catch (error) {
-        logger.error('Error updating/creating message:', error);
-        return null;
-    }
-}
-
 function createStreamButton(streamerName: string): ActionRowBuilder<ButtonBuilder> {
     const button = new ButtonBuilder()
         .setURL(`https://www.twitch.tv/${streamerName}`)
@@ -120,26 +89,35 @@ export async function handleStreamStarted(streamer: StreamData, userData: Twitch
         if (!channel) continue;
 
         try {
-            // Delete old message if it exists
+            let newMessageId: string | null = null;
+
+            // Vérifie si le message existe vraiment avant de le supprimer/créer
             if (streamData.messageId) {
                 try {
                     const oldMessage = await channel.messages.fetch(streamData.messageId);
                     if (oldMessage) {
-                        await oldMessage.delete();
+                        // Met à jour le message existant
+                        const components = [createStreamButton(userData.login)];
+                        await oldMessage.edit({ embeds: [embed], components });
+                        newMessageId = streamData.messageId;
                     }
                 } catch {
-                    logger.warn(`Message not found for user ID: ${streamer.user_id}`);
+                    // Le message n'existe pas, on va en créer un nouveau
+                    logger.warn(`Message not found for user ID: ${streamer.user_id}, creating new one`);
+                    newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
                 }
+            } else {
+                // Pas de messageId, on en crée un nouveau
+                newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
             }
 
-            // Send new message with appropriate mentions, including roleId for mentions
-            const newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
-
-            // Update database with new message ID
-            await prisma.stream.update({
-                where: { uuid: streamData.uuid },
-                data: { messageId: newMessageId },
-            });
+            // Met à jour la base seulement si l'ID a changé
+            if (newMessageId && newMessageId !== streamData.messageId) {
+                await prisma.stream.update({
+                    where: { uuid: streamData.uuid },
+                    data: { messageId: newMessageId },
+                });
+            }
         } catch (error) {
             logger.error(`Failed to update stream message for ${streamer.user_id}:`, error);
         }
@@ -156,17 +134,24 @@ export async function handleStreamEnded(userData: TwitchUser): Promise<void> {
         if (!channel) continue;
 
         try {
-            const newMessageId = await updateOrCreateMessage(
-                channel,
-                embed,
-                streamData.messageId,
-                null,
-                false,
-                userData.login
-            );
+            let newMessageId: string | null = null;
 
-            // Update database if needed
-            if (newMessageId !== streamData.messageId) {
+            if (streamData.messageId) {
+                try {
+                    const oldMessage = await channel.messages.fetch(streamData.messageId);
+                    if (oldMessage) {
+                        await oldMessage.edit({ embeds: [embed], components: [] });
+                        newMessageId = streamData.messageId;
+                    }
+                } catch {
+                    logger.warn(`Offline message not found for user ID: ${userData.id}, creating new one`);
+                    newMessageId = await sendStreamMessage(channel, embed, null, false, userData.login);
+                }
+            } else {
+                newMessageId = await sendStreamMessage(channel, embed, null, false, userData.login);
+            }
+
+            if (newMessageId && newMessageId !== streamData.messageId) {
                 await prisma.stream.update({
                     where: { uuid: streamData.uuid },
                     data: { messageId: newMessageId },
@@ -188,9 +173,16 @@ export async function handleStreamUpdated(streamer: StreamData, userData: Twitch
         if (!channel) continue;
 
         try {
-            // Only update the existing message if it exists
             if (streamData.messageId) {
-                await updateOrCreateMessage(channel, embed, streamData.messageId, null, true, userData.login);
+                try {
+                    const oldMessage = await channel.messages.fetch(streamData.messageId);
+                    if (oldMessage) {
+                        const components = [createStreamButton(userData.login)];
+                        await oldMessage.edit({ embeds: [embed], components });
+                    }
+                } catch {
+                    logger.warn(`Message not found for update for user ID: ${streamer.user_id}`);
+                }
             }
         } catch (error) {
             logger.error(`Failed to update stream message for ${streamer.user_id}:`, error);
@@ -214,24 +206,30 @@ export async function handleInitStreams(onlineStreamers: StreamData[], userData:
             continue;
         }
 
-        // Generate appropriate embed based on stream status
         const embed = stream ? generateOnlineStreamEmbed(stream, user) : generateOfflineStreamEmbed(user);
-
-        // Get channel and update or create message
         const channel = await getTextChannel(streamer.channelId);
         if (!channel) continue;
 
         try {
-            const newMessageId = await updateOrCreateMessage(
-                channel,
-                embed,
-                streamer.messageId,
-                null,
-                !!stream,
-                user.login
-            );
+            let newMessageId: string | null = null;
 
-            if (newMessageId !== streamer.messageId) {
+            if (streamer.messageId) {
+                try {
+                    const oldMessage = await channel.messages.fetch(streamer.messageId);
+                    if (oldMessage) {
+                        const components = streamer ? [createStreamButton(user.login)] : [];
+                        await oldMessage.edit({ embeds: [embed], components });
+                        newMessageId = streamer.messageId;
+                    }
+                } catch {
+                    logger.warn(`Init: message not found for streamer ${user.login}, creating new one`);
+                    newMessageId = await sendStreamMessage(channel, embed, null, !!stream, user.login);
+                }
+            } else {
+                newMessageId = await sendStreamMessage(channel, embed, null, !!stream, user.login);
+            }
+
+            if (newMessageId && newMessageId !== streamer.messageId) {
                 await prisma.stream.update({
                     where: { uuid: streamer.uuid },
                     data: { messageId: newMessageId },

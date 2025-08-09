@@ -53,7 +53,7 @@ export async function handleLsmsDuty(interaction: ButtonInteraction): Promise<vo
 
         successMessage = 'Vous avez pris votre service.';
         if (hasOnCallRole) {
-            successMessage += " Votre statut d'astreinte a été désactivé.";
+            successMessage += " Votre statut de semi service a été désactivé.";
         }
     }
 
