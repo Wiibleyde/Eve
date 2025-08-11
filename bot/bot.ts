@@ -1,6 +1,8 @@
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { prepareLsmsSummary } from '../utils/rp/lsms';
 import { logger } from '..';
+import { Player } from 'discord-player';
+import { YoutubeiExtractor } from 'discord-player-youtubei';
 
 export const client = new Client({
     intents: [
@@ -15,6 +17,9 @@ export const client = new Client({
     ],
     partials: [Partials.User, Partials.Channel, Partials.Message, Partials.GuildMember],
 });
+
+export const player = new Player(client, {});
+player.extractors.register(YoutubeiExtractor, {});
 
 export async function stopBot() {
     await client.destroy();

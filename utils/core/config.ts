@@ -2,6 +2,22 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+export const playerConfig = {
+    extraMessages: false,
+    enableEmoji: false,
+    loopMessage: false,
+    emojis: {
+        back: '⏪',
+        skip: '⏩',
+        ResumePause: '⏯️',
+        savetrack: '💾',
+        volumeUp: '🔊',
+        volumeDown: '🔉',
+        loop: '🔁',
+        ia: '✨',
+    },
+};
+
 const {
     DISCORD_TOKEN,
     DISCORD_CLIENT_ID,
