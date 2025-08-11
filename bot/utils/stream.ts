@@ -89,34 +89,36 @@ export async function handleStreamStarted(streamer: StreamData, userData: Twitch
         if (!channel) continue;
 
         try {
-            let newMessageId: string | null = null;
-
-            // Vérifie si le message existe vraiment avant de le supprimer/créer
+            let shouldPost = true;
             if (streamData.messageId) {
                 try {
                     const oldMessage = await channel.messages.fetch(streamData.messageId);
                     if (oldMessage) {
-                        // Met à jour le message existant
-                        const components = [createStreamButton(userData.login)];
-                        await oldMessage.edit({ embeds: [embed], components });
-                        newMessageId = streamData.messageId;
+                        // Si le message existe, vérifier s'il est déjà online
+                        const isAlreadyOnline = oldMessage.embeds?.[0]?.title === streamer.title;
+                        if (!isAlreadyOnline) {
+                            await oldMessage.delete();
+                        } else {
+                            // Si déjà online, ne rien faire (pas de repost)
+                            shouldPost = false;
+                        }
+                    } else {
+                        // Message introuvable, on doit reposter
+                        shouldPost = true;
                     }
                 } catch {
-                    // Le message n'existe pas, on va en créer un nouveau
-                    logger.warn(`Message not found for user ID: ${streamer.user_id}, creating new one`);
-                    newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
+                    // Erreur lors du fetch (message introuvable), on doit reposter
+                    shouldPost = true;
                 }
-            } else {
-                // Pas de messageId, on en crée un nouveau
-                newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
             }
-
-            // Met à jour la base seulement si l'ID a changé
-            if (newMessageId && newMessageId !== streamData.messageId) {
-                await prisma.stream.update({
-                    where: { uuid: streamData.uuid },
-                    data: { messageId: newMessageId },
-                });
+            if (shouldPost) {
+                const newMessageId = await sendStreamMessage(channel, embed, streamData.roleId, true, userData.login);
+                if (newMessageId && newMessageId !== streamData.messageId) {
+                    await prisma.stream.update({
+                        where: { uuid: streamData.uuid },
+                        data: { messageId: newMessageId },
+                    });
+                }
             }
         } catch (error) {
             logger.error(`Failed to update stream message for ${streamer.user_id}:`, error);
@@ -134,28 +136,30 @@ export async function handleStreamEnded(userData: TwitchUser): Promise<void> {
         if (!channel) continue;
 
         try {
-            let newMessageId: string | null = null;
-
+            let shouldPost = true;
             if (streamData.messageId) {
                 try {
                     const oldMessage = await channel.messages.fetch(streamData.messageId);
                     if (oldMessage) {
+                        // Si le message existe, on l'édite en offline
                         await oldMessage.edit({ embeds: [embed], components: [] });
-                        newMessageId = streamData.messageId;
+                        shouldPost = false;
+                    } else {
+                        shouldPost = true;
                     }
                 } catch {
-                    logger.warn(`Offline message not found for user ID: ${userData.id}, creating new one`);
-                    newMessageId = await sendStreamMessage(channel, embed, null, false, userData.login);
+                    // Message introuvable, on doit reposter
+                    shouldPost = true;
                 }
-            } else {
-                newMessageId = await sendStreamMessage(channel, embed, null, false, userData.login);
             }
-
-            if (newMessageId && newMessageId !== streamData.messageId) {
-                await prisma.stream.update({
-                    where: { uuid: streamData.uuid },
-                    data: { messageId: newMessageId },
-                });
+            if (shouldPost) {
+                const newMessageId = await sendStreamMessage(channel, embed, null, false, userData.login);
+                if (newMessageId && newMessageId !== streamData.messageId) {
+                    await prisma.stream.update({
+                        where: { uuid: streamData.uuid },
+                        data: { messageId: newMessageId },
+                    });
+                }
             }
         } catch (error) {
             logger.error(`Failed to update stream message for ${userData.id}:`, error);
