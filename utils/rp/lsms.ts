@@ -75,7 +75,7 @@ export function lsmsDutyUpdateEmbedGenerator(userUpdated: User, take: boolean) {
 export function lsmsOnCallUpdateEmbedGenerator(userUpdated: User, take: boolean) {
     return lsmsEmbedGenerator()
         .setColor(take ? 0x00ff00 : 0xff0000)
-        .setTitle(`${take ? "Début du" : "Fin du"} semi service`)
+        .setTitle(`${take ? 'Début du' : 'Fin du'} semi service`)
         .setDescription(`<@${userUpdated.id}> a ${take ? 'débuté' : 'terminé'} son semi service.`);
 }
 
@@ -117,7 +117,7 @@ export function lsmsDutyEmbedGenerator(
             .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
             .setCustomId('handleLsmsOnCall')
-            .setLabel("Prendre/Quitter le semi service")
+            .setLabel('Prendre/Quitter le semi service')
             .setStyle(ButtonStyle.Secondary),
     ];
     const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
