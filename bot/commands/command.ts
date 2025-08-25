@@ -16,6 +16,7 @@ import { quote } from './handlers/quote';
 import { debug } from './handlers/debug';
 import { maintenance } from './handlers/maintenance';
 import { lsms } from './handlers/rp/lsms';
+import { labo } from './handlers/rp/labo';
 
 // Base interface for all command types
 export interface IBaseCommand {
@@ -42,6 +43,7 @@ export const commands: ICommand[] = [
     debug,
     maintenance,
     lsms,
+    labo,
 ];
 
 // Map pour accéder aux commandes rapidement par leur nom
