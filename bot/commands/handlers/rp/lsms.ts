@@ -18,7 +18,7 @@ import { getSubcommand, getRoleOption, getChannelOption, getStringOption } from 
 export const lsms: ICommand = {
     data: new SlashCommandBuilder()
         .setName('lsms')
-        .setDescription('Commandes utiles pour le LSMS')
+        .setDescription('[LSMS] Commandes utiles pour le LSMS')
         .addSubcommand((subcommand) =>
             subcommand
                 .setName('addduty')
