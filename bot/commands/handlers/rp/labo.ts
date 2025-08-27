@@ -16,15 +16,15 @@ const bloodTypePercentages: { [key: string]: number } = {
 };
 
 const alcoholeLevels: { [key: string]: number } = {
-    "none": 80,
-    "low": 15,
-    "medium": 4,
+    "none": 90,
+    "low": 7,
+    "medium": 2,
     "high": 1,
 };
 
 const drugTypes: { [key: string]: number } = {
-    "negative": 70,
-    "positive": 30,
+    "negative": 90,
+    "positive": 10,
 };
 
 export const labo: ICommand = {
@@ -182,13 +182,13 @@ export const labo: ICommand = {
         } else {
             switch (subcommand) {
                 case "bloodgroup":
-                    time = 5;
-                    break;
-                case "alcohole":
                     time = 3;
                     break;
+                case "alcohole":
+                    time = 2;
+                    break;
                 case "drugs":
-                    time = 10;
+                    time = 7;
                     break;
                 case "diseases":
                     time = 15;
@@ -228,7 +228,7 @@ export const labo: ICommand = {
 
         const waitingEmbed = lsmsEmbedGenerator()
             .setTitle("Analyse en cours")
-            .setDescription(`Analyse de type **${subcommand}** pour **${name}** en cours. Résultat disponible dans environ **${time}** minute(s).`)
+            .setDescription(`Analyse de type **${laboInQueryManager.getAnalyseType({ type: subcommand } as LaboInQueryEntry)}** pour **${name}** en cours. Résultat disponible dans environ **${time}** minute(s).`)
             .addFields(
                 { name: "Type d'analyse", value: laboInQueryManager.getAnalyseType({ type: subcommand } as LaboInQueryEntry), inline: true },
                 { name: "Nom de la personne", value: name, inline: true },
@@ -259,6 +259,5 @@ export const labo: ICommand = {
         await interaction.editReply({
             embeds: [lsmsSuccessEmbedGenerator("Demande d'analyse reçue. Résultat disponible dans environ " + time + " minute(s).")],
         });
-        console.log(`Labo: New ${subcommand} analysis for ${name}, requested by ${interaction.user.tag}.`);
     }
 };

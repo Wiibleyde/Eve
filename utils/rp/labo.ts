@@ -29,7 +29,6 @@ class LaboInQueryManager {
 
         this.checkLoopInterval = setInterval(() => {
             const now = new Date();
-            logger.debug(`Vérification des entrées de labo en cours... (${this.entries.length} entrées)`);
             for (let i = this.entries.length - 1; i >= 0; i--) {
                 const entry = this.entries[i];
                 if (!entry) continue;
@@ -50,7 +49,7 @@ class LaboInQueryManager {
     private async notifyUserCompletion(entry: LaboInQueryEntry) {
         const channel = await client.channels.fetch(entry.channeId);
         if (!channel || !channel.isTextBased()) {
-            logger.warn(`Impossible de notifier l'utilisateur ${entry.userId} : canal introuvable ou non textuel.`);
+            logger.warn(`Impossible de notifier l'utilisateur <@${entry.userId}> : canal introuvable ou non textuel.`);
             return;
         }
         const message = await channel.messages.fetch(entry.messageId).catch(() => null);
@@ -73,7 +72,7 @@ class LaboInQueryManager {
             }, 60000);
         }
 
-        logger.info(`Utilisateur ${entry.userId} notifié de la fin de l'analyse pour ${entry.name}.`);
+        logger.info(`Utilisateur <@${entry.userId}> notifié de la fin de l'analyse pour ${entry.name}.`);
     }
 
     getAll(): LaboInQueryEntry[] {
