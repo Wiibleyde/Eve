@@ -1,6 +1,6 @@
-import { client } from "@bot/bot";
-import { logger } from "../..";
-import { lsmsEmbedGenerator } from "./lsms";
+import { client } from '@bot/bot';
+import { logger } from '../..';
+import { lsmsEmbedGenerator } from './lsms';
 
 export interface LaboInQueryEntry {
     channeId: string;
@@ -33,7 +33,7 @@ class LaboInQueryManager {
                 const entry = this.entries[i];
                 if (!entry) continue;
                 const elapsed = now.getTime() - entry.startTime.getTime();
-                if (elapsed >= ((entry.time || 5) * 60000)) {
+                if (elapsed >= (entry.time || 5) * 60000) {
                     this.notifyUserCompletion(entry);
                     this.entries.splice(i, 1);
                 }
@@ -57,16 +57,18 @@ class LaboInQueryManager {
             await message.edit({
                 embeds: [
                     lsmsEmbedGenerator()
-                        .setTitle("Analyse terminée")
+                        .setTitle('Analyse terminée')
                         .setDescription(`L'analyse pour **${entry.name}** est terminée.`)
                         .addFields(
                             { name: "Type d'analyse", value: this.getAnalyseType(entry), inline: true },
-                            { name: "Résultat", value: entry.result || "Erreur dans l'analyse", inline: true },
-                            { name: "Demandé par", value: `<@${entry.userId}>`, inline: true }
-                        )
+                            { name: 'Résultat', value: entry.result || "Erreur dans l'analyse", inline: true },
+                            { name: 'Demandé par', value: `<@${entry.userId}>`, inline: true }
+                        ),
                 ],
             });
-            const replyMessage = await message.reply({ content: `<@${entry.userId}>, votre analyse est terminée. (Message supprimé automatiquement dans 1 minute)` });
+            const replyMessage = await message.reply({
+                content: `<@${entry.userId}>, votre analyse est terminée. (Message supprimé automatiquement dans 1 minute)`,
+            });
             setTimeout(() => {
                 replyMessage.delete().catch(() => null);
             }, 60000);
@@ -81,16 +83,16 @@ class LaboInQueryManager {
 
     public getAnalyseType(entry: LaboInQueryEntry): string {
         switch (entry.type) {
-            case "bloodgroup":
-                return "Groupe Sanguin";
-            case "alcohole":
+            case 'bloodgroup':
+                return 'Groupe Sanguin';
+            case 'alcohole':
                 return "Taux d'Alcoolémie";
-            case "drugs":
-                return "Drogues";
-            case "diseases":
-                return "Maladies";
+            case 'drugs':
+                return 'Drogues';
+            case 'diseases':
+                return 'Maladies';
             default:
-                return "Analyse Inconnue";
+                return 'Analyse Inconnue';
         }
     }
 }
