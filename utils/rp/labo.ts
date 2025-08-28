@@ -69,12 +69,16 @@ class LaboInQueryManager {
             const replyMessage = await message.reply({
                 content: `<@${entry.userId}>, votre analyse est terminée. (Message supprimé automatiquement dans 1 minute)`,
             });
+
+            logger.info(`Utilisateur <@${entry.userId}> notifié de la fin de l'analyse pour ${entry.name}.`);
+
             setTimeout(() => {
                 replyMessage.delete().catch(() => null);
             }, 60000);
+        } else {
+            logger.warn(`Message introuvable pour notifier l'utilisateur <@${entry.userId}>.`);
         }
 
-        logger.info(`Utilisateur <@${entry.userId}> notifié de la fin de l'analyse pour ${entry.name}.`);
     }
 
     getAll(): LaboInQueryEntry[] {
@@ -94,6 +98,16 @@ class LaboInQueryManager {
             default:
                 return 'Analyse Inconnue';
         }
+    }
+
+    cancelByMessageId(messageId: string): { success: boolean; entry?: LaboInQueryEntry } {
+        const index = this.entries.findIndex((e) => e.messageId === messageId);
+        if (index !== -1) {
+            const saveEntry = this.entries[index];
+            this.entries.splice(index, 1);
+            return { success: true, entry: saveEntry };
+        }
+        return { success: false };
     }
 }
 
