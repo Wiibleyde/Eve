@@ -3,6 +3,9 @@ import { config } from '@utils/core/config';
 import { addLaboInQuery, laboInQueryManager, type LaboInQueryEntry } from '@utils/rp/labo';
 import { lsmsEmbedGenerator, lsmsErrorEmbedGenerator, lsmsSuccessEmbedGenerator } from '@utils/rp/lsms';
 import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     ChatInputCommandInteraction,
     InteractionContextType,
     MessageFlags,
@@ -178,9 +181,6 @@ export const labo: ICommand = {
         const name = interaction.options.getString('nom_prenom', true);
         let result = interaction.options.getString('resultat', false) || undefined;
         const timeStr = interaction.options.getString('time', false) || undefined;
-        console.log(
-            `Labo: ${interaction.user.tag} requested a ${subcommand} analysis for ${name} with result ${result || 'random'} and time ${timeStr || 'default'}.`
-        );
         let time: number;
         if (timeStr) {
             time = parseInt(timeStr, 10);
@@ -262,8 +262,20 @@ export const labo: ICommand = {
                 },
                 { name: 'Nom de la personne', value: name, inline: true },
                 { name: 'Demandé par', value: `<@${interaction.user.id}>`, inline: true }
-            );
-        const message = await (interaction.channel as TextChannel)?.send({ embeds: [waitingEmbed] });
+            )
+            .setFooter({
+                text: 'Eve - ⚠️ Ne jamais supprimer ce message !',
+                iconURL: interaction.client.user?.displayAvatarURL() || '',
+            });
+        const cancelButton = new ButtonBuilder()
+            .setCustomId('laboCancelButton')
+            .setLabel("Annuler l'analyse")
+            .setStyle(ButtonStyle.Danger);
+        const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(cancelButton);
+        const message = await (interaction.channel as TextChannel)?.send({
+            embeds: [waitingEmbed],
+            components: [actionRow],
+        });
         if (!message) {
             await interaction.editReply({
                 embeds: [lsmsErrorEmbedGenerator("Impossible d'envoyer le message dans ce canal.")],
