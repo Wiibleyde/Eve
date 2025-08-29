@@ -4,6 +4,7 @@ import { config } from './utils/core/config';
 import { loadEvents } from './bot/events/event';
 import { disconnectDatabase, connectDatabase } from './utils/core/database';
 import { initAi } from './utils/intelligence';
+import { startApiServer } from './api/server';
 
 export const logger = Logger.init({
     minLevel: 'debug',
@@ -60,4 +61,5 @@ process.on('unhandledRejection', (reason) => {
     logger.error(`Rejet de promesse non géré: ${reason}`);
 });
 
+startApiServer(3000);
 main();
