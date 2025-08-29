@@ -26,6 +26,7 @@
     "devDependencies": {
         "@eslint/js": "^9.34.0",
         "@types/bun": "^1.2.21",
+        "@types/cors": "^2.8.19",
         "@types/express": "^5.0.3",
         "eslint": "^9.34.0",
         "globals": "^16.3.0",
@@ -42,6 +43,7 @@
         "@prisma/client": "^6.15.0",
         "axios": "^1.11.0",
         "blagues-api": "^2.1.1",
+        "cors": "^2.8.5",
         "cron": "^4.3.3",
         "discord.js": "^14.22.1",
         "dotenv": "^17.2.1",
