@@ -35,8 +35,11 @@ export function generateLotoEmbed(game: LotoGames, tickets: LotoTicketWithPlayer
         return a.name.localeCompare(b.name, 'fr', { sensitivity: 'case' });
     });
 
-    if (sortedPlayers.length > 0) {
-        const playersLines = sortedPlayers.map(({ name, count }) => `- ${name} (${count})`);
+    // Limiter à 50 joueurs affichés
+    const finalSortedPlayers = sortedPlayers.slice(0, 50);
+
+    if (finalSortedPlayers.length > 0) {
+        const playersLines = finalSortedPlayers.map(({ name, count }) => `- ${name} (${count})`);
         descriptionLines.push('', ...playersLines);
     } else {
         descriptionLines.push('', 'Aucun ticket vendu pour le moment.');

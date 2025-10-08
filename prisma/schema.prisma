@@ -147,7 +147,6 @@ model LotoTickets {
     uuid       String      @id @default(uuid())
     playerUuid String
     gameUuid   String
-    numbers    String      @db.VarChar(255)
     sellerId   String
     player     LotoPlayers @relation(fields: [playerUuid], references: [uuid], onDelete: Cascade)
     game       LotoGames   @relation(fields: [gameUuid], references: [uuid], onDelete: Cascade)

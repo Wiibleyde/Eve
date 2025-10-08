@@ -10,7 +10,6 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ChatInputCommandInteraction,
-    MessageFlags,
     PermissionFlagsBits,
     SlashCommandBuilder,
 } from 'discord.js';
@@ -36,9 +35,7 @@ export const loto: ICommand = {
         ),
     guildIds: ['1396778821570793572', config.EVE_HOME_GUILD], // SABS et EVE Home
     execute: async (interaction: ChatInputCommandInteraction) => {
-        await interaction.deferReply({
-            flags: [MessageFlags.Ephemeral],
-        });
+        await interaction.deferReply({});
 
         if (!(await hasPermission(interaction, [PermissionFlagsBits.PinMessages]))) {
             await interaction.editReply({
