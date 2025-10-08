@@ -107,13 +107,51 @@ model Stream {
 }
 
 model LsmsDutyManager {
-    uuid         String  @id @default(uuid())
-    guildId      String
-    channelId    String
-    messageId    String?
-    dutyRoleId   String?
-    onCallRoleId String?
+    uuid          String  @id @default(uuid())
+    guildId       String
+    channelId     String
+    messageId     String?
+    dutyRoleId    String?
+    onCallRoleId  String?
     logsChannelId String?
 
     @@index([guildId])
+}
+
+model LotoGames {
+    uuid        String        @id @default(uuid())
+    name        String
+    isActive    Boolean       @default(true)
+    ticketPrice Int           @default(500)
+    winnerUuid  String?
+    winner      LotoPlayers?  @relation("GameWinner", fields: [winnerUuid], references: [uuid], onDelete: SetNull)
+    createdAt   DateTime      @default(now()) @db.Timestamp(6)
+    players     LotoPlayers[] @relation("GamePlayers")
+    tickets     LotoTickets[]
+}
+
+model LotoPlayers {
+    uuid         String        @id @default(uuid())
+    gameUuid     String
+    name         String
+    lastPlay     DateTime      @default(now())
+    game         LotoGames     @relation("GamePlayers", fields: [gameUuid], references: [uuid], onDelete: Cascade)
+    tickets      LotoTickets[]
+    winningGames LotoGames[]   @relation("GameWinner")
+
+    @@unique([gameUuid, name], name: "unique_player_name_per_game")
+    @@index([gameUuid])
+}
+
+model LotoTickets {
+    uuid       String      @id @default(uuid())
+    playerUuid String
+    gameUuid   String
+    numbers    String      @db.VarChar(255)
+    sellerId   String
+    player     LotoPlayers @relation(fields: [playerUuid], references: [uuid], onDelete: Cascade)
+    game       LotoGames   @relation(fields: [gameUuid], references: [uuid], onDelete: Cascade)
+
+    @@index([playerUuid], map: "LotoTickets_playerUuid_fkey")
+    @@index([gameUuid])
 }
