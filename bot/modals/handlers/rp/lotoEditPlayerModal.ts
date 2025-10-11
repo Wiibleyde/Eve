@@ -99,6 +99,16 @@ export async function lotoEditPlayerModal(interaction: ModalSubmitInteraction): 
                     },
                 },
             },
+            prizes: {
+                orderBy: { position: 'asc' },
+                include: {
+                    winnerPlayer: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
     });
 

@@ -113,6 +113,16 @@ export async function removeTicketsModal(interaction: ModalSubmitInteraction): P
                     },
                 },
             },
+            prizes: {
+                orderBy: { position: 'asc' },
+                include: {
+                    winnerPlayer: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
     });
 

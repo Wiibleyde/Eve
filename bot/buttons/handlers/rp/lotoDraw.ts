@@ -36,6 +36,16 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
                     },
                 },
             },
+            prizes: {
+                orderBy: { position: 'asc' },
+                include: {
+                    winnerPlayer: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
     });
 
@@ -60,30 +70,65 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
         return;
     }
 
-    // Tirer un ticket au hasard
-    const randomIndex = Math.floor(Math.random() * game.tickets.length);
-    const winningTicket = game.tickets[randomIndex];
-
-    if (!winningTicket) {
+    if (game.prizes.length === 0) {
         await interaction.editReply({
-            embeds: [errorEmbedGenerator('Erreur lors du tirage au sort.')],
+            embeds: [errorEmbedGenerator('Aucun gain configuré pour ce loto.')],
         });
         return;
     }
 
-    // Le numéro du ticket est basé sur sa position (index + 1)
-    const winningTicketNumber = randomIndex + 1;
+    if (game.prizes.length > game.tickets.length) {
+        await interaction.editReply({
+            embeds: [
+                errorEmbedGenerator(
+                    `Il faut au moins autant de tickets que de gains (tickets: ${game.tickets.length}, gains: ${game.prizes.length}).`
+                ),
+            ],
+        });
+        return;
+    }
 
-    // Mettre à jour le jeu avec le gagnant
-    await prisma.lotoGames.update({
-        where: { uuid: gameUuid },
-        data: {
-            isActive: false,
-            winnerUuid: winningTicket.playerUuid,
-        },
+    const sortedPrizes = [...game.prizes].sort((a, b) => a.position - b.position);
+    const availableTickets = [...game.tickets];
+    const now = new Date();
+
+    const assignments = sortedPrizes.map((prize) => {
+        const randomIndex = Math.floor(Math.random() * availableTickets.length);
+        const winningTicket = availableTickets.splice(randomIndex, 1)[0];
+
+        if (!winningTicket) {
+            throw new Error('Erreur lors du tirage au sort des gains.');
+        }
+
+        const ticketNumber = game.tickets.findIndex((ticket) => ticket.uuid === winningTicket.uuid) + 1;
+
+        return {
+            prizeUuid: prize.uuid,
+            prizeLabel: prize.label,
+            ticket: winningTicket,
+            ticketNumber,
+        };
     });
 
-    const winnerName = winningTicket.player?.name ?? 'Nom inconnu';
+    await prisma.$transaction([
+        prisma.lotoGames.update({
+            where: { uuid: gameUuid },
+            data: {
+                isActive: false,
+            },
+        }),
+        ...assignments.map((assignment) =>
+            prisma.lotoPrizes.update({
+                where: { uuid: assignment.prizeUuid },
+                data: {
+                    winnerPlayerUuid: assignment.ticket.playerUuid,
+                    winningTicketNumber: assignment.ticketNumber,
+                    drawnAt: now,
+                },
+            })
+        ),
+    ]);
+
     const totalPrize = game.tickets.length * game.ticketPrice;
 
     // Calculer les statistiques de vente par vendeur
@@ -99,50 +144,68 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
     }
 
     // Créer le texte des ventes par vendeur
-    const salesLines = Array.from(salesBySeller.entries())
-        .map(([sellerId, stats]) => `<@${sellerId}> : ${stats.count} ticket(s) - **${stats.total}$**`)
-        .join('\n');
+    const sellerSummaries = Array.from(salesBySeller.entries()).map(
+        ([sellerId, stats]) => `<@${sellerId}> : ${stats.count} ticket(s) - **${stats.total}$**`
+    );
+    const salesLines = sellerSummaries.join('\n');
+    const salesFieldValue = salesLines.length > 0 ? salesLines : 'Aucune vente enregistrée.';
 
     // Mettre à jour le message original
-    if (interaction.message) {
-        const updatedGame = await prisma.lotoGames.findUnique({
-            where: { uuid: gameUuid },
-            include: {
-                tickets: {
-                    include: {
-                        player: {
-                            select: {
-                                name: true,
-                            },
+    const updatedGame = await prisma.lotoGames.findUnique({
+        where: { uuid: gameUuid },
+        include: {
+            tickets: {
+                include: {
+                    player: {
+                        select: {
+                            name: true,
                         },
                     },
                 },
             },
+            prizes: {
+                orderBy: { position: 'asc' },
+                include: {
+                    winnerPlayer: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if (updatedGame && interaction.message) {
+        const embed = generateLotoEmbed(updatedGame, updatedGame.tickets);
+        embed.addFields({
+            name: '📊 Ventes par vendeur',
+            value: salesFieldValue,
         });
 
-        if (updatedGame) {
-            const embed = generateLotoEmbed(updatedGame, updatedGame.tickets);
-            embed.addFields({
-                name: '🎉 Gagnant',
-                value: `**${winnerName}** remporte **${totalPrize}$** !`,
-            });
-            embed.addFields({
-                name: '📊 Ventes par vendeur',
-                value: salesLines,
-            });
-
-            await interaction.message.edit({
-                embeds: [embed],
-                components: [], // Retirer tous les boutons
-            });
-        }
+        await interaction.message.edit({
+            embeds: [embed],
+            components: [],
+        });
     }
 
+    const winnerLines = (
+        updatedGame?.prizes.map((prize, index) => {
+            const rank = index + 1;
+            if (prize.winnerPlayer) {
+                const ticketInfo = prize.winningTicketNumber ? ` (ticket n°${prize.winningTicketNumber})` : '';
+                return `#${rank} ${prize.label} → **${prize.winnerPlayer.name}**${ticketInfo}`;
+            }
+
+            return `#${rank} ${prize.label} → Non attribué`;
+        }) ??
+        assignments.map((assignment, index) => {
+            const playerName = assignment.ticket.player?.name ?? 'Nom inconnu';
+            return `#${index + 1} ${assignment.prizeLabel} → **${playerName}** (ticket n°${assignment.ticketNumber})`;
+        })
+    ).join('\n');
+
     await interaction.editReply({
-        embeds: [
-            successEmbedGenerator(
-                `🎉 Le gagnant est **${winnerName}** !\nIl remporte **${totalPrize}$** avec le ticket numéro **${winningTicketNumber}**.`
-            ),
-        ],
+        embeds: [successEmbedGenerator(`🎉 Tirage effectué !\n${winnerLines}\n\nCagnotte totale: **${totalPrize}$**.`)],
     });
 }

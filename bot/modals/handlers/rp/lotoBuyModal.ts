@@ -103,6 +103,16 @@ export async function lotoBuyModal(interaction: ModalSubmitInteraction): Promise
                     },
                 },
             },
+            prizes: {
+                orderBy: { position: 'asc' },
+                include: {
+                    winnerPlayer: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
     });
 

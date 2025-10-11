@@ -1,9 +1,41 @@
 import { basicEmbedGenerator } from '@bot/utils/embeds';
-import type { LotoGames, LotoPlayers, LotoTickets } from '@prisma/client';
+import type { LotoGames, LotoPlayers, LotoTickets, LotoPrizes } from '@prisma/client';
 
 type LotoTicketWithPlayer = LotoTickets & { player: Pick<LotoPlayers, 'name'> | null };
+type LotoPrizeWithWinner = LotoPrizes & { winnerPlayer: Pick<LotoPlayers, 'name'> | null };
 
-export function generateLotoEmbed(game: LotoGames, tickets: LotoTicketWithPlayer[]) {
+function chunkLines(lines: string[], maxLength = 1024): string[] {
+    const chunks: string[] = [];
+    let current = '';
+
+    for (const line of lines) {
+        const candidate = current.length === 0 ? line : `${current}\n${line}`;
+        if (candidate.length > maxLength) {
+            if (current.length === 0) {
+                chunks.push(line.slice(0, maxLength));
+                current = line.slice(maxLength).trimStart();
+                continue;
+            }
+
+            chunks.push(current);
+            current = line;
+            continue;
+        }
+
+        current = candidate;
+    }
+
+    if (current.length > 0) {
+        chunks.push(current);
+    }
+
+    return chunks;
+}
+
+export function generateLotoEmbed(
+    game: LotoGames & { prizes: LotoPrizeWithWinner[] },
+    tickets: LotoTicketWithPlayer[]
+) {
     const embed = basicEmbedGenerator();
     embed.setTitle(`🎟️ Loto: ${game.name} 🎟️`);
     const ticketsSold = tickets.length;
@@ -11,6 +43,10 @@ export function generateLotoEmbed(game: LotoGames, tickets: LotoTicketWithPlayer
         "⚠️ __**Attention, l'écriture des noms est sensible à la case !**__",
         `Nombre de tickets vendus: **${ticketsSold}**`,
     ];
+
+    if (game.prizes.length > 0) {
+        descriptionLines.push(`Nombre de gains: **${game.prizes.length}**`);
+    }
 
     if (ticketsSold > 0) {
         descriptionLines.push(`Cagnotte actuelle: **${ticketsSold * game.ticketPrice}**$`);
@@ -48,6 +84,29 @@ export function generateLotoEmbed(game: LotoGames, tickets: LotoTicketWithPlayer
     embed.setDescription(descriptionLines.join('\n'));
 
     embed.setFooter({ text: `Prix du ticket: ${game.ticketPrice}$` });
+
+    if (game.prizes.length > 0) {
+        const sortedPrizes = [...game.prizes].sort((a, b) => a.position - b.position);
+
+        const prizeLines = sortedPrizes.map((prize, index) => {
+            const rank = index + 1;
+            if (prize.winnerPlayer) {
+                const ticketInfo = prize.winningTicketNumber ? ` (ticket n°${prize.winningTicketNumber})` : '';
+                return `- **#${rank}** ${prize.label} — 🎉 ${prize.winnerPlayer.name}${ticketInfo}`;
+            }
+
+            if (game.isActive) {
+                return `- **#${rank}** ${prize.label}`;
+            }
+
+            return `- **#${rank}** ${prize.label} — Non attribué`;
+        });
+
+        const chunks = chunkLines(prizeLines.length > 0 ? prizeLines : ['Aucun gain configuré.']);
+        chunks.forEach((chunk, idx) => {
+            embed.addFields({ name: idx === 0 ? '🎁 Gains' : '🎁 Gains (suite)', value: chunk });
+        });
+    }
 
     return embed;
 }

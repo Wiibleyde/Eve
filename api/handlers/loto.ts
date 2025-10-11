@@ -15,8 +15,11 @@ export async function lotoStatsHandler(req: Request, res: Response) {
         const totalTickets = await prisma.lotoTickets.count({
             where: lotoUuid ? { gameUuid: lotoUuid } : {},
         });
+        const totalPrizes = await prisma.lotoPrizes.count({
+            where: lotoUuid ? { gameUuid: lotoUuid } : {},
+        });
 
-        res.json({ totalGames, totalTickets });
+        res.json({ totalGames, totalTickets, totalPrizes });
     } catch (error) {
         console.error('Error fetching loto stats:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -31,22 +34,35 @@ export async function lotoWinnersHandler(req: Request, res: Response) {
             return res.status(400).json({ error: 'Invalid lotoUuid parameter' });
         }
 
-        const whereClause = lotoUuid ? { winnerUuid: { not: null }, uuid: lotoUuid } : { winnerUuid: { not: null } };
+        const whereClause = lotoUuid ? { gameUuid: lotoUuid } : {};
 
-        const winners = await prisma.lotoGames.findMany({
-            where: whereClause,
+        const prizes = await prisma.lotoPrizes.findMany({
+            where: {
+                winnerPlayerUuid: { not: null },
+                ...whereClause,
+            },
             include: {
-                winner: {
+                game: {
+                    select: {
+                        uuid: true,
+                        name: true,
+                    },
+                },
+                winnerPlayer: {
                     select: {
                         name: true,
                     },
                 },
             },
+            orderBy: [{ drawnAt: 'desc' }, { position: 'asc' }],
         });
 
-        const formattedWinners = winners.map((game) => ({
-            gameUuid: game.uuid,
-            winnerName: game.winner ? game.winner.name : 'Inconnu',
+        const formattedWinners = prizes.map((prize) => ({
+            gameUuid: prize.game.uuid,
+            gameName: prize.game.name,
+            prizeLabel: prize.label,
+            winnerName: prize.winnerPlayer ? prize.winnerPlayer.name : 'Inconnu',
+            winningTicketNumber: prize.winningTicketNumber,
         }));
 
         res.json({ winners: formattedWinners });

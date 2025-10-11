@@ -123,21 +123,20 @@ model LotoGames {
     name        String
     isActive    Boolean       @default(true)
     ticketPrice Int           @default(500)
-    winnerUuid  String?
-    winner      LotoPlayers?  @relation("GameWinner", fields: [winnerUuid], references: [uuid], onDelete: SetNull)
     createdAt   DateTime      @default(now()) @db.Timestamp(6)
     players     LotoPlayers[] @relation("GamePlayers")
     tickets     LotoTickets[]
+    prizes      LotoPrizes[]
 }
 
 model LotoPlayers {
-    uuid         String        @id @default(uuid())
-    gameUuid     String
-    name         String
-    lastPlay     DateTime      @default(now())
-    game         LotoGames     @relation("GamePlayers", fields: [gameUuid], references: [uuid], onDelete: Cascade)
-    tickets      LotoTickets[]
-    winningGames LotoGames[]   @relation("GameWinner")
+    uuid      String        @id @default(uuid())
+    gameUuid  String
+    name      String
+    lastPlay  DateTime      @default(now())
+    game      LotoGames     @relation("GamePlayers", fields: [gameUuid], references: [uuid], onDelete: Cascade)
+    tickets   LotoTickets[]
+    prizesWon LotoPrizes[]  @relation("PrizeWinner")
 
     @@unique([gameUuid, name], name: "unique_player_name_per_game")
     @@index([gameUuid])
@@ -153,4 +152,22 @@ model LotoTickets {
 
     @@index([playerUuid], map: "LotoTickets_playerUuid_fkey")
     @@index([gameUuid])
+}
+
+model LotoPrizes {
+    uuid                String       @id @default(uuid())
+    gameUuid            String
+    label               String       @db.VarChar(255)
+    position            Int
+    winnerPlayerUuid    String?
+    winningTicketNumber Int?
+    drawnAt             DateTime?    @db.Timestamp(6)
+    createdAt           DateTime     @default(now()) @db.Timestamp(6)
+    updatedAt           DateTime     @updatedAt @db.Timestamp(6)
+    game                LotoGames    @relation(fields: [gameUuid], references: [uuid], onDelete: Cascade)
+    winnerPlayer        LotoPlayers? @relation("PrizeWinner", fields: [winnerPlayerUuid], references: [uuid], onDelete: SetNull)
+
+    @@unique([gameUuid, position], name: "unique_prize_position")
+    @@index([gameUuid])
+    @@index([winnerPlayerUuid])
 }

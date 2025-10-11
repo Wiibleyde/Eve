@@ -14,25 +14,58 @@ import {
     SlashCommandBuilder,
 } from 'discord.js';
 
+const PRIZE_OPTIONS = Array.from({ length: 9 }, (_, index) => ({
+    name: `prize${index + 1}`,
+    description: `Gain n°${index + 1} ${index === 0 ? '(obligatoire)' : '(optionnel)'}`,
+    required: index === 0,
+}));
+
+const PRIZE_OPTION_NAMES = PRIZE_OPTIONS.map((option) => option.name);
+const REQUIRED_PRIZE_OPTIONS = PRIZE_OPTIONS.filter((option) => option.required);
+const OPTIONAL_PRIZE_OPTIONS = PRIZE_OPTIONS.filter((option) => !option.required);
+
 export const loto: ICommand = {
     data: new SlashCommandBuilder()
         .setName('loto')
         .setDescription('[SABS] Commandes du loto')
-        .addSubcommand((subcommand) =>
+        .addSubcommand((subcommand) => {
             subcommand
                 .setName('create')
                 .setDescription('Créer un nouveau loto')
                 .addStringOption((option) =>
                     option.setName('name').setDescription('Nom du loto').setRequired(true).setMaxLength(50)
-                )
-                .addStringOption((option) =>
+                );
+
+            REQUIRED_PRIZE_OPTIONS.forEach((prizeOption) => {
+                subcommand.addStringOption((option) =>
                     option
-                        .setName('ticketprice')
-                        .setDescription("Prix d'un ticket (défaut: 500)")
-                        .setRequired(false)
-                        .setMaxLength(10)
-                )
-        ),
+                        .setName(prizeOption.name)
+                        .setDescription(prizeOption.description)
+                        .setRequired(prizeOption.required)
+                        .setMaxLength(255)
+                );
+            });
+
+            subcommand.addStringOption((option) =>
+                option
+                    .setName('ticketprice')
+                    .setDescription("Prix d'un ticket (défaut: 500)")
+                    .setRequired(false)
+                    .setMaxLength(10)
+            );
+
+            OPTIONAL_PRIZE_OPTIONS.forEach((prizeOption) => {
+                subcommand.addStringOption((option) =>
+                    option
+                        .setName(prizeOption.name)
+                        .setDescription(prizeOption.description)
+                        .setRequired(prizeOption.required)
+                        .setMaxLength(255)
+                );
+            });
+
+            return subcommand;
+        }),
     guildIds: ['1396778821570793572', config.EVE_HOME_GUILD], // SABS et EVE Home
     execute: async (interaction: ChatInputCommandInteraction) => {
         await interaction.deferReply({});
@@ -50,10 +83,43 @@ export const loto: ICommand = {
                 const name = interaction.options.getString('name', true).trim();
                 const ticketPriceInput = interaction.options.getString('ticketprice')?.trim();
                 const ticketPrice = ticketPriceInput ? parseInt(ticketPriceInput, 10) : 500;
+                const prizes = PRIZE_OPTION_NAMES.map((optionName) =>
+                    interaction.options.getString(optionName)?.trim()
+                ).filter((value): value is string => Boolean(value && value.length > 0));
 
                 if (isNaN(ticketPrice) || ticketPrice <= 0) {
                     await interaction.editReply({
                         embeds: [errorEmbedGenerator('Le prix du ticket doit être un nombre entier positif.')],
+                    });
+                    return;
+                }
+
+                if (prizes.length === 0) {
+                    await interaction.editReply({
+                        embeds: [errorEmbedGenerator('Vous devez fournir au moins un gain.')],
+                    });
+                    return;
+                }
+
+                if (prizes.length > PRIZE_OPTION_NAMES.length) {
+                    await interaction.editReply({
+                        embeds: [
+                            errorEmbedGenerator(
+                                `Le nombre de gains ne peut pas dépasser ${PRIZE_OPTION_NAMES.length}.`
+                            ),
+                        ],
+                    });
+                    return;
+                }
+
+                const oversizedPrize = prizes.find((prize) => prize.length > 255);
+                if (oversizedPrize) {
+                    await interaction.editReply({
+                        embeds: [
+                            errorEmbedGenerator(
+                                `Le gain "${oversizedPrize.slice(0, 50)}..." dépasse la longueur maximale autorisée (255 caractères).`
+                            ),
+                        ],
                     });
                     return;
                 }
@@ -91,6 +157,24 @@ export const loto: ICommand = {
                         name,
                         ticketPrice,
                         isActive: true,
+                        prizes: {
+                            create: prizes.map((label, index) => ({
+                                label,
+                                position: index,
+                            })),
+                        },
+                    },
+                    include: {
+                        prizes: {
+                            orderBy: { position: 'asc' },
+                            include: {
+                                winnerPlayer: {
+                                    select: {
+                                        name: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                 });
 
