@@ -63,6 +63,15 @@ export const loto: ICommand = {
                     .setMaxValue(10080)
             );
 
+            subcommand.addIntegerOption((option) =>
+                option
+                    .setName('maxtickets')
+                    .setDescription('Nombre maximum de tickets par achat (obligatoire si un cooldown est défini)')
+                    .setRequired(false)
+                    .setMinValue(1)
+                    .setMaxValue(1000)
+            );
+
             OPTIONAL_PRIZE_OPTIONS.forEach((prizeOption) => {
                 subcommand.addStringOption((option) =>
                     option
@@ -94,6 +103,7 @@ export const loto: ICommand = {
                 const ticketPrice = ticketPriceInput ? parseInt(ticketPriceInput, 10) : 500;
                 const cooldownMinutesInput = interaction.options.getInteger('cooldown');
                 const cooldownMinutes = cooldownMinutesInput ?? 0;
+                const maxTicketsInput = interaction.options.getInteger('maxtickets');
                 const prizes = PRIZE_OPTION_NAMES.map((optionName) =>
                     interaction.options.getString(optionName)?.trim()
                 ).filter((value): value is string => Boolean(value && value.length > 0));
@@ -108,6 +118,28 @@ export const loto: ICommand = {
                 if (cooldownMinutes < 0) {
                     await interaction.editReply({
                         embeds: [errorEmbedGenerator('Le cooldown doit être positif.')],
+                    });
+                    return;
+                }
+
+                if (cooldownMinutes > 0 && (maxTicketsInput == null || maxTicketsInput <= 0)) {
+                    await interaction.editReply({
+                        embeds: [
+                            errorEmbedGenerator(
+                                'Vous devez spécifier un nombre maximum de tickets par achat strictement positif lorsque vous définissez un cooldown.'
+                            ),
+                        ],
+                    });
+                    return;
+                }
+
+                if (maxTicketsInput != null && maxTicketsInput <= 0) {
+                    await interaction.editReply({
+                        embeds: [
+                            errorEmbedGenerator(
+                                'Le nombre maximum de tickets doit être un entier strictement positif.'
+                            ),
+                        ],
                     });
                     return;
                 }
@@ -175,6 +207,7 @@ export const loto: ICommand = {
                         name,
                         ticketPrice,
                         cooldownMinutes,
+                        maxTicketsPerPurchase: maxTicketsInput ?? null,
                         isActive: true,
                         prizes: {
                             create: prizes.map((label, index) => ({

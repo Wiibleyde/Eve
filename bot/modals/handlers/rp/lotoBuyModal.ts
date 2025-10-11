@@ -55,6 +55,18 @@ export async function lotoBuyModal(interaction: ModalSubmitInteraction): Promise
 
     const now = new Date();
     const cooldownMinutes = 'cooldownMinutes' in game ? (game.cooldownMinutes ?? 0) : 0;
+    const maxTicketsPerPurchase = 'maxTicketsPerPurchase' in game ? (game.maxTicketsPerPurchase ?? null) : null;
+
+    if (cooldownMinutes > 0 && maxTicketsPerPurchase && ticketCount > maxTicketsPerPurchase) {
+        await interaction.editReply({
+            embeds: [
+                errorEmbedGenerator(
+                    `Un joueur ne peut pas acheter plus de **${maxTicketsPerPurchase}** ticket(s) par achat pour ce loto.`
+                ),
+            ],
+        });
+        return;
+    }
 
     // Créer ou trouver le joueur
     let player = await prisma.lotoPlayers.findFirst({

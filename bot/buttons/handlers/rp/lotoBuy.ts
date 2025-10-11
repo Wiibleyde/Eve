@@ -50,13 +50,17 @@ export async function lotoBuy(interaction: ButtonInteraction): Promise<void> {
         .setMaxLength(50)
         .setPlaceholder('Ex: John Doe');
 
+    const maxTicketsPerPurchase = game.maxTicketsPerPurchase ?? null;
+    const ticketsPlaceholder =
+        game.cooldownMinutes > 0 && maxTicketsPerPurchase ? `Ex: 3 (max ${maxTicketsPerPurchase})` : 'Ex: 3';
+
     const ticketCountInput = new TextInputBuilder()
         .setCustomId('ticketCount')
         .setLabel('Nombre de tickets')
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
         .setMaxLength(5)
-        .setPlaceholder('Ex: 3');
+        .setPlaceholder(ticketsPlaceholder);
 
     const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(playerNameInput);
     const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(ticketCountInput);

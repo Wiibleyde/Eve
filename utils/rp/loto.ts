@@ -32,7 +32,9 @@ function chunkLines(lines: string[], maxLength = 1024): string[] {
     return chunks;
 }
 
-type LotoGameForEmbed = (LotoGames & { cooldownMinutes?: number }) & { prizes: LotoPrizeWithWinner[] };
+type LotoGameForEmbed = (LotoGames & { cooldownMinutes?: number; maxTicketsPerPurchase?: number | null }) & {
+    prizes: LotoPrizeWithWinner[];
+};
 
 export function generateLotoEmbed(game: LotoGameForEmbed, tickets: LotoTicketWithPlayer[]) {
     const embed = basicEmbedGenerator();
@@ -44,10 +46,15 @@ export function generateLotoEmbed(game: LotoGameForEmbed, tickets: LotoTicketWit
     ];
 
     const cooldownMinutes = game.cooldownMinutes ?? 0;
+    const maxTicketsPerPurchase = game.maxTicketsPerPurchase ?? null;
 
     if (cooldownMinutes > 0) {
         const cooldownLabel = cooldownMinutes === 1 ? 'minute' : 'minutes';
         descriptionLines.push(`Cooldown par joueur: **${cooldownMinutes} ${cooldownLabel}**`);
+
+        if (maxTicketsPerPurchase) {
+            descriptionLines.push(`Limite par achat: **${maxTicketsPerPurchase} ticket(s)**`);
+        }
     }
 
     if (game.prizes.length > 0) {
@@ -93,6 +100,10 @@ export function generateLotoEmbed(game: LotoGameForEmbed, tickets: LotoTicketWit
 
     if (cooldownMinutes > 0) {
         footerParts.push(`Cooldown: ${cooldownMinutes} min`);
+
+        if (maxTicketsPerPurchase) {
+            footerParts.push(`Limite achat: ${maxTicketsPerPurchase}`);
+        }
     }
 
     embed.setFooter({ text: footerParts.join(' | ') });

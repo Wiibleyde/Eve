@@ -119,15 +119,16 @@ model LsmsDutyManager {
 }
 
 model LotoGames {
-    uuid            String        @id @default(uuid())
-    name            String
-    isActive        Boolean       @default(true)
-    ticketPrice     Int           @default(500)
-    cooldownMinutes Int           @default(0)
-    createdAt       DateTime      @default(now()) @db.Timestamp(6)
-    players         LotoPlayers[] @relation("GamePlayers")
-    tickets         LotoTickets[]
-    prizes          LotoPrizes[]
+    uuid                  String        @id @default(uuid())
+    name                  String
+    isActive              Boolean       @default(true)
+    ticketPrice           Int           @default(500)
+    cooldownMinutes       Int           @default(0)
+    maxTicketsPerPurchase Int?
+    createdAt             DateTime      @default(now()) @db.Timestamp(6)
+    players               LotoPlayers[] @relation("GamePlayers")
+    tickets               LotoTickets[]
+    prizes                LotoPrizes[]
 }
 
 model LotoPlayers {
