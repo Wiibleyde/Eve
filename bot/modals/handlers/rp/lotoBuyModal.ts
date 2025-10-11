@@ -53,6 +53,9 @@ export async function lotoBuyModal(interaction: ModalSubmitInteraction): Promise
         return;
     }
 
+    const now = new Date();
+    const cooldownMinutes = 'cooldownMinutes' in game ? (game.cooldownMinutes ?? 0) : 0;
+
     // Créer ou trouver le joueur
     let player = await prisma.lotoPlayers.findFirst({
         where: {
@@ -61,18 +64,49 @@ export async function lotoBuyModal(interaction: ModalSubmitInteraction): Promise
         },
     });
 
+    if (player && cooldownMinutes > 0) {
+        const nextAllowedTime = new Date(player.lastPlay.getTime() + cooldownMinutes * 60 * 1000);
+
+        if (nextAllowedTime > now) {
+            const remainingMs = nextAllowedTime.getTime() - now.getTime();
+            const totalRemainingMinutes = Math.ceil(remainingMs / 60000);
+            const hours = Math.floor(totalRemainingMinutes / 60);
+            const minutes = totalRemainingMinutes % 60;
+
+            const remainingParts: string[] = [];
+            if (hours > 0) {
+                remainingParts.push(`${hours} heure${hours > 1 ? 's' : ''}`);
+            }
+            if (minutes > 0) {
+                remainingParts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+            }
+
+            const remainingText = remainingParts.length > 0 ? remainingParts.join(' et ') : "moins d'une minute";
+
+            await interaction.editReply({
+                embeds: [
+                    errorEmbedGenerator(
+                        `**${playerName}** doit patienter encore ${remainingText} avant de pouvoir racheter des tickets.`
+                    ),
+                ],
+            });
+            return;
+        }
+    }
+
     if (!player) {
         player = await prisma.lotoPlayers.create({
             data: {
                 gameUuid: gameUuid,
                 name: playerName,
+                lastPlay: now,
             },
         });
     } else {
         // Mettre à jour le lastPlay
-        await prisma.lotoPlayers.update({
+        player = await prisma.lotoPlayers.update({
             where: { uuid: player.uuid },
-            data: { lastPlay: new Date() },
+            data: { lastPlay: now },
         });
     }
 

@@ -32,10 +32,9 @@ function chunkLines(lines: string[], maxLength = 1024): string[] {
     return chunks;
 }
 
-export function generateLotoEmbed(
-    game: LotoGames & { prizes: LotoPrizeWithWinner[] },
-    tickets: LotoTicketWithPlayer[]
-) {
+type LotoGameForEmbed = (LotoGames & { cooldownMinutes?: number }) & { prizes: LotoPrizeWithWinner[] };
+
+export function generateLotoEmbed(game: LotoGameForEmbed, tickets: LotoTicketWithPlayer[]) {
     const embed = basicEmbedGenerator();
     embed.setTitle(`🎟️ Loto: ${game.name} 🎟️`);
     const ticketsSold = tickets.length;
@@ -43,6 +42,13 @@ export function generateLotoEmbed(
         "⚠️ __**Attention, l'écriture des noms est sensible à la case !**__",
         `Nombre de tickets vendus: **${ticketsSold}**`,
     ];
+
+    const cooldownMinutes = game.cooldownMinutes ?? 0;
+
+    if (cooldownMinutes > 0) {
+        const cooldownLabel = cooldownMinutes === 1 ? 'minute' : 'minutes';
+        descriptionLines.push(`Cooldown par joueur: **${cooldownMinutes} ${cooldownLabel}**`);
+    }
 
     if (game.prizes.length > 0) {
         descriptionLines.push(`Nombre de gains: **${game.prizes.length}**`);
@@ -83,7 +89,13 @@ export function generateLotoEmbed(
 
     embed.setDescription(descriptionLines.join('\n'));
 
-    embed.setFooter({ text: `Prix du ticket: ${game.ticketPrice}$` });
+    const footerParts = [`Prix du ticket: ${game.ticketPrice}$`];
+
+    if (cooldownMinutes > 0) {
+        footerParts.push(`Cooldown: ${cooldownMinutes} min`);
+    }
+
+    embed.setFooter({ text: footerParts.join(' | ') });
 
     if (game.prizes.length > 0) {
         const sortedPrizes = [...game.prizes].sort((a, b) => a.position - b.position);

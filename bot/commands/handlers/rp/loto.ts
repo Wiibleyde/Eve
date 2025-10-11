@@ -54,6 +54,15 @@ export const loto: ICommand = {
                     .setMaxLength(10)
             );
 
+            subcommand.addIntegerOption((option) =>
+                option
+                    .setName('cooldown')
+                    .setDescription('Cooldown entre deux achats pour un même joueur (en minutes, défaut: 0)')
+                    .setRequired(false)
+                    .setMinValue(0)
+                    .setMaxValue(10080)
+            );
+
             OPTIONAL_PRIZE_OPTIONS.forEach((prizeOption) => {
                 subcommand.addStringOption((option) =>
                     option
@@ -83,6 +92,8 @@ export const loto: ICommand = {
                 const name = interaction.options.getString('name', true).trim();
                 const ticketPriceInput = interaction.options.getString('ticketprice')?.trim();
                 const ticketPrice = ticketPriceInput ? parseInt(ticketPriceInput, 10) : 500;
+                const cooldownMinutesInput = interaction.options.getInteger('cooldown');
+                const cooldownMinutes = cooldownMinutesInput ?? 0;
                 const prizes = PRIZE_OPTION_NAMES.map((optionName) =>
                     interaction.options.getString(optionName)?.trim()
                 ).filter((value): value is string => Boolean(value && value.length > 0));
@@ -90,6 +101,13 @@ export const loto: ICommand = {
                 if (isNaN(ticketPrice) || ticketPrice <= 0) {
                     await interaction.editReply({
                         embeds: [errorEmbedGenerator('Le prix du ticket doit être un nombre entier positif.')],
+                    });
+                    return;
+                }
+
+                if (cooldownMinutes < 0) {
+                    await interaction.editReply({
+                        embeds: [errorEmbedGenerator('Le cooldown doit être positif.')],
                     });
                     return;
                 }
@@ -156,6 +174,7 @@ export const loto: ICommand = {
                     data: {
                         name,
                         ticketPrice,
+                        cooldownMinutes,
                         isActive: true,
                         prizes: {
                             create: prizes.map((label, index) => ({
