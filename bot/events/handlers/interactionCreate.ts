@@ -155,12 +155,15 @@ export const interactionCreateEvent: Event<Events.InteractionCreate> = {
                 baseId + (args ? ` (args: ${args})` : '')
             );
         } else if (interaction.isModalSubmit()) {
-            const modalHandler = modals[interaction.customId];
+            // Parse the modal ID to extract base ID and arguments
+            const { baseId, args } = parseCustomId(interaction.customId);
+            const modalHandler = modals[baseId];
+
             await handleInteraction(
                 interaction,
                 modalHandler ? () => modalHandler(interaction) : undefined,
                 'modal',
-                interaction.customId
+                baseId + (args ? ` (args: ${args})` : '')
             );
         } else if (interaction.isContextMenuCommand()) {
             if (interaction.isMessageContextMenuCommand()) {
