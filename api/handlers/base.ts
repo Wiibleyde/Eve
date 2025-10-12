@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response } from 'express';
 
 export function baseHandler(req: Request, res: Response) {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
