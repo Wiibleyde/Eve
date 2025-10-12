@@ -78,7 +78,6 @@ class LaboInQueryManager {
         } else {
             logger.warn(`Message introuvable pour notifier l'utilisateur <@${entry.userId}>.`);
         }
-
     }
 
     getAll(): LaboInQueryEntry[] {

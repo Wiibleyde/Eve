@@ -10,7 +10,7 @@ import {
 } from 'discord.js';
 import type { ICommand } from '../../command';
 import { hasPermission } from '../../../../utils/permission';
-import { lsmsDutyEmbedGenerator, lsmsEmbedGenerator } from '../../../../utils/rp/lsms';
+import { lsmsDutyEmbedGenerator, lsmsEmbedGenerator, updateRadioMessage } from '../../../../utils/rp/lsms';
 import { prisma } from '../../../../utils/core/database';
 import { config } from '@utils/core/config';
 import { getSubcommand, getRoleOption, getChannelOption, getStringOption } from '../../../utils/commandOptions';
@@ -47,6 +47,7 @@ export const lsms: ICommand = {
                         .setRequired(true)
                 )
         )
+        .addSubcommand((subcommand) => subcommand.setName('radio').setDescription('Créer un gestionnaire de radio'))
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
     guildIds: ['872119977946263632', config.EVE_HOME_GUILD], // This command is available in all guilds
     execute: async (interaction: ChatInputCommandInteraction) => {
@@ -208,6 +209,34 @@ export const lsms: ICommand = {
                     embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de service a été supprimé.')],
                 });
 
+                break;
+            }
+            case 'radio': {
+                const interactionChannel = interaction.channel;
+
+                if (!interactionChannel || !interactionChannel.isTextBased()) {
+                    await interaction.editReply({
+                        embeds: [
+                            lsmsEmbedGenerator().setDescription(
+                                'Cette commande doit être utilisée dans un salon textuel.'
+                            ),
+                        ],
+                    });
+                    return;
+                }
+
+                const { embed, components } = updateRadioMessage([]);
+
+                const textChannel = interactionChannel as GuildTextBasedChannel;
+
+                await textChannel.send({
+                    embeds: [embed],
+                    components,
+                });
+
+                await interaction.editReply({
+                    embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de radios a été créé.')],
+                });
                 break;
             }
             default:

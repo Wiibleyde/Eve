@@ -5,6 +5,7 @@ import {
     MessageContextMenuCommandInteraction,
     MessageFlags,
     ModalSubmitInteraction,
+    StringSelectMenuInteraction,
     UserContextMenuCommandInteraction,
 } from 'discord.js';
 import type { Event } from '../event';
@@ -12,6 +13,7 @@ import { logger } from '../../..';
 import { commandsMap } from '../../commands/command';
 import { buttons } from '../../buttons/buttons';
 import { modals } from '../../modals/modals';
+import { selectMenus } from '../../selectMenus/selectMenus';
 import { isMaintenanceMode } from '../../../utils/core/maintenance';
 import { warningEmbedGenerator } from '../../utils/embeds';
 import { config } from '../../../utils/core/config';
@@ -34,7 +36,8 @@ async function handleInteraction(
         | ButtonInteraction
         | ModalSubmitInteraction
         | MessageContextMenuCommandInteraction
-        | UserContextMenuCommandInteraction,
+        | UserContextMenuCommandInteraction
+        | StringSelectMenuInteraction,
     handlerFn: (() => Promise<void>) | undefined,
     interactionType: string,
     interactionId: string
@@ -163,6 +166,16 @@ export const interactionCreateEvent: Event<Events.InteractionCreate> = {
                 interaction,
                 modalHandler ? () => modalHandler(interaction) : undefined,
                 'modal',
+                baseId + (args ? ` (args: ${args})` : '')
+            );
+        } else if (interaction.isStringSelectMenu()) {
+            const { baseId, args } = parseCustomId(interaction.customId);
+            const selectHandler = selectMenus[baseId];
+
+            await handleInteraction(
+                interaction,
+                selectHandler ? () => selectHandler(interaction) : undefined,
+                'menu de sélection',
                 baseId + (args ? ` (args: ${args})` : '')
             );
         } else if (interaction.isContextMenuCommand()) {

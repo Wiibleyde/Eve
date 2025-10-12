@@ -13,7 +13,13 @@ export interface Event<K extends keyof ClientEvents> {
     execute: (...args: ClientEvents[K]) => void | Promise<void>;
 }
 
-const eventHandlers = [interactionCreateEvent, clientReadyEvent, messageCreateEvent, guildMemberUpdateEvent, presenceUpdateEvent];
+const eventHandlers = [
+    interactionCreateEvent,
+    clientReadyEvent,
+    messageCreateEvent,
+    guildMemberUpdateEvent,
+    presenceUpdateEvent,
+];
 
 export const loadEvents = () => {
     try {

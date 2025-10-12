@@ -1,4 +1,13 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, TextChannel, type EmbedBuilder, type User } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    TextChannel,
+    type APIEmbed,
+    type Embed,
+    type EmbedBuilder,
+    type User,
+} from 'discord.js';
 import { basicEmbedGenerator } from '../../bot/utils/embeds';
 import { prisma } from '../core/database';
 import { client } from '../../bot/bot';
@@ -10,7 +19,22 @@ interface LsmsDutySaveData {
     usersOnCall: string[];
 }
 
+export interface LsmsRadioEntry {
+    name: string;
+    frequency: string;
+}
+
 const lsmsDutySaveData: Map<string, LsmsDutySaveData> = new Map(); // Map to store duty data by guild ID
+
+const LSMS_RADIO_ADD_BUTTON_ID = 'lsmsRadioAdd';
+const LSMS_RADIO_REMOVE_BUTTON_ID = 'lsmsRadioRemove';
+const LSMS_RADIO_EDIT_BUTTON_PREFIX = 'lsmsRadioEdit';
+const LSMS_RADIO_ADD_MODAL_PREFIX = 'lsmsRadioAddModal';
+const LSMS_RADIO_EDIT_MODAL_PREFIX = 'lsmsRadioEditModal';
+const LSMS_RADIO_REMOVE_SELECT_PREFIX = 'lsmsRadioRemoveSelect';
+
+const MAX_RADIO_BUTTON_ROWS = 4; // 4 rows available after the primary actions row
+const MAX_RADIOS = MAX_RADIO_BUTTON_ROWS * 5; // 5 buttons per row
 
 export function onDutyUser(guildId: string, userId: string) {
     if (!lsmsDutySaveData.has(guildId)) {
@@ -191,4 +215,153 @@ export async function prepareLsmsSummary(): Promise<void> {
         logger.error(`Erreur lors de la préparation du résumé LSMS: ${error}`);
         throw error;
     }
+}
+
+export function encodeRadioName(name: string): string {
+    return Buffer.from(name, 'utf8').toString('base64url');
+}
+
+export function decodeRadioName(encodedName: string): string {
+    return Buffer.from(encodedName, 'base64url').toString('utf8');
+}
+
+function truncateLabel(label: string, maxLength = 80 - 'Modifier la radio '.length): string {
+    if (label.length <= maxLength) {
+        return label;
+    }
+
+    return `${label.slice(0, maxLength - 1)}…`;
+}
+
+export function getRadioCustomIds() {
+    return {
+        addButton: LSMS_RADIO_ADD_BUTTON_ID,
+        removeButton: LSMS_RADIO_REMOVE_BUTTON_ID,
+        editButtonPrefix: LSMS_RADIO_EDIT_BUTTON_PREFIX,
+        addModalPrefix: LSMS_RADIO_ADD_MODAL_PREFIX,
+        editModalPrefix: LSMS_RADIO_EDIT_MODAL_PREFIX,
+        removeSelectPrefix: LSMS_RADIO_REMOVE_SELECT_PREFIX,
+    } as const;
+}
+
+export function parseRadiosFromEmbed(embed?: APIEmbed | EmbedBuilder | Embed | null): LsmsRadioEntry[] {
+    if (!embed) {
+        return [];
+    }
+
+    const rawEmbed: APIEmbed =
+        typeof (embed as EmbedBuilder).toJSON === 'function'
+            ? ((embed as EmbedBuilder).toJSON() as APIEmbed)
+            : embed instanceof Object && 'data' in embed
+              ? ((embed as EmbedBuilder).data as APIEmbed)
+              : (embed as APIEmbed);
+
+    const fields = rawEmbed.fields;
+
+    if (!fields) {
+        return [];
+    }
+
+    return fields
+        .map((field) => ({
+            name: field.name?.trim() ?? '',
+            frequency: field.value?.trim() ?? '',
+        }))
+        .filter((field) => field.name.length > 0 && field.frequency.length > 0);
+}
+
+export function buildRadioEmbed(radios: LsmsRadioEntry[]): EmbedBuilder {
+    const embed = lsmsEmbedGenerator()
+        .setTitle('Gestionnaire de radios')
+        .setDescription(
+            radios.length > 0
+                ? 'Utilisez les boutons ci-dessous pour gérer les radios disponibles.'
+                : 'Aucune radio configurée pour le moment.\nAjoutez une radio pour commencer.'
+        );
+
+    if (radios.length > 0) {
+        embed.setFields(
+            radios.map((radio) => ({
+                name: radio.name,
+                value: radio.frequency,
+                inline: true,
+            }))
+        );
+    }
+
+    return embed;
+}
+
+export function buildRadioComponents(radios: LsmsRadioEntry[]): ActionRowBuilder<ButtonBuilder>[] {
+    const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+
+    let currentRow = new ActionRowBuilder<ButtonBuilder>();
+    radios.slice(0, MAX_RADIOS).forEach((radio, index) => {
+        const button = new ButtonBuilder()
+            .setCustomId(`${LSMS_RADIO_EDIT_BUTTON_PREFIX}--${encodeRadioName(radio.name)}`)
+            .setLabel(`Modifier la radio ${truncateLabel(radio.name)}`)
+            .setStyle(ButtonStyle.Secondary);
+
+        currentRow.addComponents(button);
+
+        if (currentRow.components.length === 5 || index === Math.min(radios.length, MAX_RADIOS) - 1) {
+            rows.push(currentRow);
+            currentRow = new ActionRowBuilder<ButtonBuilder>();
+        }
+    });
+
+    const baseRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder().setCustomId(LSMS_RADIO_ADD_BUTTON_ID).setLabel('+').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(LSMS_RADIO_REMOVE_BUTTON_ID).setLabel('-').setStyle(ButtonStyle.Danger)
+    );
+
+    rows.push(baseRow);
+
+    if (radios.length === 0) {
+        return rows;
+    }
+
+    return rows;
+}
+
+export function canAddRadio(radios: LsmsRadioEntry[]): boolean {
+    return radios.length < MAX_RADIOS;
+}
+
+export function formatRadioModalId(prefix: string, channelId: string, messageId: string, extra?: string): string {
+    const parts = [prefix, channelId, messageId];
+    if (extra) {
+        parts.push(extra);
+    }
+    return parts.join('--');
+}
+
+export function decodeRadioModalId(customId: string): {
+    channelId: string | null;
+    messageId: string | null;
+    extra: string | null;
+} {
+    const [, channelId = null, messageId = null, extra = null] = customId.split('--');
+    return { channelId, messageId, extra };
+}
+
+export function decodeRadioButtonId(customId: string): string | null {
+    const [, encodedName] = customId.split('--');
+    if (!encodedName) {
+        return null;
+    }
+
+    try {
+        return decodeRadioName(encodedName);
+    } catch (error) {
+        logger.warn(`Impossible de décoder le nom de la radio depuis le bouton: ${String(error)}`);
+        return null;
+    }
+}
+
+export function updateRadioMessage(radios: LsmsRadioEntry[]) {
+    return {
+        embed: buildRadioEmbed(radios),
+        components: buildRadioComponents(radios),
+    };
 }
