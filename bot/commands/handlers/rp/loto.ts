@@ -108,9 +108,9 @@ export const loto: ICommand = {
                     interaction.options.getString(optionName)?.trim()
                 ).filter((value): value is string => Boolean(value && value.length > 0));
 
-                if (isNaN(ticketPrice) || ticketPrice <= 0) {
+                if (isNaN(ticketPrice) || ticketPrice < 0) {
                     await interaction.editReply({
-                        embeds: [errorEmbedGenerator('Le prix du ticket doit être un nombre entier positif.')],
+                        embeds: [errorEmbedGenerator('Le prix du ticket doit être un nombre entier positif ou zéro.')],
                     });
                     return;
                 }
