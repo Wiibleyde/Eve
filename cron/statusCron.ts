@@ -13,7 +13,7 @@ const possibleHalloweenStatus: { name: string; type: ActivityType }[] = [
     { name: `la préparation des citrouilles. 🎃`, type: ActivityType.Competing },
     { name: `les fantômes... 👻`, type: ActivityType.Watching },
     { name: `Spooky Scary Skeletons`, type: ActivityType.Listening },
-    { name: `les bonbons ou un sort ! 🍬`, type: ActivityType.Playing },
+    { name: `des bonbons ou un sort ! 🍬`, type: ActivityType.Playing },
 ];
 const possibleChristmasStatus: { name: string; type: ActivityType }[] = [
     { name: `l'emballage des cadeaux. 🎁`, type: ActivityType.Competing },
