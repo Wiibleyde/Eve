@@ -77,11 +77,13 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
         return;
     }
 
-    if (game.prizes.length > game.tickets.length) {
+    // Check if there are enough unique players for all prizes
+    const uniquePlayers = new Set(game.tickets.map((ticket) => ticket.playerUuid));
+    if (game.prizes.length > uniquePlayers.size) {
         await interaction.editReply({
             embeds: [
                 errorEmbedGenerator(
-                    `Il faut au moins autant de tickets que de gains (tickets: ${game.tickets.length}, gains: ${game.prizes.length}).`
+                    `Il faut au moins autant de joueurs uniques que de gains (joueurs: ${uniquePlayers.size}, gains: ${game.prizes.length}).`
                 ),
             ],
         });
@@ -91,13 +93,32 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
     const sortedPrizes = [...game.prizes].sort((a, b) => a.position - b.position);
     const availableTickets = [...game.tickets];
     const now = new Date();
+    const winnerPlayerUuids = new Set<string>();
 
     const assignments = sortedPrizes.map((prize) => {
-        const randomIndex = Math.floor(Math.random() * availableTickets.length);
-        const winningTicket = availableTickets.splice(randomIndex, 1)[0];
+        // Filter out tickets from players who have already won
+        const eligibleTickets = availableTickets.filter(
+            (ticket) => !winnerPlayerUuids.has(ticket.playerUuid)
+        );
+
+        if (eligibleTickets.length === 0) {
+            throw new Error('Plus assez de joueurs éligibles pour attribuer tous les gains.');
+        }
+
+        const randomIndex = Math.floor(Math.random() * eligibleTickets.length);
+        const winningTicket = eligibleTickets[randomIndex];
 
         if (!winningTicket) {
             throw new Error('Erreur lors du tirage au sort des gains.');
+        }
+
+        // Mark this player as a winner
+        winnerPlayerUuids.add(winningTicket.playerUuid);
+
+        // Remove the winning ticket from availableTickets
+        const originalIndex = availableTickets.findIndex((ticket) => ticket.uuid === winningTicket.uuid);
+        if (originalIndex !== -1) {
+            availableTickets.splice(originalIndex, 1);
         }
 
         const ticketNumber = game.tickets.findIndex((ticket) => ticket.uuid === winningTicket.uuid) + 1;

@@ -18,6 +18,7 @@ import { maintenance } from './handlers/maintenance';
 import { lsms } from './handlers/rp/lsms';
 import { labo } from './handlers/rp/labo';
 import { loto } from './handlers/rp/loto';
+import { coinflip } from './handlers/coinflip';
 
 // Base interface for all command types
 export interface IBaseCommand {
@@ -46,6 +47,7 @@ export const commands: ICommand[] = [
     lsms,
     labo,
     loto,
+    coinflip,
 ];
 
 // Map pour accéder aux commandes rapidement par leur nom
