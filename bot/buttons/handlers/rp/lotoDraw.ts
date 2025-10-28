@@ -108,18 +108,12 @@ export async function lotoDraw(interaction: ButtonInteraction): Promise<void> {
         const randomIndex = Math.floor(Math.random() * eligibleTickets.length);
         const winningTicket = eligibleTickets[randomIndex];
 
-        if (!winningTicket) {
-            throw new Error('Erreur lors du tirage au sort des gains.');
-        }
-
         // Mark this player as having won
         winningPlayerUuids.add(winningTicket.playerUuid);
 
         // Remove the specific winning ticket from availableTickets
         const ticketIndex = availableTickets.findIndex((ticket) => ticket.uuid === winningTicket.uuid);
-        if (ticketIndex !== -1) {
-            availableTickets.splice(ticketIndex, 1);
-        }
+        availableTickets.splice(ticketIndex, 1);
 
         const ticketNumber = game.tickets.findIndex((ticket) => ticket.uuid === winningTicket.uuid) + 1;
 
