@@ -18,3 +18,20 @@ services:
     #   - GOOGLE_API_KEY=your_google_api_key_here
     #   - TWITCH_CLIENT_ID=your_twitch_client_id_here
     #   - TWITCH_CLIENT_SECRET=your_twitch_client_secret_here
+
+  mariadb:
+    image: linuxserver/mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    volumes:
+      - mariadb_data:/config
+    environment:
+      - TZ=Europe/Paris
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=MyRootPasswordForDocker
+    ports:
+      - "127.0.0.1:3306:3306"
+
+volumes:
+  mariadb_data:

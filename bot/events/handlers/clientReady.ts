@@ -8,6 +8,7 @@ import { birthdayCron } from '@cron/birthdayCron';
 import { statusCron } from '@cron/statusCron';
 import { streamCron } from '@cron/streamCron';
 import { lsmsCron } from '@cron/lsmsCron';
+import { calendarCron } from '@cron/calendarCron';
 
 export const clientReadyEvent: Event<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -33,6 +34,7 @@ export const clientReadyEvent: Event<Events.ClientReady> = {
         statusCron.start();
         streamCron.start();
         lsmsCron.start();
+        calendarCron.start();
 
         logger.info(`Logged in as ${client.user?.tag}`);
     },

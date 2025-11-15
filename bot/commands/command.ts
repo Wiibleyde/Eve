@@ -19,6 +19,8 @@ import { lsms } from './handlers/rp/lsms';
 import { labo } from './handlers/rp/labo';
 import { loto } from './handlers/rp/loto';
 import { coinflip } from './handlers/coinflip';
+import { calendar } from './handlers/calendar';
+import { calendarTest } from './handlers/calendar-test';
 
 // Base interface for all command types
 export interface IBaseCommand {
@@ -48,6 +50,8 @@ export const commands: ICommand[] = [
     labo,
     loto,
     coinflip,
+    calendar,
+    calendarTest,
 ];
 
 // Map pour accéder aux commandes rapidement par leur nom
