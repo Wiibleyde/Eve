@@ -1,6 +1,5 @@
 import { prisma } from "@utils/core/database";
 import type { Request, Response } from "express";
-import { logger } from "../..";
 
 export async function lotoStatsHandler(req: Request, res: Response) {
 	try {
