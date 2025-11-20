@@ -1,0 +1,10 @@
+{
+	"name": "eve",
+	"version": "3.0.2",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"@prisma/client": "^6.17.1",
+		"prisma": "^6.17.1"
+	}
+}
