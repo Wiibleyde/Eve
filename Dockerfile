@@ -14,7 +14,7 @@ COPY . .
 # Ensure Prisma generates binaries for both the builder and the target environment
 # Use a dummy DATABASE_URL for build time (prisma.config.ts needs it)
 RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" bun prisma generate
-RUN bun run build
+RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" bun run build
 
 FROM node:24.1.0-slim
 
