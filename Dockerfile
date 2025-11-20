@@ -23,16 +23,14 @@ WORKDIR /app
 # Install OpenSSL for Prisma
 RUN apt-get update -y && apt-get install -y openssl
 
-# Install Prisma CLI globally
-RUN npm install -g prisma@7.0.0
+# Install Prisma CLI and dependencies needed for prisma.config.ts
+RUN npm install -g prisma@7.0.0 && npm install dotenv@17.2.3
 
 # Copy Prisma files for migrations
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/dotenv ./node_modules/dotenv
 
 COPY --from=builder /app/dist ./
 
