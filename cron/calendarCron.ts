@@ -17,11 +17,8 @@ export const calendarCron = new CronJob(
 	"*/5 * * * *", // Runs every 5 minutes
 	async () => {
 		if (isMaintenanceMode()) {
-			logger.warn("Maintenance mode is enabled, skipping calendar update.");
 			return;
 		}
-
-		logger.info("Updating calendars...");
 
 		try {
 			// Get all guilds with calendar configured
@@ -62,10 +59,6 @@ export const calendarCron = new CronJob(
 					const cal = await Calendar.create(guildData.calendarUrl);
 					const soonEvents = cal.getEventsStartingSoon(5);
 
-					logger.debug(
-						`Found ${soonEvents.length} events starting soon for guild ${guildData.guildId}`,
-					);
-
 					if (soonEvents.length > 0) {
 						for (const evt of soonEvents) {
 							logger.debug(
@@ -80,9 +73,8 @@ export const calendarCron = new CronJob(
 					if (!createdDiscordEvents.has(guildData.guildId)) {
 						createdDiscordEvents.set(guildData.guildId, new Set());
 					}
-					const guildCreatedEvents = createdDiscordEvents.get(
-						guildData.guildId,
-					)!;
+					const guildCreatedEvents =
+						createdDiscordEvents.get(guildData.guildId) ?? new Set<string>();
 
 					for (const event of soonEvents) {
 						// Skip if we already created this event
@@ -94,14 +86,8 @@ export const calendarCron = new CronJob(
 						}
 
 						try {
-							logger.info(
-								`Creating Discord event for ${event.summary} in guild ${guild.name}`,
-							);
 							await createDiscordScheduledEvent(guild.id, event);
 							guildCreatedEvents.add(event.uid);
-							logger.info(
-								`Successfully created Discord event for ${event.summary} in guild ${guild.name}`,
-							);
 						} catch (error) {
 							logger.error(
 								`Failed to create Discord event for ${event.summary}:`,
@@ -133,8 +119,6 @@ export const calendarCron = new CronJob(
 					);
 				}
 			}
-
-			logger.info("Calendar update completed.");
 		} catch (error) {
 			logger.error("Error in calendar cron:", error);
 		}
@@ -191,7 +175,4 @@ async function createDiscordScheduledEvent(
 					location: "À déterminer",
 				},
 	});
-	logger.debug(
-		`Successfully created Discord scheduled event for ${event.summary}`,
-	);
 }
