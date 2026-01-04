@@ -158,6 +158,9 @@ async function createDiscordScheduledEvent(
 	}
 
 	logger.debug(`Creating Discord scheduled event for ${event.summary}`);
+	if (event.summary && event.summary.length > 100) {
+		event.summary = event.summary.substring(0, 100); // Discord limit is 100 chars
+	}
 	await guild.scheduledEvents.create({
 		name: event.summary || "Événement",
 		description: event.description?.substring(0, 1000) || undefined, // Discord limit is 1000 chars
