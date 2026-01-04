@@ -1,11 +1,11 @@
 services:
-  eve:
-    build: .
-    image: wiibleyde/eve:latest
-    container_name: eve
-    restart: unless-stopped
-    volumes:
-      - ./logs:/app/logs
+  # eve:
+  #   build: .
+  #   image: wiibleyde/eve:latest
+  #   container_name: eve
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./logs:/app/logs
     # environment:
     #   - DISCORD_TOKEN=your_discord_token_here
     #   - DISCORD_CLIENT_ID=your_discord_client_id_here

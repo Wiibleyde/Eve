@@ -18,20 +18,21 @@
         "format": "prettier --write \"**/*.{json,ts}\"",
         "lint": "eslint .",
         "generate": "prisma generate",
+        "db:push": "prisma db push",
         "build-js": "bun build ./index.ts --outdir ./dist --format esm --target node",
         "postbuild": "cp -r node_modules/.prisma dist/ && cp -r assets dist/",
         "build": "npm run generate && npm run build-js && npm run postbuild",
         "start": "node dist/index.js"
     },
     "devDependencies": {
-        "@eslint/js": "^9.39.1",
-        "@types/bun": "^1.3.3",
+        "@eslint/js": "^9.39.2",
+        "@types/bun": "^1.3.5",
         "@types/cors": "^2.8.19",
-        "@types/express": "^5.0.5",
-        "eslint": "^9.39.1",
+        "@types/express": "^5.0.6",
+        "eslint": "^9.39.2",
         "globals": "^16.5.0",
-        "prettier": "3.6.2",
-        "typescript-eslint": "^8.47.0"
+        "prettier": "3.7.4",
+        "typescript-eslint": "^8.51.0"
     },
     "peerDependencies": {
         "typescript": "^5.9.3"
@@ -39,15 +40,15 @@
     "private": true,
     "type": "module",
     "dependencies": {
-        "@google/genai": "^1.30.0",
+        "@google/genai": "^1.34.0",
         "@prisma/client": "^6.17.1",
         "axios": "^1.13.2",
         "blagues-api": "^2.1.1",
         "cors": "^2.8.5",
-        "cron": "^4.3.4",
+        "cron": "^4.4.0",
         "discord.js": "^14.25.1",
         "dotenv": "^17.2.3",
-        "express": "^5.1.0",
+        "express": "^5.2.1",
         "ical.js": "^2.2.1",
         "jimp": "^1.6.0",
         "prisma": "^6.17.1"

@@ -95,7 +95,7 @@ class LaboInQueryManager {
             case 'diseases':
                 return 'Maladies';
             default:
-                return 'Analyse Inconnue';
+                return entry.type;
         }
     }
 
