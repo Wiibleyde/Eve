@@ -1,4 +1,5 @@
 import {
+    ChannelType,
     ChatInputCommandInteraction,
     InteractionContextType,
     MessageFlags,
@@ -13,7 +14,67 @@ import { hasPermission } from '../../../../utils/permission';
 import { lsmsDutyEmbedGenerator, lsmsEmbedGenerator, updateRadioMessage } from '../../../../utils/rp/lsms';
 import { prisma } from '../../../../utils/core/database';
 import { config } from '@utils/core/config';
-import { getSubcommand, getRoleOption, getChannelOption, getStringOption } from '../../../utils/commandOptions';
+import { getSubcommand, getRoleOption, getChannelOption, getStringOption, getUserOption } from '../../../utils/commandOptions';
+
+interface Formation {
+    title: string;
+    competences: string[];
+}
+
+const formations: Formation[] = [
+    {
+        title: "Formations secondaires",
+        competences: [
+            "PPA",
+            "Hélicoptère",
+            "Bateau",
+            "Psychiatrie",
+            "Pôle funéraire",
+        ],
+    },
+    {
+        title: "Stagiaire - Explications",
+        competences: [
+            "Visite de l'hôpital",
+            "Visite du bureau psy",
+            "Visite de la morgue",
+            "Brancard",
+            "Mettre / sortir d'un véhicule",
+            "Intranet",
+        ],
+    },
+    {
+        title: "Stagiaire - Formations",
+        competences: [
+            "Conduite de l'ambulance",
+            "Utilisation de la radio",
+            "Réanimation",
+            "Bobologie",
+            "Radiologie / IRM",
+            "Anesthésie",
+            "Opération",
+            "Suture",
+            "Don du sang",
+            "Etat alcoolisé / drogué",
+            "Prise d'otage",
+            "Gestion d'un patient en état d'arrestation",
+            "Autonomie",
+            "Daronora",
+        ],
+    },
+    {
+        title: "Interne",
+        competences: [
+            "Indépendance",
+            "Fiche patient.es",
+            "Rapports médicaux",
+            "Communication sur la radio LSMS/LSPD",
+            "Supervision de stagiaires",
+            "Opérations avancées",
+            "Visite médicale / Certificat médical",
+        ],
+    },
+];
 
 export const lsms: ICommand = {
     data: new SlashCommandBuilder()
@@ -48,6 +109,21 @@ export const lsms: ICommand = {
                 )
         )
         .addSubcommand((subcommand) => subcommand.setName('radio').setDescription('Créer un gestionnaire de radio'))
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('doctor')
+                .setDescription('Créer un dossier de formation pour un médecin')
+                .addChannelOption((option) =>
+                    option
+                        .setName('forumchannel')
+                        .setDescription('Forum où seront postés les dossiers de formation')
+                        .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildForum)
+                )
+                .addUserOption((option) =>
+                    option.setName('user').setDescription('Utilisateur pour lequel créer le dossier').setRequired(true)
+                )
+        )
         .setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel]),
     guildIds: ['872119977946263632', config.EVE_HOME_GUILD], // This command is available in all guilds
     execute: async (interaction: ChatInputCommandInteraction) => {
@@ -236,6 +312,54 @@ export const lsms: ICommand = {
 
                 await interaction.editReply({
                     embeds: [lsmsEmbedGenerator().setDescription('Le gestionnaire de radios a été créé.')],
+                });
+                break;
+            }
+            case 'doctor': {
+                const user = getUserOption(interaction, 'user', true);
+                if (!interaction.guild) {
+                    await interaction.editReply({
+                        embeds: [
+                            lsmsEmbedGenerator().setDescription(
+                                'Cette commande ne peut être utilisée que dans un serveur.'
+                            ),
+                        ],
+                    });
+                    return;
+                }
+                const forumChannel = getChannelOption(interaction, 'forumchannel', true);
+                if (!forumChannel || forumChannel.type !== ChannelType.GuildForum) {
+                    await interaction.editReply({
+                        embeds: [lsmsEmbedGenerator().setDescription('Le salon doit être un forum.')],
+                    });
+                    return;
+                }
+                const guildUserName = interaction.guild.members.cache.get(user.id)?.displayName || user.username;
+                const thread = await forumChannel.threads.create({
+                    name: `Dossier de formation - ${guildUserName}`,
+                    message: {
+                        embeds: [
+                            lsmsEmbedGenerator()
+                                .setTitle(`Dossier de formation de ${guildUserName}`)
+                        ],
+                    },
+                });
+
+                for (const formation of formations) {
+                    await thread.send({
+                        embeds: [
+                            lsmsEmbedGenerator()
+                                .setTitle(formation.title)
+                        ],
+                    });
+                    for (const competence of formation.competences) {
+                        await thread.send({
+                            content: `- ${competence}`,
+                        });
+                    }
+                }
+                await interaction.editReply({
+                    embeds: [lsmsEmbedGenerator().setDescription('Le dossier de formation a été créé.')],
                 });
                 break;
             }
