@@ -85,15 +85,18 @@ export const lsms: ICommand = {
                 .setName('addduty')
                 .setDescription('Créer un gestionnaire de service')
                 .addRoleOption((option) =>
-                    option.setName('duty').setDescription('Rôle à assigner pour le service').setRequired(true)
+                    option.setName('duty').setDescription('Rôle service').setRequired(true)
                 )
                 .addRoleOption((option) =>
-                    option.setName('oncall').setDescription("Rôle à assigner pour l'appel").setRequired(true)
+                    option.setName('oncall').setDescription("Rôle astreinte").setRequired(true)
+                )
+                .addRoleOption((option) =>
+                    option.setName('offradio').setDescription('Rôle off radio').setRequired(true)
                 )
                 .addChannelOption((option) =>
                     option
                         .setName('logchannel')
-                        .setDescription('Salon où seront envoyés les logs des services')
+                        .setDescription('Salon des logs')
                         .setRequired(true)
                 )
         )
@@ -143,6 +146,7 @@ export const lsms: ICommand = {
             case 'addduty': {
                 const dutyRole = getRoleOption(interaction, 'duty', true) as Role;
                 const onCallRole = getRoleOption(interaction, 'oncall', true) as Role;
+                const offRadioRole = getRoleOption(interaction, 'offradio', true) as Role;
                 const logsChannel = getChannelOption(interaction, 'logchannel', true) as GuildBasedChannel;
                 const interactionChannel = interaction.channel;
                 if (!interactionChannel) {
@@ -174,7 +178,8 @@ export const lsms: ICommand = {
 
                 if (
                     !interaction.guild.roles.cache.has(dutyRole.id) ||
-                    !interaction.guild.roles.cache.has(onCallRole.id)
+                    !interaction.guild.roles.cache.has(onCallRole.id) ||
+                    !interaction.guild.roles.cache.has(offRadioRole.id)
                 ) {
                     await interaction.editReply({
                         embeds: [lsmsEmbedGenerator().setDescription('Les rôles doivent exister dans le serveur.')],
@@ -186,7 +191,8 @@ export const lsms: ICommand = {
                 if (
                     !botHighestRole ||
                     dutyRole.position > botHighestRole.position ||
-                    onCallRole.position > botHighestRole.position
+                    onCallRole.position > botHighestRole.position ||
+                    offRadioRole.position > botHighestRole.position
                 ) {
                     await interaction.editReply({
                         embeds: [
@@ -204,9 +210,13 @@ export const lsms: ICommand = {
                 const usersWithOnCallRole = interaction.guild.members.cache.filter((member) =>
                     member.roles.cache.has(onCallRole.id)
                 );
+                const usersWithOffRadioRole = interaction.guild.members.cache.filter((member) =>
+                    member.roles.cache.has(offRadioRole.id)
+                );
                 const { embed, actionRow } = lsmsDutyEmbedGenerator(
                     usersWithDutyRole.map((member) => member.user),
-                    usersWithOnCallRole.map((member) => member.user)
+                    usersWithOnCallRole.map((member) => member.user),
+                    usersWithOffRadioRole.map((member) => member.user)
                 );
                 const message = await (interactionChannel as GuildTextBasedChannel).send({
                     embeds: [embed],
@@ -220,6 +230,7 @@ export const lsms: ICommand = {
                         logsChannelId: logsChannel.id,
                         dutyRoleId: dutyRole.id,
                         onCallRoleId: onCallRole.id,
+                        offRadioRoleId: offRadioRole.id,
                         messageId: message.id,
                     },
                 });
