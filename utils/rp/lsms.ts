@@ -111,21 +111,23 @@ export function lsmsDutyEmbedGenerator(
         onDutyPeople.length > 0
             ? onDutyPeople.map((user) => `<@${user.id}>`).join('\n')
             : "Personne n'est en service :(";
+    const dutyCount = onDutyPeople.length;
     const callList =
         onCallPeople.length > 0
             ? onCallPeople.map((user) => `<@${user.id}>`).join('\n')
             : "Personne n'est en semi service :(";
+    const callCount = onCallPeople.length;
     const embed = lsmsEmbedGenerator()
         .setTitle('Gestionnaire de service')
         .setDescription('Cliquez sur les boutons ci-dessous pour gérer les services.')
         .addFields(
             {
-                name: 'En service :',
+                name: 'En service (' + dutyCount + ') :',
                 value: dutyList,
                 inline: true,
             },
             {
-                name: 'En semi service :',
+                name: 'En semi service (' + callCount + ') :',
                 value: callList,
                 inline: true,
             }
