@@ -12,9 +12,15 @@ export const lsmsCron = new CronJob('55 5 * * *', async () => {
         const guild = await client.guilds.fetch(dutyManager.guildId);
         const dutyRole = guild.roles.cache.find((role) => role.id === dutyManager.dutyRoleId);
         const onCallRole = guild.roles.cache.find((role) => role.id === dutyManager.onCallRoleId);
-        if (dutyRole && onCallRole) {
+        const offRadioRole = guild.roles.cache.find((role) => role.id === dutyManager.offRadioRoleId);
+        if (dutyRole) {
             dutyRole.members.forEach(async (member) => await member.roles.remove(dutyRole));
+        }
+        if (onCallRole) {
             onCallRole.members.forEach(async (member) => await member.roles.remove(onCallRole));
+        }
+        if (offRadioRole) {
+            offRadioRole.members.forEach(async (member) => await member.roles.remove(offRadioRole));
         }
     }
 });

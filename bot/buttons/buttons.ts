@@ -4,6 +4,7 @@ import { handleMotusTry } from './handlers/game/handleMotusTry';
 import { handleQuizButton } from './handlers/game/handleQuizButton';
 import { handleLsmsDuty } from './handlers/rp/handleLsmsDuty';
 import { handleLsmsOnCall } from './handlers/rp/handleLsmsOnCall';
+import { handleLsmsOffRadio } from './handlers/rp/handleLsmsOffRadio';
 import { handleLsmsRadioAdd } from './handlers/rp/handleLsmsRadioAdd';
 import { handleLsmsRadioRemove } from './handlers/rp/handleLsmsRadioRemove';
 import { handleLsmsRadioEdit } from './handlers/rp/handleLsmsRadioEdit';
@@ -19,6 +20,7 @@ export const buttons: Record<string, (interaction: ButtonInteraction) => Promise
     handleQuizButton: handleQuizButton,
     handleLsmsDuty: handleLsmsDuty,
     handleLsmsOnCall: handleLsmsOnCall,
+    handleLsmsOffRadio: handleLsmsOffRadio,
     lsmsRadioAdd: handleLsmsRadioAdd,
     lsmsRadioRemove: handleLsmsRadioRemove,
     lsmsRadioEdit: handleLsmsRadioEdit,

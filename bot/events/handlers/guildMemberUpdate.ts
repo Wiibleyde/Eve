@@ -6,6 +6,8 @@ import {
     lsmsDutyEmbedGenerator,
     lsmsDutyUpdateEmbedGenerator,
     lsmsOnCallUpdateEmbedGenerator,
+    lsmsOffRadioUpdateEmbedGenerator,
+    offRadioUser,
     onCallUser,
     onDutyUser,
 } from '../../../utils/rp/lsms';
@@ -23,7 +25,7 @@ const updateBuffer = new Map<
     }
 >();
 
-const BUFFER_DELAY = 1500; // 1.5 secondes
+const BUFFER_DELAY = 500; // 0.5 secondes
 
 const processRoleUpdate = async (
     oldMember: GuildMember | PartialGuildMember,
@@ -46,6 +48,11 @@ const processRoleUpdate = async (
                         },
                         {
                             onCallRoleId: {
+                                in: [...roleChanges, ...roleRemovals],
+                            },
+                        },
+                        {
+                            offRadioRoleId: {
                                 in: [...roleChanges, ...roleRemovals],
                             },
                         },
@@ -94,6 +101,9 @@ const processRoleUpdate = async (
             if (d.onCallRoleId && (roleChanges.has(d.onCallRoleId) || roleRemovals.has(d.onCallRoleId))) {
                 onCallUser(dutyData.guildId, newMember.user.id);
             }
+            if (d.offRadioRoleId && (roleChanges.has(d.offRadioRoleId) || roleRemovals.has(d.offRadioRoleId))) {
+                offRadioUser(dutyData.guildId, newMember.user.id);
+            }
         }
 
         // Utilise le cache local des membres si possible
@@ -109,6 +119,7 @@ const processRoleUpdate = async (
         // Agréger tous les rôles duty et onCall à surveiller pour ce message
         const dutyRoleIds = dutyDatas.map((d) => d.dutyRoleId).filter(Boolean) as string[];
         const onCallRoleIds = dutyDatas.map((d) => d.onCallRoleId).filter(Boolean) as string[];
+        const offRadioRoleIds = dutyDatas.map((d) => d.offRadioRoleId).filter(Boolean) as string[];
 
         const onDutyPeople = allMembers.filter(
             (member) => dutyRoleIds.some((roleId) => member.roles.cache.has(roleId)) && !member.user.bot
@@ -116,10 +127,14 @@ const processRoleUpdate = async (
         const onCallPeople = allMembers.filter(
             (member) => onCallRoleIds.some((roleId) => member.roles.cache.has(roleId)) && !member.user.bot
         );
+        const offRadioPeople = allMembers.filter(
+            (member) => offRadioRoleIds.some((roleId) => member.roles.cache.has(roleId)) && !member.user.bot
+        );
 
         const { embed: newEmbed, actionRow } = lsmsDutyEmbedGenerator(
             Array.from(onDutyPeople.values()).map((member) => member.user),
-            Array.from(onCallPeople.values()).map((member) => member.user)
+            Array.from(onCallPeople.values()).map((member) => member.user),
+            Array.from(offRadioPeople.values()).map((member) => member.user)
         );
         await dutyMessage.edit({
             embeds: [newEmbed],
@@ -145,6 +160,14 @@ const processRoleUpdate = async (
                 if (isOnCallRoleAdded || isOnCallRoleRemoved) {
                     const onCallEmbed = lsmsOnCallUpdateEmbedGenerator(newMember.user, !!isOnCallRoleAdded);
                     await logChannel.send({ embeds: [onCallEmbed] });
+                }
+
+                // Gérer les changements de rôle off radio
+                const isOffRadioRoleAdded = d.offRadioRoleId && roleChanges.has(d.offRadioRoleId);
+                const isOffRadioRoleRemoved = d.offRadioRoleId && roleRemovals.has(d.offRadioRoleId);
+                if (isOffRadioRoleAdded || isOffRadioRoleRemoved) {
+                    const offRadioEmbed = lsmsOffRadioUpdateEmbedGenerator(newMember.user, !!isOffRadioRoleAdded);
+                    await logChannel.send({ embeds: [offRadioEmbed] });
                 }
             }
         }

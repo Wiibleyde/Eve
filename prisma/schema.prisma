@@ -107,13 +107,14 @@ model Stream {
 }
 
 model LsmsDutyManager {
-    uuid          String  @id @default(uuid())
-    guildId       String
-    channelId     String
-    messageId     String?
-    dutyRoleId    String?
-    onCallRoleId  String?
-    logsChannelId String?
+    uuid           String  @id @default(uuid())
+    guildId        String
+    channelId      String
+    messageId      String?
+    dutyRoleId     String?
+    onCallRoleId   String?
+    offRadioRoleId String?
+    logsChannelId  String?
 
     @@index([guildId])
 }

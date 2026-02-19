@@ -17,6 +17,7 @@ import { logger } from '../..';
 interface LsmsDutySaveData {
     usersOnDuty: string[];
     usersOnCall: string[];
+    usersOffRadio: string[];
 }
 
 export interface LsmsRadioEntry {
@@ -38,7 +39,7 @@ const MAX_RADIOS = MAX_RADIO_BUTTON_ROWS * 5; // 5 buttons per row
 
 export function onDutyUser(guildId: string, userId: string) {
     if (!lsmsDutySaveData.has(guildId)) {
-        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [] });
+        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [], usersOffRadio: [] });
     }
     const dutyData = lsmsDutySaveData.get(guildId)!;
     if (!dutyData.usersOnDuty.includes(userId)) {
@@ -48,11 +49,21 @@ export function onDutyUser(guildId: string, userId: string) {
 
 export function onCallUser(guildId: string, userId: string) {
     if (!lsmsDutySaveData.has(guildId)) {
-        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [] });
+        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [], usersOffRadio: [] });
     }
     const dutyData = lsmsDutySaveData.get(guildId)!;
     if (!dutyData.usersOnCall.includes(userId)) {
         dutyData.usersOnCall.push(userId);
+    }
+}
+
+export function offRadioUser(guildId: string, userId: string) {
+    if (!lsmsDutySaveData.has(guildId)) {
+        lsmsDutySaveData.set(guildId, { usersOnDuty: [], usersOnCall: [], usersOffRadio: [] });
+    }
+    const dutyData = lsmsDutySaveData.get(guildId)!;
+    if (!dutyData.usersOffRadio.includes(userId)) {
+        dutyData.usersOffRadio.push(userId);
     }
 }
 
@@ -103,30 +114,50 @@ export function lsmsOnCallUpdateEmbedGenerator(userUpdated: User, take: boolean)
         .setDescription(`<@${userUpdated.id}> a ${take ? 'débuté' : 'terminé'} son semi service.`);
 }
 
+export function lsmsOffRadioUpdateEmbedGenerator(userUpdated: User, take: boolean) {
+    return lsmsEmbedGenerator()
+        .setColor(take ? 0xffa500 : 0x00ff00)
+        .setTitle(`${take ? 'Passage' : 'Fin du'} off radio`)
+        .setDescription(`<@${userUpdated.id}> ${take ? 'est maintenant off radio.' : "n'est plus off radio."}`);
+}
+
 export function lsmsDutyEmbedGenerator(
     onDutyPeople: User[],
-    onCallPeople: User[]
+    onCallPeople: User[],
+    offRadioPeople: User[] = []
 ): { embed: EmbedBuilder; actionRow: ActionRowBuilder<ButtonBuilder> } {
     const dutyList =
         onDutyPeople.length > 0
             ? onDutyPeople.map((user) => `<@${user.id}>`).join('\n')
             : "Personne n'est en service :(";
+    const dutyCount = onDutyPeople.length;
     const callList =
         onCallPeople.length > 0
             ? onCallPeople.map((user) => `<@${user.id}>`).join('\n')
             : "Personne n'est en semi service :(";
+    const callCount = onCallPeople.length;
+    const offRadioList =
+        offRadioPeople.length > 0
+            ? offRadioPeople.map((user) => `<@${user.id}>`).join('\n')
+            : "Personne n'est off radio";
+    const offRadioCount = offRadioPeople.length;
     const embed = lsmsEmbedGenerator()
         .setTitle('Gestionnaire de service')
         .setDescription('Cliquez sur les boutons ci-dessous pour gérer les services.')
         .addFields(
             {
-                name: 'En service :',
+                name: 'En service (' + dutyCount + ') :',
                 value: dutyList,
                 inline: true,
             },
             {
-                name: 'En semi service :',
+                name: 'En semi service (' + callCount + ') :',
                 value: callList,
+                inline: true,
+            },
+            {
+                name: 'Off radio (' + offRadioCount + ') :',
+                value: offRadioList,
                 inline: true,
             }
         )
@@ -143,6 +174,10 @@ export function lsmsDutyEmbedGenerator(
             .setCustomId('handleLsmsOnCall')
             .setLabel('Prendre/Quitter le semi service')
             .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+            .setCustomId('handleLsmsOffRadio')
+            .setLabel('Off radio')
+            .setStyle(ButtonStyle.Danger),
     ];
     const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 
@@ -173,6 +208,7 @@ export async function prepareLsmsSummary(): Promise<void> {
                     );
                     const dutyFieldFormatted = lastRebootDutyData.usersOnDuty.map((user) => `<@${user}>`).join(', ');
                     const onCallFieldFormatted = lastRebootDutyData.usersOnCall.map((user) => `<@${user}>`).join(', ');
+                    const offRadioFieldFormatted = lastRebootDutyData.usersOffRadio.map((user) => `<@${user}>`).join(', ');
                     const dutyEmbed = lsmsEmbedGenerator()
                         .setTitle(`**Récapitulatif du service**`)
                         .setDescription(
@@ -180,7 +216,8 @@ export async function prepareLsmsSummary(): Promise<void> {
                         )
                         .addFields(
                             { name: 'Service', value: dutyFieldFormatted || 'Aucun :(' },
-                            { name: 'Semi service', value: onCallFieldFormatted || 'Aucun :(' }
+                            { name: 'Semi service', value: onCallFieldFormatted || 'Aucun :(' },
+                            { name: 'Off radio', value: offRadioFieldFormatted || 'Aucun' }
                         );
 
                     logger.info(`Sending duty summary embed to logs channel for guild ${dutyManager.guildId}`);
