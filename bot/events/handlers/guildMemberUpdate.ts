@@ -25,7 +25,7 @@ const updateBuffer = new Map<
     }
 >();
 
-const BUFFER_DELAY = 1500; // 1.5 secondes
+const BUFFER_DELAY = 500; // 0.5 secondes
 
 const processRoleUpdate = async (
     oldMember: GuildMember | PartialGuildMember,
