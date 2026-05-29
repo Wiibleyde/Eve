@@ -5,6 +5,7 @@ import "os"
 type Config struct {
 	DiscordToken string
 	DatabaseURL  string
+	APIPort      string
 }
 
 func Load() *Config {
@@ -15,9 +16,16 @@ func Load() *Config {
 			guildIDs = append(guildIDs, id)
 		}
 	}
+
+	apiPort := os.Getenv("API_PORT")
+	if apiPort == "" {
+		apiPort = "3000"
+	}
+
 	return &Config{
 		DiscordToken: os.Getenv("DISCORD_TOKEN"),
 		DatabaseURL:  os.Getenv("DATABASE_URL"),
+		APIPort:      apiPort,
 	}
 }
 

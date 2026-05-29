@@ -12,18 +12,26 @@ import (
 )
 
 const (
-	colorReset  = "\033[0m"
-	colorGray   = "\033[90m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorRed    = "\033[31m"
-	colorBlue   = "\033[34m"
-	colorCyan   = "\033[36m"
-	colorBold   = "\033[1m"
+	colorReset   = "\033[0m"
+	colorGray    = "\033[90m"
+	colorGreen   = "\033[32m"
+	colorYellow  = "\033[33m"
+	colorRed     = "\033[31m"
+	colorBlue    = "\033[34m"
+	colorCyan    = "\033[36m"
+	colorMagenta = "\033[35m"
+	colorPurple  = "\033[38m"
+	colorBold    = "\033[1m"
 )
 
 // LevelEvent is a custom log level for incoming Discord interactions (commands, buttons).
 const LevelEvent = slog.Level(slog.LevelInfo + 1)
+
+// LevelHTTP is a custom log level for incoming HTTP requests.
+const LevelHTTP = slog.Level(slog.LevelInfo + 2)
+
+// LevelDB is a custom log level for database operations.
+const LevelDB = slog.Level(slog.LevelInfo + 3)
 
 type prettyHandler struct {
 	mu  sync.Mutex
@@ -50,6 +58,10 @@ func (h *prettyHandler) Handle(_ context.Context, r slog.Record) error {
 		fmt.Fprintf(&buf, "%s INFO%s", colorGreen, colorReset)
 	case LevelEvent:
 		fmt.Fprintf(&buf, "%sEVENT%s", colorCyan, colorReset)
+	case LevelHTTP:
+		fmt.Fprintf(&buf, "%s HTTP%s", colorMagenta, colorReset)
+	case LevelDB:
+		fmt.Fprintf(&buf, "%s   DB%s", colorPurple, colorReset)
 	case slog.LevelWarn:
 		fmt.Fprintf(&buf, "%s WARN%s", colorYellow, colorReset)
 	case slog.LevelError:
@@ -89,6 +101,8 @@ func init() {
 func Debug(msg string, args ...any) { l.Debug(msg, args...) }
 func Info(msg string, args ...any)  { l.Info(msg, args...) }
 func Event(msg string, args ...any) { l.Log(context.Background(), LevelEvent, msg, args...) }
+func HTTP(msg string, args ...any)  { l.Log(context.Background(), LevelHTTP, msg, args...) }
+func DB(msg string, args ...any)    { l.Log(context.Background(), LevelDB, msg, args...) }
 func Warn(msg string, args ...any)  { l.Warn(msg, args...) }
 func Error(msg string, args ...any) { l.Error(msg, args...) }
 

@@ -27,7 +27,7 @@ func Init(dsn string) error {
 
 func Open(dsn string) (*Client, error) {
 	client, err := ent.Open("postgres", dsn, ent.Log(func(args ...any) {
-		logger.Debug("[DB] " + fmt.Sprint(args...))
+		logger.DB(fmt.Sprint(args...))
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("opening database: %w", err)

@@ -22,16 +22,11 @@ import (
 	"github.com/disgoorg/disgo/gateway"
 )
 
-func Run() {
-	cfg := config.Load()
+var DB *database.Client
 
-	if err := database.Init(cfg.DatabaseURL); err != nil {
-		logger.Fatal("Error connecting to database", "error", err)
-	}
-	if err := database.Default.Migrate(context.Background()); err != nil {
-		logger.Fatal("Error running migrations", "error", err)
-	}
-
+func Run(cfg *config.Config, db *database.Client) {
+	DB = db
+	database.Default = db
 	client, err := disgo.New(cfg.DiscordToken,
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildMembers),
