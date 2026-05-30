@@ -32,6 +32,54 @@ func (f GuildConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GuildConfigMutation", m)
 }
 
+// The QuizFunc type is an adapter to allow the use of ordinary
+// function as Quiz mutator.
+type QuizFunc func(context.Context, *ent.QuizMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizMutation", m)
+}
+
+// The QuizAnswerFunc type is an adapter to allow the use of ordinary
+// function as QuizAnswer mutator.
+type QuizAnswerFunc func(context.Context, *ent.QuizAnswerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizAnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizAnswerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizAnswerMutation", m)
+}
+
+// The QuizQuestionFunc type is an adapter to allow the use of ordinary
+// function as QuizQuestion mutator.
+type QuizQuestionFunc func(context.Context, *ent.QuizQuestionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizQuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizQuestionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizQuestionMutation", m)
+}
+
+// The QuizUserAnswerFunc type is an adapter to allow the use of ordinary
+// function as QuizUserAnswer mutator.
+type QuizUserAnswerFunc func(context.Context, *ent.QuizUserAnswerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizUserAnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizUserAnswerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizUserAnswerMutation", m)
+}
+
 // The QuoteFunc type is an adapter to allow the use of ordinary
 // function as Quote mutator.
 type QuoteFunc func(context.Context, *ent.QuoteMutation) (ent.Value, error)

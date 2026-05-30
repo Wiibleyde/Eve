@@ -16,6 +16,14 @@ type Tx struct {
 	Birthday *BirthdayClient
 	// GuildConfig is the client for interacting with the GuildConfig builders.
 	GuildConfig *GuildConfigClient
+	// Quiz is the client for interacting with the Quiz builders.
+	Quiz *QuizClient
+	// QuizAnswer is the client for interacting with the QuizAnswer builders.
+	QuizAnswer *QuizAnswerClient
+	// QuizQuestion is the client for interacting with the QuizQuestion builders.
+	QuizQuestion *QuizQuestionClient
+	// QuizUserAnswer is the client for interacting with the QuizUserAnswer builders.
+	QuizUserAnswer *QuizUserAnswerClient
 	// Quote is the client for interacting with the Quote builders.
 	Quote *QuoteClient
 
@@ -151,6 +159,10 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Birthday = NewBirthdayClient(tx.config)
 	tx.GuildConfig = NewGuildConfigClient(tx.config)
+	tx.Quiz = NewQuizClient(tx.config)
+	tx.QuizAnswer = NewQuizAnswerClient(tx.config)
+	tx.QuizQuestion = NewQuizQuestionClient(tx.config)
+	tx.QuizUserAnswer = NewQuizUserAnswerClient(tx.config)
 	tx.Quote = NewQuoteClient(tx.config)
 }
 

@@ -5,6 +5,10 @@ package ent
 import (
 	"Eve/internal/database/ent/birthday"
 	"Eve/internal/database/ent/guildconfig"
+	"Eve/internal/database/ent/quiz"
+	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/database/ent/quote"
 	"Eve/internal/database/tables"
 	"time"
@@ -38,6 +42,52 @@ func init() {
 	guildconfig.DefaultUpdatedAt = guildconfigDescUpdatedAt.Default.(func() time.Time)
 	// guildconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	guildconfig.UpdateDefaultUpdatedAt = guildconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizFields := tables.Quiz{}.Fields()
+	_ = quizFields
+	// quizDescCreatedAt is the schema descriptor for created_at field.
+	quizDescCreatedAt := quizFields[3].Descriptor()
+	// quiz.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quiz.DefaultCreatedAt = quizDescCreatedAt.Default.(func() time.Time)
+	// quizDescUpdatedAt is the schema descriptor for updated_at field.
+	quizDescUpdatedAt := quizFields[4].Descriptor()
+	// quiz.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quiz.DefaultUpdatedAt = quizDescUpdatedAt.Default.(func() time.Time)
+	// quiz.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quiz.UpdateDefaultUpdatedAt = quizDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizanswerFields := tables.QuizAnswer{}.Fields()
+	_ = quizanswerFields
+	// quizanswerDescIsValid is the schema descriptor for is_valid field.
+	quizanswerDescIsValid := quizanswerFields[2].Descriptor()
+	// quizanswer.DefaultIsValid holds the default value on creation for the is_valid field.
+	quizanswer.DefaultIsValid = quizanswerDescIsValid.Default.(bool)
+	// quizanswerDescCreatedAt is the schema descriptor for created_at field.
+	quizanswerDescCreatedAt := quizanswerFields[3].Descriptor()
+	// quizanswer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quizanswer.DefaultCreatedAt = quizanswerDescCreatedAt.Default.(func() time.Time)
+	// quizanswerDescUpdatedAt is the schema descriptor for updated_at field.
+	quizanswerDescUpdatedAt := quizanswerFields[4].Descriptor()
+	// quizanswer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quizanswer.DefaultUpdatedAt = quizanswerDescUpdatedAt.Default.(func() time.Time)
+	// quizanswer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quizanswer.UpdateDefaultUpdatedAt = quizanswerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizquestionFields := tables.QuizQuestion{}.Fields()
+	_ = quizquestionFields
+	// quizquestionDescCreatedAt is the schema descriptor for created_at field.
+	quizquestionDescCreatedAt := quizquestionFields[2].Descriptor()
+	// quizquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quizquestion.DefaultCreatedAt = quizquestionDescCreatedAt.Default.(func() time.Time)
+	// quizquestionDescUpdatedAt is the schema descriptor for updated_at field.
+	quizquestionDescUpdatedAt := quizquestionFields[3].Descriptor()
+	// quizquestion.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quizquestion.DefaultUpdatedAt = quizquestionDescUpdatedAt.Default.(func() time.Time)
+	// quizquestion.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quizquestion.UpdateDefaultUpdatedAt = quizquestionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizuseranswerFields := tables.QuizUserAnswer{}.Fields()
+	_ = quizuseranswerFields
+	// quizuseranswerDescAnsweredAt is the schema descriptor for answered_at field.
+	quizuseranswerDescAnsweredAt := quizuseranswerFields[2].Descriptor()
+	// quizuseranswer.DefaultAnsweredAt holds the default value on creation for the answered_at field.
+	quizuseranswer.DefaultAnsweredAt = quizuseranswerDescAnsweredAt.Default.(func() time.Time)
 	quoteFields := tables.Quote{}.Fields()
 	_ = quoteFields
 	// quoteDescCreatedAt is the schema descriptor for created_at field.

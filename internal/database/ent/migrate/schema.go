@@ -44,6 +44,93 @@ var (
 			},
 		},
 	}
+	// QuizsColumns holds the columns for the "quizs" table.
+	QuizsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "author_id", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// QuizsTable holds the schema information for the "quizs" table.
+	QuizsTable = &schema.Table{
+		Name:       "quizs",
+		Columns:    QuizsColumns,
+		PrimaryKey: []*schema.Column{QuizsColumns[0]},
+	}
+	// QuizAnswersColumns holds the columns for the "quiz_answers" table.
+	QuizAnswersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "answer_text", Type: field.TypeString},
+		{Name: "is_valid", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "quiz_question_answers", Type: field.TypeString},
+	}
+	// QuizAnswersTable holds the schema information for the "quiz_answers" table.
+	QuizAnswersTable = &schema.Table{
+		Name:       "quiz_answers",
+		Columns:    QuizAnswersColumns,
+		PrimaryKey: []*schema.Column{QuizAnswersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quiz_answers_quiz_questions_answers",
+				Columns:    []*schema.Column{QuizAnswersColumns[5]},
+				RefColumns: []*schema.Column{QuizQuestionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// QuizQuestionsColumns holds the columns for the "quiz_questions" table.
+	QuizQuestionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "question_text", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "quiz_questions", Type: field.TypeString},
+	}
+	// QuizQuestionsTable holds the schema information for the "quiz_questions" table.
+	QuizQuestionsTable = &schema.Table{
+		Name:       "quiz_questions",
+		Columns:    QuizQuestionsColumns,
+		PrimaryKey: []*schema.Column{QuizQuestionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quiz_questions_quizs_questions",
+				Columns:    []*schema.Column{QuizQuestionsColumns[4]},
+				RefColumns: []*schema.Column{QuizsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// QuizUserAnswersColumns holds the columns for the "quiz_user_answers" table.
+	QuizUserAnswersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "answered_at", Type: field.TypeTime},
+		{Name: "quiz_answer_user_answers", Type: field.TypeString},
+		{Name: "quiz_question_user_answers", Type: field.TypeString},
+	}
+	// QuizUserAnswersTable holds the schema information for the "quiz_user_answers" table.
+	QuizUserAnswersTable = &schema.Table{
+		Name:       "quiz_user_answers",
+		Columns:    QuizUserAnswersColumns,
+		PrimaryKey: []*schema.Column{QuizUserAnswersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "quiz_user_answers_quiz_answers_user_answers",
+				Columns:    []*schema.Column{QuizUserAnswersColumns[3]},
+				RefColumns: []*schema.Column{QuizAnswersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "quiz_user_answers_quiz_questions_user_answers",
+				Columns:    []*schema.Column{QuizUserAnswersColumns[4]},
+				RefColumns: []*schema.Column{QuizQuestionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// QuotesColumns holds the columns for the "quotes" table.
 	QuotesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -64,9 +151,17 @@ var (
 	Tables = []*schema.Table{
 		BirthdaysTable,
 		GuildConfigsTable,
+		QuizsTable,
+		QuizAnswersTable,
+		QuizQuestionsTable,
+		QuizUserAnswersTable,
 		QuotesTable,
 	}
 )
 
 func init() {
+	QuizAnswersTable.ForeignKeys[0].RefTable = QuizQuestionsTable
+	QuizQuestionsTable.ForeignKeys[0].RefTable = QuizsTable
+	QuizUserAnswersTable.ForeignKeys[0].RefTable = QuizAnswersTable
+	QuizUserAnswersTable.ForeignKeys[1].RefTable = QuizQuestionsTable
 }

@@ -1,0 +1,8 @@
+-- Create "quizs" table
+CREATE TABLE "quizs" ("id" character varying NOT NULL, "author_id" character varying NOT NULL, "title" character varying NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, PRIMARY KEY ("id"));
+-- Create "quiz_questions" table
+CREATE TABLE "quiz_questions" ("id" character varying NOT NULL, "question_text" character varying NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "quiz_questions" character varying NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "quiz_questions_quizs_questions" FOREIGN KEY ("quiz_questions") REFERENCES "quizs" ("id") ON DELETE NO ACTION);
+-- Create "quiz_answers" table
+CREATE TABLE "quiz_answers" ("id" character varying NOT NULL, "answer_text" character varying NOT NULL, "is_valid" boolean NOT NULL DEFAULT false, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "quiz_question_answers" character varying NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "quiz_answers_quiz_questions_answers" FOREIGN KEY ("quiz_question_answers") REFERENCES "quiz_questions" ("id") ON DELETE NO ACTION);
+-- Create "quiz_user_answers" table
+CREATE TABLE "quiz_user_answers" ("id" character varying NOT NULL, "user_id" character varying NOT NULL, "answered_at" timestamptz NOT NULL, "quiz_answer_user_answers" character varying NOT NULL, "quiz_question_user_answers" character varying NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "quiz_user_answers_quiz_answers_user_answers" FOREIGN KEY ("quiz_answer_user_answers") REFERENCES "quiz_answers" ("id") ON DELETE NO ACTION, CONSTRAINT "quiz_user_answers_quiz_questions_user_answers" FOREIGN KEY ("quiz_question_user_answers") REFERENCES "quiz_questions" ("id") ON DELETE NO ACTION);

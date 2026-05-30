@@ -12,5 +12,17 @@ type Birthday func(*sql.Selector)
 // GuildConfig is the predicate function for guildconfig builders.
 type GuildConfig func(*sql.Selector)
 
+// Quiz is the predicate function for quiz builders.
+type Quiz func(*sql.Selector)
+
+// QuizAnswer is the predicate function for quizanswer builders.
+type QuizAnswer func(*sql.Selector)
+
+// QuizQuestion is the predicate function for quizquestion builders.
+type QuizQuestion func(*sql.Selector)
+
+// QuizUserAnswer is the predicate function for quizuseranswer builders.
+type QuizUserAnswer func(*sql.Selector)
+
 // Quote is the predicate function for quote builders.
 type Quote func(*sql.Selector)

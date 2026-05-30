@@ -5,6 +5,10 @@ package ent
 import (
 	"Eve/internal/database/ent/birthday"
 	"Eve/internal/database/ent/guildconfig"
+	"Eve/internal/database/ent/quiz"
+	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/database/ent/quote"
 	"context"
 	"errors"
@@ -75,9 +79,13 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			birthday.Table:    birthday.ValidColumn,
-			guildconfig.Table: guildconfig.ValidColumn,
-			quote.Table:       quote.ValidColumn,
+			birthday.Table:       birthday.ValidColumn,
+			guildconfig.Table:    guildconfig.ValidColumn,
+			quiz.Table:           quiz.ValidColumn,
+			quizanswer.Table:     quizanswer.ValidColumn,
+			quizquestion.Table:   quizquestion.ValidColumn,
+			quizuseranswer.Table: quizuseranswer.ValidColumn,
+			quote.Table:          quote.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)
