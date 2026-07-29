@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/events"
@@ -22,14 +22,14 @@ func HandleCreateQuoteMenu(e *events.ApplicationCommandInteractionCreate) {
 	message := e.MessageCommandInteractionData().TargetMessage()
 	text := strings.TrimSpace(message.Content)
 	if text == "" {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgNoText))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgNoText))
 		return
 	}
 
 	res, err := Create(context.Background(), e.Client(), guild, message.Author, text, "")
 	if err != nil {
 		logger.Error("creating quote from message", "message", message.ID.String(), "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(ErrorMessage(err)))
+		helpers.RespondEphemeralCard(e, ui.Error(ErrorMessage(err)))
 		return
 	}
 	respond(e, res)

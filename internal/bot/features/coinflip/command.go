@@ -3,7 +3,7 @@ package coinflip
 import (
 	"math/rand/v2"
 
-	"Eve/internal/bot/embeds"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -15,7 +15,7 @@ const CommandName = "coinflip"
 const EdgeOdds = 6000
 
 const (
-	embedTitle = "Pile ou face"
+	cardTitle = "🪙 Pile ou face"
 
 	msgHeads = "Le résultat du lancer de pièce est : **Pile**."
 	msgTails = "Le résultat du lancer de pièce est : **Face**."
@@ -40,13 +40,9 @@ func flip() string {
 }
 
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
-	embed := embeds.BaseEmbed()
-	embed.Title = embedTitle
-	embed.Description = flip()
+	card := ui.New().Title(cardTitle).Text(flip())
 
-	if err := e.CreateMessage(discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-	}); err != nil {
+	if err := e.CreateMessage(card.MessageCreate()); err != nil {
 		logger.Error("Error responding to /coinflip", "error", err)
 	}
 }

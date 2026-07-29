@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/activequiz"
@@ -15,19 +15,18 @@ import (
 	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/logger"
 
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/google/uuid"
 )
 
 func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	if len(args) == 0 || len(args) > 2 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Réponse invalide."))
+		helpers.RespondEphemeralCard(e, ui.Error("Réponse invalide."))
 		return
 	}
 	idx, err := strconv.Atoi(args[0])
 	if err != nil || idx < 0 || idx >= answerCount {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Réponse invalide."))
+		helpers.RespondEphemeralCard(e, ui.Error("Réponse invalide."))
 		return
 	}
 	var questionID string
@@ -44,10 +43,10 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			logger.Error("Error loading active quiz", "error", err)
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération du quiz."))
+			helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération du quiz."))
 			return
 		}
-		helpers.RespondEphemeralEmbed(e, expiredEmbed(purgedQuizGoodAnswer(ctx, questionID, e)))
+		helpers.RespondEphemeralCard(e, expiredCard(purgedQuizGoodAnswer(ctx, questionID, e)))
 		return
 	}
 
@@ -55,22 +54,22 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	if err != nil {
 		if !ent.IsNotFound(err) {
 			logger.Error("Error loading quiz question", "error", err, "question", active.QuestionID)
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération de la question."))
+			helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération de la question."))
 			return
 		}
-		helpers.RespondEphemeralEmbed(e, expiredEmbed(""))
+		helpers.RespondEphemeralCard(e, expiredCard(""))
 		return
 	}
 
 	if !time.Now().Before(active.ExpiresAt) {
-		helpers.RespondEphemeralEmbed(e, expiredEmbed(question.GoodAnswer))
+		helpers.RespondEphemeralCard(e, expiredCard(question.GoodAnswer))
 		return
 	}
 
 	perm, err := decodePermutation(active.Shuffle)
 	if err != nil {
 		logger.Error("Corrupted quiz shuffle", "error", err, "quiz", active.ID, "shuffle", active.Shuffle)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Ce quiz est corrompu, impossible d'enregistrer votre réponse."))
+		helpers.RespondEphemeralCard(e, ui.Error("Ce quiz est corrompu, impossible d'enregistrer votre réponse."))
 		return
 	}
 
@@ -80,11 +79,11 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 		Exist(ctx)
 	if err != nil {
 		logger.Error("Error checking previous quiz answer", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement de votre réponse."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement de votre réponse."))
 		return
 	}
 	if answered {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Vous avez déjà répondu à ce quiz."))
+		helpers.RespondEphemeralCard(e, ui.Error("Vous avez déjà répondu à ce quiz."))
 		return
 	}
 
@@ -98,11 +97,11 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 		Exec(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Vous avez déjà répondu à ce quiz."))
+			helpers.RespondEphemeralCard(e, ui.Error("Vous avez déjà répondu à ce quiz."))
 			return
 		}
 		logger.Error("Error saving quiz answer", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement de votre réponse."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement de votre réponse."))
 		return
 	}
 
@@ -110,22 +109,20 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 		logger.Error("Error updating quiz stats", "error", err, "user", userID)
 	}
 
-	helpers.RespondEphemeralEmbed(e, resultEmbed(correct, question.GoodAnswer))
+	helpers.RespondEphemeralCard(e, resultCard(correct, question.GoodAnswer))
 
-	refreshQuizMessage(ctx, e, active, question)
+	refreshQuizMessage(ctx, e, active, question, applyPermutation(storedAnswers(question), perm))
 }
 
-func refreshQuizMessage(ctx context.Context, e *events.ComponentInteractionCreate, active *ent.ActiveQuiz, question *ent.QuizQuestion) {
+func refreshQuizMessage(ctx context.Context, e *events.ComponentInteractionCreate, active *ent.ActiveQuiz, question *ent.QuizQuestion, answers [answerCount]string) {
 	good, bad, err := answerers(ctx, active.ID)
 	if err != nil {
 		logger.Error("Error loading quiz answerers", "error", err, "quiz", active.ID)
 		return
 	}
 
-	embedList := []discord.Embed{questionEmbed(question, active.ExpiresAt, good, bad)}
-	if _, err := e.Client().Rest.UpdateMessage(e.Message.ChannelID, e.Message.ID, discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
+	card := questionCard(question, answers, active.ExpiresAt, good, bad)
+	if _, err := e.Client().Rest.UpdateMessage(e.Message.ChannelID, e.Message.ID, card.MessageUpdate()); err != nil {
 		logger.Error("Error updating quiz message", "error", err, "quiz", active.ID)
 	}
 }

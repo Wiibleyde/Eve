@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
-	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
@@ -35,8 +34,9 @@ const (
 )
 
 const (
-	maxDescription = 4096
-	maxFieldValue  = 1024
+	jokeColor = 0xFEE75C
+	maxJoke   = 2000
+	maxAnswer = 800
 )
 
 var command = discord.SlashCommandCreate{
@@ -72,14 +72,14 @@ func Commands() []discord.ApplicationCommandCreate {
 
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	if !Enabled() {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgDisabled))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgDisabled))
 		return
 	}
 
 	value := e.SlashCommandInteractionData().String(OptionType)
 	label, ok := categoryLabel(value)
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgUnknownType))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgUnknownType))
 		return
 	}
 
@@ -94,18 +94,20 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	joke, err := fetchRandom(ctx, value)
 	if err != nil {
 		logger.Error("Blague: fetching joke", "category", value, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(MsgFetchFailed), nil)
+		editDeferred(e, ui.Error(MsgFetchFailed))
 		return
 	}
 
-	editDeferred(e, jokeEmbed(joke, label), []discord.LayoutComponent{
-		discord.NewActionRow(discord.NewPrimaryButton(PublishButtonText, CustomIDPublic)),
-	})
+	editDeferred(e, jokeCard(joke, label).Row(
+		discord.NewPrimaryButton(PublishButtonText, CustomIDPublic).
+			WithEmoji(discord.NewComponentEmoji("📢")),
+	))
 }
 
 func HandlePublicButton(e *events.ComponentInteractionCreate, _ []string) {
-	if len(e.Message.Embeds) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgNoEmbed))
+	joke := publishedCard(e.Message.Components, e.User().ID)
+	if joke == nil {
+		helpers.RespondEphemeralCard(e, ui.Error(MsgNoEmbed))
 		return
 	}
 
@@ -114,65 +116,54 @@ func HandlePublicButton(e *events.ComponentInteractionCreate, _ []string) {
 		return
 	}
 
-	_, err := e.Client().Rest.CreateMessage(e.Message.ChannelID, discord.MessageCreate{
-		Content:         fmt.Sprintf("Demandée par <@%s>", e.User().ID),
-		Embeds:          []discord.Embed{e.Message.Embeds[0]},
-		AllowedMentions: &discord.AllowedMentions{Parse: []discord.AllowedMentionType{}},
-	})
-	if err != nil {
+	if _, err := e.Client().Rest.CreateMessage(e.Message.ChannelID, joke.MessageCreate()); err != nil {
 		logger.Error("Blague: publishing joke", "channel", e.Message.ChannelID.String(), "error", err)
-		followupEphemeral(e.Client(), e.ApplicationID(), e.Token(), embeds.ErrorEmbed(MsgPublishFailed))
+		helpers.FollowupEphemeralCard(e.Client(), e.ApplicationID(), e.Token(), ui.Error(MsgPublishFailed))
 		return
 	}
 
-	content := MsgPublished
-	noComponents := []discord.LayoutComponent{}
-	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{
-		Content:    &content,
-		Components: &noComponents,
-	}); err != nil {
-		logger.Error("Blague: removing publish button", "error", err)
-	}
+	helpers.EditResponseCard(e.Client(), e.ApplicationID(), e.Token(), ui.Success(MsgPublished))
 }
 
-func jokeEmbed(joke *Joke, label string) discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Title = "Blague — " + label
-	embed.Description = truncate(joke.Joke, maxDescription)
-
-	answer := strings.TrimSpace(joke.Answer)
-	value := AnswerFallback
-	if answer != "" {
-		value = "||" + truncate(answer, maxFieldValue-4) + "||"
+func jokeCard(joke *Joke, label string) *ui.Card {
+	answer := AnswerFallback
+	if trimmed := strings.TrimSpace(joke.Answer); trimmed != "" {
+		answer = "||" + truncate(trimmed, maxAnswer) + "||"
 	}
-	embed.Fields = []discord.EmbedField{{Name: AnswerFieldName, Value: value}}
 
-	if embed.Footer == nil {
-		embed.Footer = &discord.EmbedFooter{}
-	}
-	embed.Footer.Text = FooterDisclaimer
-	return embed
+	return ui.New().
+		Accent(jokeColor).
+		Title("😂 Blague — " + label).
+		Text(truncate(joke.Joke, maxJoke)).
+		Divider().
+		Fields(ui.Field{Name: AnswerFieldName, Value: answer}).
+		Footer(FooterDisclaimer)
 }
 
-func editDeferred(e *events.ApplicationCommandInteractionCreate, embed discord.Embed, components []discord.LayoutComponent) {
-	embedList := []discord.Embed{embed}
-	update := discord.MessageUpdate{Embeds: &embedList}
-	if components != nil {
-		update.Components = &components
+func publishedCard(components []discord.LayoutComponent, requester snowflake.ID) *ui.Card {
+	texts := ui.Texts(components)
+	if len(texts) < 2 {
+		return nil
 	}
-	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), update); err != nil {
-		logger.Error("Blague: editing deferred response failed", "error", err)
+
+	card := ui.New().Accent(jokeColor)
+	for _, text := range texts {
+		if strings.HasPrefix(text, "## ") {
+			card.Title(strings.TrimPrefix(text, "## "))
+			continue
+		}
+		if strings.HasPrefix(text, "-# ") {
+			continue
+		}
+		card.Text(text)
 	}
+	return card.Divider().
+		Subtext(fmt.Sprintf("Demandée par <@%s>", requester)).
+		Footer(FooterDisclaimer)
 }
 
-func followupEphemeral(client *bot.Client, appID snowflake.ID, token string, embed discord.Embed) {
-	msg := discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-		Flags:  discord.MessageFlagEphemeral,
-	}
-	if _, err := client.Rest.CreateFollowupMessage(appID, token, msg); err != nil {
-		logger.Error("Blague: sending followup", "error", err)
-	}
+func editDeferred(e *events.ApplicationCommandInteractionCreate, card *ui.Card) {
+	helpers.EditResponseCard(e.Client(), e.ApplicationID(), e.Token(), card)
 }
 
 func truncate(s string, max int) string {

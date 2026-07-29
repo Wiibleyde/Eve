@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"Eve/internal/bot/embeds"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/tables"
 
 	"github.com/disgoorg/disgo/discord"
@@ -15,74 +15,58 @@ const (
 	colorLost = 0xE74C3C
 )
 
-func boardEmbed(word string, attempts []tables.MotusAttempt, state string) discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Title = "Motus"
+const boardTitle = "🟥 Motus"
 
-	var b strings.Builder
-	fmt.Fprintf(&b, "Mot de **%d** lettres, commençant par **%s**.\n\n",
-		WordLen(word), FirstLetter(word))
-	b.WriteString(RenderLetters(MaskWord(word)))
-	b.WriteString("\n")
+func boardCard(word string, attempts []tables.MotusAttempt, state string) *ui.Card {
+	card := ui.New().Title(boardTitle)
 
-	for _, attempt := range attempts {
-		states := Score(attempt.Word, word)
-		fmt.Fprintf(&b, "\n%s\n%s — <@%s>\n",
-			RenderStates(states), RenderLetters(attempt.Word), attempt.UserID)
+	card.Textf("Mot de **%d** lettres, commençant par **%s**.\n%s",
+		WordLen(word), FirstLetter(word), RenderLetters(MaskWord(word)))
+
+	if len(attempts) > 0 {
+		var b strings.Builder
+		for _, attempt := range attempts {
+			fmt.Fprintf(&b, "%s\n%s — <@%s>\n\n",
+				RenderStates(Score(attempt.Word, word)), RenderLetters(attempt.Word), attempt.UserID)
+		}
+		card.Divider().Text(strings.TrimRight(b.String(), "\n"))
 	}
 
-	b.WriteString("\n" + Legend)
+	card.Divider().Subtext(Legend)
 
 	switch state {
 	case tables.MotusStateWon:
-		embed.Color = colorWon
-		fmt.Fprintf(&b, "\n\n**Gagné !** Le mot était **%s** (%d/%d).",
-			word, len(attempts), MaxAttempts)
+		card.Accent(colorWon).Textf("🎉 **Gagné !** Le mot était **%s** (%d/%d).", word, len(attempts), MaxAttempts)
 	case tables.MotusStateLost:
-		embed.Color = colorLost
-		fmt.Fprintf(&b, "\n\n**Perdu !** Le mot était **%s** (%d/%d).",
-			word, len(attempts), MaxAttempts)
+		card.Accent(colorLost).Textf("💀 **Perdu !** Le mot était **%s** (%d/%d).", word, len(attempts), MaxAttempts)
 	default:
-		fmt.Fprintf(&b, "\n\nEssais : **%d/%d** — cliquez sur « Essayer » pour proposer un mot.",
-			len(attempts), MaxAttempts)
+		card.Textf("Essais : **%d/%d** — cliquez sur « Essayer » pour proposer un mot.", len(attempts), MaxAttempts)
 	}
 
-	embed.Description = b.String()
-	return embed
+	return card.Row(tryButton(state != tables.MotusStatePlaying))
 }
 
-func boardComponents(disabled bool) []discord.LayoutComponent {
+func tryButton(disabled bool) discord.ButtonComponent {
 	button := discord.NewPrimaryButton("Essayer", CustomIDTry).
 		WithEmoji(discord.NewComponentEmoji("✏️"))
 	if disabled {
-		button = button.AsDisabled()
+		return button.AsDisabled()
 	}
-	return []discord.LayoutComponent{discord.NewActionRow(button)}
+	return button
 }
 
 func boardMessage(word string) discord.MessageCreate {
-	return discord.MessageCreate{
-		Embeds:     []discord.Embed{boardEmbed(word, nil, tables.MotusStatePlaying)},
-		Components: boardComponents(false),
-	}
+	return boardCard(word, nil, tables.MotusStatePlaying).MessageCreate()
 }
 
 func boardUpdate(word string, attempts []tables.MotusAttempt, state string) discord.MessageUpdate {
-	embedList := []discord.Embed{boardEmbed(word, attempts, state)}
-	components := boardComponents(state != tables.MotusStatePlaying)
-	return discord.MessageUpdate{
-		Embeds:     &embedList,
-		Components: &components,
-	}
+	return boardCard(word, attempts, state).MessageUpdate()
 }
 
-func attemptFeedback(word string, attempts []tables.MotusAttempt) discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Title = "Motus"
-
+func attemptFeedback(word string, attempts []tables.MotusAttempt) *ui.Card {
 	last := attempts[len(attempts)-1]
-	states := Score(last.Word, word)
-	embed.Description = fmt.Sprintf("%s\n%s\n\nEssais : **%d/%d**.",
-		RenderStates(states), RenderLetters(last.Word), len(attempts), MaxAttempts)
-	return embed
+	return ui.New().
+		Title(boardTitle).
+		Textf("%s\n%s", RenderStates(Score(last.Word, word)), RenderLetters(last.Word)).
+		Subtext(fmt.Sprintf("Essais : %d/%d", len(attempts), MaxAttempts))
 }

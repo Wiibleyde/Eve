@@ -6,15 +6,14 @@ import (
 	"sort"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/quizstat"
 	"Eve/internal/logger"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 )
 
@@ -52,26 +51,25 @@ func handleLeaderboard(e *events.ApplicationCommandInteractionCreate) {
 		empty = "Personne n'a encore de mauvaise réponse."
 		stats, err = worstScores(ctx)
 	default:
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Classement inconnu."))
+		helpers.RespondEphemeralCard(e, ui.Error("Classement inconnu."))
 		return
 	}
 	if err != nil {
 		logger.Error("Error building quiz leaderboard", "error", err, "choice", choice)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération du classement."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération du classement."))
 		return
 	}
 	if len(stats) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(empty))
+		helpers.RespondEphemeralCard(e, ui.Error(empty))
 		return
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = colorQuiz
-	embed.Author = &discord.EmbedAuthor{Name: authorName}
-	embed.Title = title
-	embed.Description = strings.Join(leaderboardLines(stats), "\n")
+	card := ui.New().
+		Accent(colorQuiz).
+		Title(quizTitle + " — " + title).
+		Text(strings.Join(leaderboardLines(stats), "\n"))
 
-	if err := e.CreateMessage(discord.MessageCreate{Embeds: []discord.Embed{embed}}); err != nil {
+	if err := e.CreateMessage(card.MessageCreate()); err != nil {
 		logger.Error("Error responding to interaction", "error", err)
 	}
 }

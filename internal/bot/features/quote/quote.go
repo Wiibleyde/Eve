@@ -8,8 +8,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent/guildconfig"
 	"Eve/internal/database/tables"
@@ -139,18 +139,18 @@ func configuredChannel(ctx context.Context, guildID snowflake.ID) (snowflake.ID,
 
 func respond(e *events.ApplicationCommandInteractionCreate, res Result) {
 	if res.Posted {
-		helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Citation envoyée dans <#"+res.ChannelID.String()+">."))
+		helpers.RespondEphemeralCard(e, ui.Success("Citation envoyée dans <#"+res.ChannelID.String()+">."))
 		return
 	}
 	if err := e.CreateMessage(res.Message); err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgSendError))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgSendError))
 	}
 }
 
 func guildID(e *events.ApplicationCommandInteractionCreate) (snowflake.ID, bool) {
 	id := e.GuildID()
 	if id == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgGuildOnly))
 		return 0, false
 	}
 	return *id, true

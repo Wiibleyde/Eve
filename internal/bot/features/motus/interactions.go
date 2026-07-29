@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/router"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/tables"
 	"Eve/internal/logger"
@@ -27,12 +27,12 @@ func HandleTryButton(e *events.ComponentInteractionCreate, _ []string) {
 	}
 
 	if isOver(game) {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgGameOver, game.Word)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgGameOver, game.Word)))
 		return
 	}
 	if isExpired(game) {
 		closeExpiredGame(ctx, e.Client(), game)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgExpired, game.Word)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgExpired, game.Word)))
 		return
 	}
 
@@ -63,7 +63,7 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 		messageID = e.Message.ID.String()
 	}
 	if messageID == "" {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgUnknownGame))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgUnknownGame))
 		return
 	}
 
@@ -79,23 +79,23 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 
 	if isOver(game) {
 		forgetGameLock(messageID)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgGameOver, game.Word)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgGameOver, game.Word)))
 		return
 	}
 	if isExpired(game) {
 		closeExpiredGame(ctx, e.Client(), game)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgExpired, game.Word)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgExpired, game.Word)))
 		return
 	}
 
 	guess := Normalize(e.Data.Text(InputGuess))
 	expected := WordLen(game.Word)
 	if !IsWord(guess) || WordLen(guess) != expected {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgInvalidGuess, expected)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgInvalidGuess, expected)))
 		return
 	}
 	if alreadyTried(game.Attempts, guess) {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgAlreadyTried, guess)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgAlreadyTried, guess)))
 		return
 	}
 
@@ -113,7 +113,7 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 
 	if err := saveAttempt(ctx, game.ID, attempts, state); err != nil {
 		logger.Error("Motus: saving the attempt", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgDBError))
 		return
 	}
 
@@ -122,13 +122,13 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	switch state {
 	case tables.MotusStateWon:
 		forgetGameLock(messageID)
-		helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+		helpers.RespondEphemeralCard(e, ui.Success(
 			fmt.Sprintf(MsgWon, game.Word, len(attempts), MaxAttempts)))
 	case tables.MotusStateLost:
 		forgetGameLock(messageID)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgLost, game.Word)))
+		helpers.RespondEphemeralCard(e, ui.Error(fmt.Sprintf(MsgLost, game.Word)))
 	default:
-		helpers.RespondEphemeralEmbed(e, attemptFeedback(game.Word, attempts))
+		helpers.RespondEphemeralCard(e, attemptFeedback(game.Word, attempts))
 	}
 }
 
@@ -138,11 +138,11 @@ func fetchGame(ctx context.Context, responder helpers.EphemeralResponder, messag
 		return game, true
 	}
 	if ent.IsNotFound(err) {
-		helpers.RespondEphemeralEmbed(responder, embeds.ErrorEmbed(MsgUnknownGame))
+		helpers.RespondEphemeralCard(responder, ui.Error(MsgUnknownGame))
 		return nil, false
 	}
 	logger.Error("Motus: loading the game", "message", messageID, "error", err)
-	helpers.RespondEphemeralEmbed(responder, embeds.ErrorEmbed(MsgDBError))
+	helpers.RespondEphemeralCard(responder, ui.Error(MsgDBError))
 	return nil, false
 }
 

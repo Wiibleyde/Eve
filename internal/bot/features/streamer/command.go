@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/router"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/stream"
 	"Eve/internal/logger"
@@ -29,7 +29,7 @@ const (
 	msgNotConfigured = "La fonctionnalité Twitch n'est pas configurée sur ce bot."
 )
 
-const embedDescriptionLimit = 4096
+const listLimit = 2500
 
 var loginPattern = regexp.MustCompile(`^[a-z0-9_]{3,25}$`)
 
@@ -91,11 +91,11 @@ func Commands() []discord.ApplicationCommandCreate {
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	data := e.SlashCommandInteractionData()
 	if data.SubCommandName == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(router.MsgUnknownInteraction))
+		helpers.RespondEphemeralCard(e, ui.Error(router.MsgUnknownInteraction))
 		return
 	}
 	if !Enabled() {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgNotConfigured))
+		helpers.RespondEphemeralCard(e, ui.Error(msgNotConfigured))
 		return
 	}
 	switch *data.SubCommandName {
@@ -107,7 +107,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		handleList(e)
 	default:
 		logger.Debug("Unknown streamer subcommand", "subcommand", *data.SubCommandName)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(router.MsgUnknownInteraction))
+		helpers.RespondEphemeralCard(e, ui.Error(router.MsgUnknownInteraction))
 	}
 }
 
@@ -120,7 +120,7 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 	data := e.SlashCommandInteractionData()
 	login, ok := normalizeLogin(data.String("streamer"))
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgInvalidLogin))
+		helpers.RespondEphemeralCard(e, ui.Error(msgInvalidLogin))
 		return
 	}
 	channel := data.Channel("channel")
@@ -128,7 +128,7 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 
 	db := entClient()
 	if db == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
@@ -138,11 +138,11 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 	user, found, err := helixClient().GetUserByLogin(ctx, login)
 	if err != nil {
 		logger.Error("Resolving Twitch login", "login", login, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgTwitchError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgTwitchError))
 		return
 	}
 	if !found {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(
+		helpers.RespondEphemeralCard(e, ui.Error(
 			fmt.Sprintf("La chaîne Twitch `%s` est introuvable.", login),
 		))
 		return
@@ -151,7 +151,7 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 	existing, err := findTracked(ctx, db, guildID, user.ID)
 	if err != nil {
 		logger.Error("Querying tracked stream", "guild", guildID, "twitch_user", user.ID, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
@@ -168,19 +168,19 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 		}
 		err := create.Exec(ctx)
 		if err == nil {
-			helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(addedMessage(user.Name(), channelID, role.ID.String(), hasRole)))
+			helpers.RespondEphemeralCard(e, ui.Success(addedMessage(user.Name(), channelID, role.ID.String(), hasRole)))
 			logger.Info("Twitch channel tracked", "guild", guildID, "login", user.Login, "channel", channelID)
 			return
 		}
 		if !ent.IsConstraintError(err) {
 			logger.Error("Creating tracked stream", "guild", guildID, "twitch_user", user.ID, "error", err)
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+			helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 			return
 		}
 		existing, err = findTracked(ctx, db, guildID, user.ID)
 		if err != nil || existing == nil {
 			logger.Error("Reloading tracked stream after conflict", "guild", guildID, "twitch_user", user.ID, "error", err)
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+			helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 			return
 		}
 	}
@@ -199,11 +199,11 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 	}
 	if err := update.Exec(ctx); err != nil {
 		logger.Error("Updating tracked stream", "guild", guildID, "twitch_user", user.ID, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(updatedMessage(user.Name(), channelID, role.ID.String(), hasRole)))
+	helpers.RespondEphemeralCard(e, ui.Success(updatedMessage(user.Name(), channelID, role.ID.String(), hasRole)))
 	if moved {
 		closeNotifications(e.Client(), existing)
 	}
@@ -229,13 +229,13 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 	data := e.SlashCommandInteractionData()
 	login, ok := normalizeLogin(data.String("streamer"))
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgInvalidLogin))
+		helpers.RespondEphemeralCard(e, ui.Error(msgInvalidLogin))
 		return
 	}
 
 	db := entClient()
 	if db == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
@@ -247,7 +247,7 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 		All(ctx)
 	if err != nil {
 		logger.Error("Querying tracked stream by login", "guild", guildID, "login", login, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
@@ -255,7 +255,7 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 		user, found, err := helixClient().GetUserByLogin(ctx, login)
 		if err != nil {
 			logger.Error("Resolving Twitch login", "login", login, "error", err)
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgTwitchError))
+			helpers.RespondEphemeralCard(e, ui.Error(msgTwitchError))
 			return
 		}
 		if found {
@@ -264,14 +264,14 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 				All(ctx)
 			if err != nil {
 				logger.Error("Querying tracked stream by id", "guild", guildID, "twitch_user", user.ID, "error", err)
-				helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+				helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 				return
 			}
 		}
 	}
 
 	if len(rows) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(
+		helpers.RespondEphemeralCard(e, ui.Error(
 			fmt.Sprintf("La chaîne `%s` n'est pas suivie sur ce serveur.", login),
 		))
 		return
@@ -283,11 +283,11 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 	}
 	if _, err := db.Stream.Delete().Where(stream.IDIn(ids...)).Exec(ctx); err != nil {
 		logger.Error("Deleting tracked stream", "guild", guildID, "login", login, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+	helpers.RespondEphemeralCard(e, ui.Success(
 		fmt.Sprintf("La chaîne **%s** n'est plus suivie.", login),
 	))
 	closeNotifications(e.Client(), rows...)
@@ -302,7 +302,7 @@ func handleList(e *events.ApplicationCommandInteractionCreate) {
 
 	db := entClient()
 	if db == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 
@@ -315,7 +315,7 @@ func handleList(e *events.ApplicationCommandInteractionCreate) {
 		All(ctx)
 	if err != nil {
 		logger.Error("Listing tracked streams", "guild", guildID, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDBError))
 		return
 	}
 	if len(rows) == 0 {
@@ -335,18 +335,18 @@ func handleList(e *events.ApplicationCommandInteractionCreate) {
 		lines = append(lines, line)
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = twitchColor
-	embed.Title = "Chaînes Twitch suivies"
-	embed.Description = joinCapped(lines)
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Accent(twitchColor).
+		Title("📺 Chaînes Twitch suivies").
+		Text(joinCapped(lines))
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func joinCapped(lines []string) string {
 	var b strings.Builder
 	for i, line := range lines {
 		omitted := fmt.Sprintf("\n… et %d de plus", len(lines)-i)
-		if b.Len()+len("\n")+len(line) > embedDescriptionLimit-len(omitted) {
+		if b.Len()+len("\n")+len(line) > listLimit-len(omitted) {
 			b.WriteString(omitted)
 			break
 		}
@@ -360,7 +360,7 @@ func joinCapped(lines []string) string {
 
 func requireGuildAndPermission(e *events.ApplicationCommandInteractionCreate) (string, bool) {
 	if e.GuildID() == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(msgGuildOnly))
 		return "", false
 	}
 	if !helpers.RequirePermission(e, discord.PermissionManageChannels, msgNoPermission) {

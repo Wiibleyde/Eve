@@ -7,8 +7,8 @@ import (
 	"slices"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -55,13 +55,13 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	guildID := e.GuildID()
 	member := e.Member()
 	if guildID == nil || member == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(msgGuildOnly))
 		return
 	}
 
 	if perms := e.AppPermissions(); perms != nil && perms.Missing(discord.PermissionManageRoles) {
 		logger.Debug("Debug: missing Manage Roles", "guild", guildID.String())
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgMissingPerm))
+		helpers.RespondEphemeralCard(e, ui.Error(msgMissingPerm))
 		return
 	}
 
@@ -78,13 +78,13 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		switch {
 		case errors.Is(err, errMissingPermissions):
 			logger.Warn("Debug: role management refused by Discord", "guild", guildID.String(), "error", err)
-			editDeferred(e, embeds.ErrorEmbed(msgMissingPerm))
+			editDeferred(e, ui.Error(msgMissingPerm))
 		case errors.Is(err, errStorage):
 			logger.Error("Debug: guild config access failed", "guild", guildID.String(), "error", err)
-			editDeferred(e, embeds.ErrorEmbed(msgDBError))
+			editDeferred(e, ui.Error(msgDBError))
 		default:
 			logger.Error("Debug: resolving debug role failed", "guild", guildID.String(), "error", err)
-			editDeferred(e, embeds.ErrorEmbed(msgRoleError))
+			editDeferred(e, ui.Error(msgRoleError))
 		}
 		return
 	}
@@ -99,7 +99,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 			"permissions", role.Permissions.String(),
 		)
 		if !hasRole {
-			editDeferred(e, embeds.ErrorEmbed(msgEscalated))
+			editDeferred(e, ui.Error(msgEscalated))
 			return
 		}
 	}
@@ -115,18 +115,18 @@ func addRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate,
 	userID := e.User().ID
 	if err := e.Client().Rest.AddMemberRole(guildID, userID, roleID, rest.WithCtx(ctx)); err != nil {
 		logger.Error("Debug: adding role failed", "guild", guildID.String(), "user", userID.String(), "error", err)
-		editDeferred(e, embeds.ErrorEmbed(toggleErrorMessage(err, msgAddFailed)))
+		editDeferred(e, ui.Error(toggleErrorMessage(err, msgAddFailed)))
 		return
 	}
 	logger.Info("Debug: mode enabled", "guild", guildID.String(), "user", userID.String())
-	editDeferred(e, embeds.SuccessEmbed(toggleMessage(ctx, e, guildID, msgEnabledFmt, msgEnabledFallback)))
+	editDeferred(e, ui.Success(toggleMessage(ctx, e, guildID, msgEnabledFmt, msgEnabledFallback)))
 }
 
 func removeRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID, roleID snowflake.ID, escalated bool) {
 	userID := e.User().ID
 	if err := e.Client().Rest.RemoveMemberRole(guildID, userID, roleID, rest.WithCtx(ctx)); err != nil {
 		logger.Error("Debug: removing role failed", "guild", guildID.String(), "user", userID.String(), "error", err)
-		editDeferred(e, embeds.ErrorEmbed(toggleErrorMessage(err, msgRemoveFailed)))
+		editDeferred(e, ui.Error(toggleErrorMessage(err, msgRemoveFailed)))
 		return
 	}
 	logger.Info("Debug: mode disabled", "guild", guildID.String(), "user", userID.String())
@@ -135,7 +135,7 @@ func removeRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	if escalated {
 		message += "\n\n" + msgEscalatedNote
 	}
-	editDeferred(e, embeds.SuccessEmbed(message))
+	editDeferred(e, ui.Success(message))
 }
 
 func toggleMessage(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID, format string, fallback string) string {
@@ -153,11 +153,6 @@ func toggleErrorMessage(err error, fallback string) string {
 	return fallback
 }
 
-func editDeferred(e *events.ApplicationCommandInteractionCreate, embed discord.Embed) {
-	embedList := []discord.Embed{embed}
-	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
-		logger.Error("Debug: editing deferred response failed", "error", err)
-	}
+func editDeferred(e *events.ApplicationCommandInteractionCreate, card *ui.Card) {
+	helpers.EditResponseCard(e.Client(), e.ApplicationID(), e.Token(), card)
 }

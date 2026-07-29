@@ -105,7 +105,7 @@ func refreshGuild(ctx context.Context, client *bot.Client, guildIDStr string, ra
 
 	now := time.Now()
 
-	if err := updateCalendarMessage(ctx, client, cfg, buildEmbed(parsed, now)); err != nil &&
+	if err := updateCalendarMessage(ctx, client, cfg, buildCard(parsed, now)); err != nil &&
 		!errors.Is(err, errCalendarMessageGone) && !errors.Is(err, errNoCalendarMessage) {
 		logger.Warn("Calendar: refreshing message failed", "guild", guildIDStr, "error", err)
 	}

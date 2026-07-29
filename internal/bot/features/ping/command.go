@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -79,16 +79,15 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		cpuPct = pct
 	}
 
-	inline := true
-	embed := embeds.BaseEmbed()
-	embed.Title = "Pong !"
-	embed.Color = pingColor(latencyMs)
-	embed.Fields = []discord.EmbedField{
-		{Name: "Latence", Value: fmt.Sprintf("`%d ms`", latencyMs), Inline: &inline},
-		{Name: "Mémoire", Value: fmt.Sprintf("`%.1f Mo`", memMB), Inline: &inline},
-		{Name: "CPU", Value: fmt.Sprintf("`%.1f %%`", cpuPct), Inline: &inline},
-		{Name: "Uptime", Value: fmt.Sprintf("`%s`", formatUptime(time.Since(startTime))), Inline: &inline},
-	}
+	card := ui.New().
+		Accent(pingColor(latencyMs)).
+		Title("🏓 Pong !").
+		Fields(
+			ui.Field{Name: "Latence", Value: fmt.Sprintf("`%d ms`", latencyMs), Inline: true},
+			ui.Field{Name: "Mémoire", Value: fmt.Sprintf("`%.1f Mo`", memMB), Inline: true},
+			ui.Field{Name: "CPU", Value: fmt.Sprintf("`%.1f %%`", cpuPct), Inline: true},
+			ui.Field{Name: "Uptime", Value: fmt.Sprintf("`%s`", formatUptime(time.Since(startTime))), Inline: true},
+		)
 
-	helpers.RespondEphemeralEmbed(e, embed)
+	helpers.RespondEphemeralCard(e, card)
 }

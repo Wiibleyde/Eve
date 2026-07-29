@@ -4,7 +4,10 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"Eve/internal/bot/ui"
 )
 
 func withToken(t *testing.T, value string) {
@@ -91,16 +94,14 @@ func TestCommandsHiddenWithoutToken(t *testing.T) {
 	}
 }
 
-func TestJokeEmbedSpoilersAnswer(t *testing.T) {
-	embed := jokeEmbed(&Joke{Joke: "Question ?", Answer: "Réponse."}, "Développeur")
-	if embed.Description != "Question ?" {
-		t.Errorf("description = %q", embed.Description)
-	}
-	if len(embed.Fields) != 1 || embed.Fields[0].Value != "||Réponse.||" {
-		t.Errorf("fields = %+v", embed.Fields)
-	}
-	if embed.Footer == nil || embed.Footer.Text != FooterDisclaimer {
-		t.Errorf("footer = %+v", embed.Footer)
+func TestJokeCardSpoilersAnswer(t *testing.T) {
+	texts := ui.Texts(jokeCard(&Joke{Joke: "Question ?", Answer: "Réponse."}, "Développeur").Components())
+	joined := strings.Join(texts, "\n")
+
+	for _, want := range []string{"## 😂 Blague — Développeur", "Question ?", "||Réponse.||", FooterDisclaimer} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("card is missing %q, got:\n%s", want, joined)
+		}
 	}
 }
 

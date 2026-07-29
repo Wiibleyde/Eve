@@ -1,8 +1,8 @@
 package quiz
 
 import (
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -143,7 +143,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 func requireGuild(e *events.ApplicationCommandInteractionCreate) (string, bool) {
 	guildID := e.GuildID()
 	if guildID == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Cette commande doit être utilisée dans un serveur."))
+		helpers.RespondEphemeralCard(e, ui.Error("Cette commande doit être utilisée dans un serveur."))
 		return "", false
 	}
 	return guildID.String(), true

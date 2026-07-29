@@ -1,9 +1,9 @@
 package maintenance
 
 import (
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/maintenance"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -26,7 +26,7 @@ func Commands() []discord.ApplicationCommandCreate {
 
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	if !helpers.IsOwner(e.User().ID) {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Cette commande est réservée au propriétaire du bot."))
+		helpers.RespondEphemeralCard(e, ui.Error("Cette commande est réservée au propriétaire du bot."))
 		return
 	}
 
@@ -34,13 +34,11 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	logger.Info("Maintenance mode toggled", "enabled", enabled, "by", e.User().ID.String())
 
 	if enabled {
-		embed := embeds.SuccessEmbed("Mode maintenance **activé**. Les interactions des autres utilisateurs sont désormais bloquées.")
-		embed.Title = "Maintenance activée"
-		helpers.RespondEphemeralEmbed(e, embed)
+		helpers.RespondEphemeralCard(e, ui.Warning("Maintenance activée",
+			"Mode maintenance **activé**. Les interactions des autres utilisateurs sont désormais bloquées."))
 		return
 	}
 
-	embed := embeds.SuccessEmbed("Mode maintenance **désactivé**. Le bot répond de nouveau normalement.")
-	embed.Title = "Maintenance désactivée"
-	helpers.RespondEphemeralEmbed(e, embed)
+	helpers.RespondEphemeralCard(e, ui.Success("Mode maintenance **désactivé**. Le bot répond de nouveau normalement.").
+		Title("🛠️ Maintenance désactivée"))
 }

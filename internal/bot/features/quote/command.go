@@ -3,8 +3,8 @@ package quote
 import (
 	"context"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -70,7 +70,7 @@ func handleAddQuote(e *events.ApplicationCommandInteractionCreate) {
 	res, err := Create(context.Background(), e.Client(), guild, author, quoteText, quoteContext)
 	if err != nil {
 		logger.Error("creating quote", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(ErrorMessage(err)))
+		helpers.RespondEphemeralCard(e, ui.Error(ErrorMessage(err)))
 		return
 	}
 	respond(e, res)

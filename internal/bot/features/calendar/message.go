@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/tables"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/bot"
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/snowflake/v2"
 )
@@ -18,7 +18,7 @@ var errCalendarMessageGone = errors.New("calendar message no longer exists")
 
 var errNoCalendarMessage = errors.New("no calendar message stored")
 
-func updateCalendarMessage(ctx context.Context, client *bot.Client, cfg guildCalendar, embed discord.Embed) error {
+func updateCalendarMessage(ctx context.Context, client *bot.Client, cfg guildCalendar, card *ui.Card) error {
 	if !cfg.hasMessage() {
 		return errNoCalendarMessage
 	}
@@ -32,10 +32,7 @@ func updateCalendarMessage(ctx context.Context, client *bot.Client, cfg guildCal
 		return fmt.Errorf("parsing calendar message id %q: %w", cfg.MessageID, err)
 	}
 
-	embedList := []discord.Embed{embed}
-	if _, err := client.Rest.UpdateMessage(channelID, messageID, discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
+	if _, err := client.Rest.UpdateMessage(channelID, messageID, card.MessageUpdate()); err != nil {
 		if isGone(err) {
 			logger.Warn("Calendar message no longer exists, clearing stored refs",
 				"guild", cfg.GuildID, "channel", cfg.ChannelID, "message", cfg.MessageID)
@@ -47,10 +44,8 @@ func updateCalendarMessage(ctx context.Context, client *bot.Client, cfg guildCal
 	return nil
 }
 
-func postCalendarMessage(ctx context.Context, client *bot.Client, guildID string, channelID snowflake.ID, embed discord.Embed) error {
-	message, err := client.Rest.CreateMessage(channelID, discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-	})
+func postCalendarMessage(ctx context.Context, client *bot.Client, guildID string, channelID snowflake.ID, card *ui.Card) error {
+	message, err := client.Rest.CreateMessage(channelID, card.MessageCreate())
 	if err != nil {
 		return fmt.Errorf("posting calendar message: %w", err)
 	}

@@ -5,55 +5,47 @@ import (
 	"strings"
 	"time"
 
-	"Eve/internal/bot/embeds"
-
-	"github.com/disgoorg/disgo/discord"
+	"Eve/internal/bot/ui"
 )
 
 const (
-	embedTitle        = "📅 Calendrier"
+	cardTitle         = "📅 Calendrier"
+	calendarColor     = 0x3BA55D
 	maxOngoing        = 5
 	maxUpcoming       = 5
-	maxFieldLength    = 1024
+	maxSectionLength  = 900
 	maxSummaryLength  = 100
 	maxLocationLength = 60
 
-	fieldOngoing  = "En cours"
-	fieldUpcoming = "À venir"
+	sectionOngoing  = "🟢 En cours"
+	sectionUpcoming = "🔜 À venir"
 
 	msgNoEvents      = "Aucun événement en cours ou à venir."
 	footerLastUpdate = "Dernière actualisation"
 )
 
-func buildEmbed(events []Event, now time.Time) discord.Embed {
+func buildCard(events []Event, now time.Time) *ui.Card {
 	ongoing, upcoming := splitEvents(events, now)
 
-	embed := embeds.BaseEmbed()
-	embed.Title = embedTitle
-	if embed.Footer != nil {
-		embed.Footer.Text = footerLastUpdate
-	}
-	refreshedAt := now
-	embed.Timestamp = &refreshedAt
+	card := ui.New().
+		Accent(calendarColor).
+		Title(cardTitle).
+		Footer(footerLastUpdate)
 
 	if len(ongoing) == 0 && len(upcoming) == 0 {
-		embed.Description = msgNoEvents
-		return embed
+		return card.Text(msgNoEvents)
 	}
 
 	if len(ongoing) > 0 {
-		embed.Fields = append(embed.Fields, discord.EmbedField{
-			Name:  fieldOngoing,
-			Value: renderLines(ongoing),
-		})
+		card.Heading(sectionOngoing).Text(renderLines(ongoing))
 	}
 	if len(upcoming) > 0 {
-		embed.Fields = append(embed.Fields, discord.EmbedField{
-			Name:  fieldUpcoming,
-			Value: renderLines(upcoming),
-		})
+		if len(ongoing) > 0 {
+			card.Divider()
+		}
+		card.Heading(sectionUpcoming).Text(renderLines(upcoming))
 	}
-	return embed
+	return card
 }
 
 func splitEvents(events []Event, now time.Time) (ongoing []Event, upcoming []Event) {
@@ -79,7 +71,7 @@ func renderLines(events []Event) string {
 	var builder strings.Builder
 	for _, event := range events {
 		line := renderLine(event)
-		if builder.Len()+len(line)+1 > maxFieldLength {
+		if builder.Len()+len(line)+1 > maxSectionLength {
 			break
 		}
 		if builder.Len() > 0 {

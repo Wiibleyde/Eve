@@ -5,7 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"Eve/internal/bot/ui"
 	"Eve/internal/twitch"
+
+	"github.com/disgoorg/disgo/discord"
 )
 
 func TestNormalizeLogin(t *testing.T) {
@@ -146,8 +149,8 @@ func TestJoinCapped(t *testing.T) {
 		long[i] = strings.Repeat("x", 50)
 	}
 	got := joinCapped(long)
-	if len(got) > embedDescriptionLimit {
-		t.Fatalf("joinCapped produced %d bytes, over the %d limit", len(got), embedDescriptionLimit)
+	if len(got) > listLimit {
+		t.Fatalf("joinCapped produced %d bytes, over the %d limit", len(got), listLimit)
 	}
 	if !strings.Contains(got, "de plus") {
 		t.Fatalf("the overflow must be reported to the user: %q", got[len(got)-40:])
@@ -189,9 +192,9 @@ func TestTruncate(t *testing.T) {
 		t.Fatalf("truncate = %q", got)
 	}
 	long := strings.Repeat("é", 300)
-	got := truncate(long, embedTitleLimit)
-	if len([]rune(got)) != embedTitleLimit {
-		t.Fatalf("truncate produced %d runes, want %d", len([]rune(got)), embedTitleLimit)
+	got := truncate(long, titleLimit)
+	if len([]rune(got)) != titleLimit {
+		t.Fatalf("truncate produced %d runes, want %d", len([]rune(got)), titleLimit)
 	}
 }
 
@@ -208,40 +211,55 @@ func TestLiveEmbedNeverPingsThroughContent(t *testing.T) {
 		ThumbnailURL: "https://cdn/{width}x{height}.jpg",
 	}
 
-	embed := liveEmbed(s, twitch.User{}, false)
-	if embed.URL != "https://twitch.tv/someone" {
-		t.Fatalf("embed URL = %q", embed.URL)
+	msg := liveCard(s, twitch.User{}, false, "").MessageCreate()
+	if msg.AllowedMentions == nil || len(msg.AllowedMentions.Parse) != 0 {
+		t.Fatalf("live card must suppress mentions: %+v", msg.AllowedMentions)
 	}
-	if embed.Image == nil || !strings.Contains(embed.Image.URL, "1280x720.jpg") {
-		t.Fatalf("thumbnail placeholders were not filled: %+v", embed.Image)
+
+	joined := strings.Join(ui.Texts(msg.Components), "\n")
+	for _, want := range []string{"https://twitch.tv/someone", "**Spectateurs** · 1234", "**Jeu** · Just Chatting"} {
+		if !strings.Contains(joined, want) {
+			t.Fatalf("card is missing %q, got:\n%s", want, joined)
+		}
 	}
-	if len(embed.Fields) != 3 {
-		t.Fatalf("expected game/viewers/uptime fields, got %d", len(embed.Fields))
-	}
-	if embed.Fields[1].Value != "1234" {
-		t.Fatalf("viewer field = %q", embed.Fields[1].Value)
+	if !hasGalleryURL(msg.Components, "1280x720.jpg") {
+		t.Fatal("thumbnail placeholders were not filled")
 	}
 }
 
-func TestEndedEmbedWithoutObservedStart(t *testing.T) {
-	embed := endedEmbed(&trackState{}, "someone", twitch.User{}, false)
-	if embed.Title != "Stream terminé" {
-		t.Fatalf("title = %q", embed.Title)
-	}
-	for _, f := range embed.Fields {
-		if f.Name == "Durée" {
-			t.Fatal("duration must be omitted when the start was never observed")
+func hasGalleryURL(components []discord.LayoutComponent, fragment string) bool {
+	for _, component := range components {
+		container, ok := component.(discord.ContainerComponent)
+		if !ok {
+			continue
 		}
+		for sub := range container.SubComponents() {
+			gallery, ok := sub.(discord.MediaGalleryComponent)
+			if !ok {
+				continue
+			}
+			for _, item := range gallery.Items {
+				if strings.Contains(item.Media.URL, fragment) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func TestEndedCardWithoutObservedStart(t *testing.T) {
+	joined := strings.Join(ui.Texts(endedCard(&trackState{}, "someone", twitch.User{}, false).Components()), "\n")
+	if !strings.Contains(joined, "Stream terminé") {
+		t.Fatalf("title missing: %q", joined)
+	}
+	if strings.Contains(joined, "**Durée**") {
+		t.Fatal("duration must be omitted when the start was never observed")
 	}
 
-	embed = endedEmbed(&trackState{seen: true, title: "T", game: "G", startedAt: time.Now().Add(-90 * time.Minute)}, "someone", twitch.User{}, false)
-	var hasDuration bool
-	for _, f := range embed.Fields {
-		if f.Name == "Durée" {
-			hasDuration = true
-		}
-	}
-	if !hasDuration {
+	st := &trackState{seen: true, title: "T", game: "G", startedAt: time.Now().Add(-90 * time.Minute)}
+	joined = strings.Join(ui.Texts(endedCard(st, "someone", twitch.User{}, false).Components()), "\n")
+	if !strings.Contains(joined, "**Durée**") {
 		t.Fatal("duration must be shown when the start was observed")
 	}
 }

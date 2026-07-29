@@ -5,13 +5,12 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/logger"
 
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/google/uuid"
 )
@@ -34,7 +33,7 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 	difficulty := strings.TrimSpace(data.String("difficulty"))
 
 	if msg, ok := validateQuestion(question, good, bad, category, difficulty); !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msg))
+		helpers.RespondEphemeralCard(e, ui.Error(msg))
 		return
 	}
 
@@ -53,24 +52,25 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 		Exec(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Cette question existe déjà."))
+			helpers.RespondEphemeralCard(e, ui.Error("Cette question existe déjà."))
 			return
 		}
 		logger.Error("Error creating quiz question", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement de la question."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement de la question."))
 		return
 	}
 
-	inline := true
-	embed := embeds.SuccessEmbed("Question ajoutée au quiz !")
-	embed.Author = &discord.EmbedAuthor{Name: authorName}
-	embed.Fields = []discord.EmbedField{
-		{Name: "Question", Value: truncate(question, 1024)},
-		{Name: "Bonne réponse", Value: truncate(good, 1024)},
-		{Name: "Catégorie", Value: category, Inline: &inline},
-		{Name: "Difficulté", Value: difficulty, Inline: &inline},
-	}
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.Success("Question ajoutée au quiz !").
+		Divider().
+		Fields(
+			ui.Field{Name: "Question", Value: truncate(question, 1000)},
+			ui.Field{Name: "Bonne réponse", Value: truncate(good, 1000)},
+		).
+		Fields(
+			ui.Field{Name: "Catégorie", Value: category, Inline: true},
+			ui.Field{Name: "Difficulté", Value: difficulty, Inline: true},
+		)
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func validateQuestion(question, good string, bad [3]string, category, difficulty string) (string, bool) {

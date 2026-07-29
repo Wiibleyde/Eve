@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/birthday"
@@ -77,7 +77,7 @@ func handleSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 
 	date, err := time.Parse("02/01/2006", dateStr)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Format invalide. Utilisez DD/MM/YYYY."))
+		helpers.RespondEphemeralCard(e, ui.Error("Format invalide. Utilisez DD/MM/YYYY."))
 		return
 	}
 
@@ -89,7 +89,7 @@ func handleSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 		SetBirthday(date).
 		Save(ctx)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement."))
 		return
 	}
 
@@ -99,12 +99,12 @@ func handleSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 			SetBirthday(date).
 			Exec(ctx)
 		if err != nil {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+			helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement."))
 			return
 		}
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Anniversaire enregistré !"))
+	helpers.RespondEphemeralCard(e, ui.Success("Anniversaire enregistré !"))
 }
 
 func handleGetBirthday(e *events.ApplicationCommandInteractionCreate) {
@@ -119,7 +119,7 @@ func handleGetBirthday(e *events.ApplicationCommandInteractionCreate) {
 			helpers.RespondEphemeral(e, "Vous n'avez pas enregistré votre anniversaire.")
 			return
 		}
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération de votre anniversaire."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération de votre anniversaire."))
 		return
 	}
 
@@ -129,14 +129,11 @@ func handleGetBirthday(e *events.ApplicationCommandInteractionCreate) {
 		next = next.AddDate(1, 0, 0)
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Title = "Votre anniversaire"
-	embed.Description = fmt.Sprintf(
-		"Votre date d'anniversaire est le %s (<t:%d:R>)",
-		b.Birthday.Format("02/01/2006"),
-		next.Unix(),
-	)
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Title("🎂 Votre anniversaire").
+		Textf("Votre date d'anniversaire est le **%s** — <t:%d:R>",
+			b.Birthday.Format("02/01/2006"), next.Unix())
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func handleRemoveBirthday(e *events.ApplicationCommandInteractionCreate) {
@@ -147,7 +144,7 @@ func handleRemoveBirthday(e *events.ApplicationCommandInteractionCreate) {
 		Where(birthday.DiscordID(discordID)).
 		Exec(ctx)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la suppression."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la suppression."))
 		return
 	}
 	if n == 0 {
@@ -155,7 +152,7 @@ func handleRemoveBirthday(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Anniversaire supprimé."))
+	helpers.RespondEphemeralCard(e, ui.Success("Anniversaire supprimé."))
 }
 
 func handleListBirthdays(e *events.ApplicationCommandInteractionCreate) {
@@ -163,7 +160,7 @@ func handleListBirthdays(e *events.ApplicationCommandInteractionCreate) {
 
 	birthdays, err := database.Default.Ent().Birthday.Query().All(ctx)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération des anniversaires."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération des anniversaires."))
 		return
 	}
 	if len(birthdays) == 0 {
@@ -176,10 +173,10 @@ func handleListBirthdays(e *events.ApplicationCommandInteractionCreate) {
 		lines = append(lines, fmt.Sprintf("<@%s> — %s", b.DiscordID, b.Birthday.Format("02/01")))
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Title = "Anniversaires"
-	embed.Description = strings.Join(lines, "\n")
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Title("🎂 Anniversaires").
+		Text(strings.Join(lines, "\n"))
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func handleAdminSetBirthday(e *events.ApplicationCommandInteractionCreate) {
@@ -193,7 +190,7 @@ func handleAdminSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 
 	date, err := time.Parse("02/01/2006", dateStr)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Format invalide. Utilisez DD/MM/YYYY."))
+		helpers.RespondEphemeralCard(e, ui.Error("Format invalide. Utilisez DD/MM/YYYY."))
 		return
 	}
 
@@ -205,7 +202,7 @@ func handleAdminSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 		SetBirthday(date).
 		Save(ctx)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement."))
 		return
 	}
 
@@ -215,10 +212,10 @@ func handleAdminSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 			SetBirthday(date).
 			Exec(ctx)
 		if err != nil {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+			helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de l'enregistrement."))
 			return
 		}
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(fmt.Sprintf("Anniversaire de <@%s> enregistré !", discordID)))
+	helpers.RespondEphemeralCard(e, ui.Success(fmt.Sprintf("Anniversaire de <@%s> enregistré !", discordID)))
 }

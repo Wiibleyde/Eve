@@ -2,16 +2,14 @@ package birthday
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/disgoorg/disgo/bot"
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/maintenance"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/guildconfig"
@@ -89,13 +87,12 @@ func sendBirthdayMessage(client *bot.Client, b *ent.Birthday) {
 			continue
 		}
 
-		embed := embeds.BaseEmbed()
-		embed.Title = "Joyeux anniversaire !"
-		embed.Description = fmt.Sprintf("Aujourd'hui c'est l'anniversaire de <@%s> ! 🥳", b.DiscordID)
+		card := ui.New().
+			Accent(0xFF7BAC).
+			Title("🎉 Joyeux anniversaire !").
+			Textf("Aujourd'hui c'est l'anniversaire de <@%s> ! 🥳", b.DiscordID)
 
-		if _, err := client.Rest.CreateMessage(channelID, discord.MessageCreate{
-			Embeds: []discord.Embed{embed},
-		}); err != nil {
+		if _, err := client.Rest.CreateMessage(channelID, card.MessageCreate()); err != nil {
 			logger.Error("sending birthday message: " + err.Error())
 		}
 	}

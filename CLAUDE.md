@@ -76,7 +76,7 @@ Features gated behind an optional env var (blague, streamer, maintenance, talk) 
 - User-facing strings are **French**.
 - No hardcoded guild, channel, or role IDs in code — they live in the `guild_configs` table or in env vars.
 - No hardcoded Discord CDN attachment URLs (they expire) — bundle images under `assets/` or use a stable URL.
-- Ephemeral replies go through `helpers.RespondEphemeral*`, embeds through `internal/bot/embeds`.
+- Ephemeral replies go through `helpers.RespondEphemeral*`, message bodies through `internal/bot/ui`.
 - Config keys are declared once in `internal/bot/features/config/keys.go`; `/config list`, `get`, and `reset` are generated from that registry.
 
 ### Database / ORM
@@ -90,9 +90,20 @@ Uses **ent** (entgo.io) with versioned Atlas migrations.
 - `database.Default.Migrate(ctx)` (called on startup) applies pending migrations via ent's auto-migrate.
 - SQL queries log at DEBUG level automatically.
 
-### Embeds
+### UI (Components V2)
 
-`internal/bot/embeds/` has three builders: `BaseEmbed()`, `SuccessEmbed(msg)`, `ErrorEmbed(msg)`. All responses to interactions should use `helpers.RespondEphemeral*` from `internal/bot/helpers/responses.go`.
+Every message the bot sends uses Discord **Components V2** — no `discord.Embed` anywhere. `internal/bot/ui/` builds them:
+
+- `ui.New()`, `ui.Success(msg)`, `ui.Error(msg)`, `ui.Warning(title, msg)` return a `*ui.Card`.
+- A `Card` renders as one `ContainerComponent` (accent-coloured left border) holding a `## ` title, text blocks, separators, media galleries, action rows, and a `-# ` footer with a timestamp.
+- Chainable: `Title`, `Text`/`Textf`, `Heading`, `Subtext`/`Subtextf`, `Fields(...ui.Field)`, `Divider`, `Space`, `Thumbnail`, `Image`/`Images`, `Row(buttons...)`, `Accent`, `Footer`, `NoFooter`.
+- Emit with `card.MessageCreate()`, `card.EphemeralCreate()`, `card.MessageUpdate()`, or `helpers.RespondEphemeralCard` / `RespondCard` / `FollowupEphemeralCard` / `EditResponseCard`.
+
+**Mentions ping for real.** Container text is regular message content, unlike embed text, so `<@id>` and `<@&id>` inside a card notify. Every constructor sets `AllowedMentions: ui.NoMentions()`; only override it deliberately (the Twitch poller does, to ping the configured role once on go-live).
+
+Budget: 4000 characters of text and 40 components per message — truncate long lists (`ui.MaxText`).
+
+Reading text back out of a V2 message (e.g. to republish it) goes through `ui.Texts(msg.Components)`.
 
 ### Scheduler
 

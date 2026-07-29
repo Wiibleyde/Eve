@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/tables"
 	"Eve/internal/logger"
 
@@ -80,7 +80,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 
 func guildContext(e *events.ApplicationCommandInteractionCreate) (snowflake.ID, bool) {
 	if e.GuildID() == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(msgGuildOnly))
 		return 0, false
 	}
 	if !helpers.RequirePermission(e, discord.PermissionManageChannels, msgNoPermission) {
@@ -98,7 +98,7 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 	normalized, err := normalizeURL(e.SlashCommandInteractionData().String("url"))
 	if err != nil {
 		logger.Debug("Calendar: rejected url", "guild", guildID.String(), "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgInvalidURL))
+		helpers.RespondEphemeralCard(e, ui.Error(msgInvalidURL))
 		return
 	}
 
@@ -113,7 +113,7 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 	parsed, err := fetchEvents(ctx, normalized)
 	if err != nil {
 		logger.Warn("Calendar: ICS validation failed", "guild", guildID.String(), "url", normalized, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgFetchFailed))
+		editDeferred(e, ui.Error(msgFetchFailed))
 		return
 	}
 
@@ -127,17 +127,17 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 
 	if err := saveConfig(ctx, guildIDStr, tables.CalendarURL, normalized); err != nil {
 		logger.Error("Calendar: saving url failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgSaveFailed))
+		editDeferred(e, ui.Error(msgSaveFailed))
 		return
 	}
 
 	channelID := e.Channel().ID()
-	if err := postCalendarMessage(ctx, e.Client(), guildIDStr, channelID, buildEmbed(parsed, time.Now())); err != nil {
+	if err := postCalendarMessage(ctx, e.Client(), guildIDStr, channelID, buildCard(parsed, time.Now())); err != nil {
 		logger.Error("Calendar: publishing calendar message failed", "guild", guildIDStr, "error", err)
 		if rollbackErr := deleteConfig(ctx, guildIDStr, tables.CalendarURL, tables.CalendarChannel, tables.CalendarMessage); rollbackErr != nil {
 			logger.Error("Calendar: rolling back config after a failed publish", "guild", guildIDStr, "error", rollbackErr)
 		}
-		editDeferred(e, embeds.ErrorEmbed(msgPostFailed))
+		editDeferred(e, ui.Error(msgPostFailed))
 		return
 	}
 
@@ -146,7 +146,7 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 	if hasRecurring(parsed) {
 		message += msgRecurringNotice
 	}
-	editDeferred(e, embeds.SuccessEmbed(message))
+	editDeferred(e, ui.Success(message))
 }
 
 func handleRemove(e *events.ApplicationCommandInteractionCreate) {
@@ -166,11 +166,11 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 	cfg, err := loadGuildCalendar(ctx, guildIDStr)
 	if err != nil {
 		logger.Error("Calendar: loading config failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgSaveFailed))
+		editDeferred(e, ui.Error(msgSaveFailed))
 		return
 	}
 	if !cfg.configured() && !cfg.hasMessage() {
-		editDeferred(e, embeds.ErrorEmbed(msgNotConfigured))
+		editDeferred(e, ui.Error(msgNotConfigured))
 		return
 	}
 
@@ -178,10 +178,10 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 
 	if err := deleteConfig(ctx, guildIDStr, tables.CalendarURL, tables.CalendarChannel, tables.CalendarMessage); err != nil {
 		logger.Error("Calendar: deleting config failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgSaveFailed))
+		editDeferred(e, ui.Error(msgSaveFailed))
 		return
 	}
-	editDeferred(e, embeds.SuccessEmbed(msgRemoved))
+	editDeferred(e, ui.Success(msgRemoved))
 }
 
 func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
@@ -201,23 +201,23 @@ func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
 	cfg, err := loadGuildCalendar(ctx, guildIDStr)
 	if err != nil {
 		logger.Error("Calendar: loading config failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgSaveFailed))
+		editDeferred(e, ui.Error(msgSaveFailed))
 		return
 	}
 	if !cfg.configured() {
-		editDeferred(e, embeds.ErrorEmbed(msgNotConfigured))
+		editDeferred(e, ui.Error(msgNotConfigured))
 		return
 	}
 
 	parsed, err := fetchEvents(ctx, cfg.URL)
 	if err != nil {
 		logger.Warn("Calendar: refresh fetch failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgFetchFailed))
+		editDeferred(e, ui.Error(msgFetchFailed))
 		return
 	}
 
-	embed := buildEmbed(parsed, time.Now())
-	err = updateCalendarMessage(ctx, e.Client(), cfg, embed)
+	card := buildCard(parsed, time.Now())
+	err = updateCalendarMessage(ctx, e.Client(), cfg, card)
 	switch {
 	case err == nil:
 	case errors.Is(err, errCalendarMessageGone), errors.Is(err, errNoCalendarMessage):
@@ -227,14 +227,14 @@ func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
 				channelID = parsedID
 			}
 		}
-		if postErr := postCalendarMessage(ctx, e.Client(), guildIDStr, channelID, embed); postErr != nil {
+		if postErr := postCalendarMessage(ctx, e.Client(), guildIDStr, channelID, card); postErr != nil {
 			logger.Error("Calendar: republishing calendar message failed", "guild", guildIDStr, "error", postErr)
-			editDeferred(e, embeds.ErrorEmbed(msgPostFailed))
+			editDeferred(e, ui.Error(msgPostFailed))
 			return
 		}
 	default:
 		logger.Error("Calendar: refresh failed", "guild", guildIDStr, "error", err)
-		editDeferred(e, embeds.ErrorEmbed(msgRefreshFailed))
+		editDeferred(e, ui.Error(msgRefreshFailed))
 		return
 	}
 
@@ -242,16 +242,11 @@ func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
 	if hasRecurring(parsed) {
 		message += msgRecurringNotice
 	}
-	editDeferred(e, embeds.SuccessEmbed(message))
+	editDeferred(e, ui.Success(message))
 }
 
-func editDeferred(e *events.ApplicationCommandInteractionCreate, embed discord.Embed) {
-	embedList := []discord.Embed{embed}
-	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
-		logger.Error("Calendar: editing deferred response failed", "error", err)
-	}
+func editDeferred(e *events.ApplicationCommandInteractionCreate, card *ui.Card) {
+	helpers.EditResponseCard(e.Client(), e.ApplicationID(), e.Token(), card)
 }
 
 func hasRecurring(parsed []Event) bool {

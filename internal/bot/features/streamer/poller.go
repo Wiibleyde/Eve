@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"Eve/internal/bot/maintenance"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 	"Eve/internal/logger"
 	"Eve/internal/twitch"
@@ -202,13 +203,12 @@ func (p *poller) startNotification(ctx context.Context, row *ent.Stream, s twitc
 	}
 
 	user, hasUser := p.userInfo(ctx, row.TwitchUserID)
-	content, mentions := roleMention(row.RoleID)
+	mention, mentions := roleMention(row.RoleID)
 
-	msg, err := p.client.Rest.CreateMessage(channelID, discord.MessageCreate{
-		Content:         content,
-		Embeds:          []discord.Embed{liveEmbed(s, user, hasUser)},
-		AllowedMentions: mentions,
-	})
+	create := liveCard(s, user, hasUser, mention).MessageCreate()
+	create.AllowedMentions = mentions
+
+	msg, err := p.client.Rest.CreateMessage(channelID, create)
 	if err != nil {
 		logger.Error("Sending Twitch live notification",
 			"guild", row.GuildID, "channel", row.ChannelID, "login", row.TwitchLogin, "error", err)
@@ -240,7 +240,8 @@ func (p *poller) updateNotification(ctx context.Context, row *ent.Stream, s twit
 	}
 
 	user, hasUser := p.userInfo(ctx, row.TwitchUserID)
-	if !p.editMessage(ctx, row, liveEmbed(s, user, hasUser)) {
+	mention, _ := roleMention(row.RoleID)
+	if !p.editMessage(ctx, row, liveCard(s, user, hasUser, mention)) {
 		return
 	}
 
@@ -269,7 +270,7 @@ func (p *poller) endNotification(ctx context.Context, row *ent.Stream, st *track
 	}
 
 	user, hasUser := p.userInfo(ctx, row.TwitchUserID)
-	p.editMessage(ctx, row, endedEmbed(st, row.TwitchLogin, user, hasUser))
+	p.editMessage(ctx, row, endedCard(st, row.TwitchLogin, user, hasUser))
 
 	if err := entClient().Stream.UpdateOneID(row.ID).ClearMessageID().Exec(ctx); err != nil {
 		logger.Error("Clearing live notification message ID", "guild", row.GuildID, "login", row.TwitchLogin, "error", err)
@@ -283,7 +284,7 @@ func (p *poller) endNotification(ctx context.Context, row *ent.Stream, st *track
 	logger.Info("Twitch stream ended", "guild", row.GuildID, "login", row.TwitchLogin)
 }
 
-func (p *poller) editMessage(ctx context.Context, row *ent.Stream, embed discord.Embed) bool {
+func (p *poller) editMessage(ctx context.Context, row *ent.Stream, card *ui.Card) bool {
 	channelID, err := snowflake.Parse(row.ChannelID)
 	if err != nil {
 		logger.Error("Invalid notification channel ID", "guild", row.GuildID, "channel", row.ChannelID, "error", err)
@@ -295,10 +296,7 @@ func (p *poller) editMessage(ctx context.Context, row *ent.Stream, embed discord
 		return false
 	}
 
-	_, err = p.client.Rest.UpdateMessage(channelID, messageID, discord.NewMessageUpdate().
-		WithEmbeds(embed).
-		WithAllowedMentions(noMentions()),
-	)
+	_, err = p.client.Rest.UpdateMessage(channelID, messageID, card.MessageUpdate())
 	if err == nil {
 		return true
 	}
@@ -395,10 +393,8 @@ func closeNotification(client *bot.Client, row *ent.Stream) {
 		return
 	}
 
-	_, err = client.Rest.UpdateMessage(channelID, messageID, discord.NewMessageUpdate().
-		WithEmbeds(endedEmbed(nil, row.TwitchLogin, twitch.User{}, false)).
-		WithAllowedMentions(noMentions()),
-	)
+	_, err = client.Rest.UpdateMessage(channelID, messageID,
+		endedCard(nil, row.TwitchLogin, twitch.User{}, false).MessageUpdate())
 	if err != nil && !isNotFound(err) {
 		logger.Error("Closing Twitch live notification",
 			"guild", row.GuildID, "login", row.TwitchLogin, "error", err)

@@ -7,9 +7,9 @@ import (
 	"math/rand/v2"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/router"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 	"Eve/internal/logger"
 
@@ -106,45 +106,34 @@ func HandleDrawButton(e *events.ComponentInteractionCreate, args []string) {
 	snap, err := loadSnapshot(context.Background(), game.ID)
 	if err != nil {
 		logger.Error("loto: loading game for draw", "game", game.ID, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la lecture du loto."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la lecture du loto."))
 		return
 	}
 	if snap == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Ce loto n'existe plus."))
+		helpers.RespondEphemeralCard(e, ui.Error("Ce loto n'existe plus."))
 		return
 	}
 	if len(snap.tickets) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun ticket vendu, impossible de tirer au sort."))
+		helpers.RespondEphemeralCard(e, ui.Error("Aucun ticket vendu, impossible de tirer au sort."))
 		return
 	}
 	if len(snap.prizes) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun gain configuré pour ce loto."))
+		helpers.RespondEphemeralCard(e, ui.Error("Aucun gain configuré pour ce loto."))
 		return
 	}
 	if !requireEnoughPlayers(e, snap) {
 		return
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = 0xFFA500
-	embed.Title = "Confirmer le tirage"
-	embed.Description = fmt.Sprintf(
-		"Vous êtes sur le point de tirer au sort **%d gain(s)** parmi **%d ticket(s)** pour le loto **%s**.\n\n"+
-			"⚠️ Cette action est **définitive** : le loto sera clôturé et plus aucun ticket ne pourra être vendu.",
+	card := ui.Warning("Confirmer le tirage", fmt.Sprintf(
+		"Vous êtes sur le point de tirer au sort **%d gain(s)** parmi **%d ticket(s)** pour le loto **%s**.",
 		len(snap.prizes), len(snap.tickets), snap.game.Name,
-	)
+	)).
+		Text("⚠️ Cette action est **définitive** : le loto sera clôturé et plus aucun ticket ne pourra être vendu.").
+		Row(discord.NewDangerButton("Confirmer le tirage", router.BuildCustomID(buttonDrawConfirm, game.ID)).
+			WithEmoji(discord.NewComponentEmoji("🎲")))
 
-	err = e.CreateMessage(discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-		Components: []discord.LayoutComponent{
-			discord.NewActionRow(
-				discord.NewDangerButton("Confirmer le tirage", router.BuildCustomID(buttonDrawConfirm, game.ID)).
-					WithEmoji(discord.NewComponentEmoji("🎲")),
-			),
-		},
-		Flags: discord.MessageFlagEphemeral,
-	})
-	if err != nil {
+	if err := e.CreateMessage(card.EphemeralCreate()); err != nil {
 		logger.Error("loto: sending draw confirmation", "error", err)
 	}
 }
@@ -162,19 +151,19 @@ func HandleDrawConfirmButton(e *events.ComponentInteractionCreate, args []string
 	snap, err := loadSnapshot(ctx, game.ID)
 	if err != nil {
 		logger.Error("loto: loading game for draw", "game", game.ID, "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la lecture du loto."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la lecture du loto."))
 		return
 	}
 	if snap == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Ce loto n'existe plus."))
+		helpers.RespondEphemeralCard(e, ui.Error("Ce loto n'existe plus."))
 		return
 	}
 	if len(snap.tickets) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun ticket vendu, impossible de tirer au sort."))
+		helpers.RespondEphemeralCard(e, ui.Error("Aucun ticket vendu, impossible de tirer au sort."))
 		return
 	}
 	if len(snap.prizes) == 0 {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun gain configuré pour ce loto."))
+		helpers.RespondEphemeralCard(e, ui.Error("Aucun gain configuré pour ce loto."))
 		return
 	}
 	if !requireEnoughPlayers(e, snap) {
@@ -207,10 +196,10 @@ func HandleDrawConfirmButton(e *events.ComponentInteractionCreate, args []string
 	editPublicMessage(e.Client(), final)
 	announceDraw(e.Client(), final)
 
-	summary := embeds.SuccessEmbed(fmt.Sprintf(
-		"🎉 Tirage effectué !\n%s\n\nCagnotte totale: **%d$**.",
-		strings.Join(winnerLines(final), "\n"), final.pot(),
-	))
+	summary := ui.Success("🎉 Tirage effectué !").
+		Divider().
+		Text(strings.Join(winnerLines(final), "\n")).
+		Subtextf("Cagnotte totale : %d$", final.pot())
 	updateResponse(e, summary)
 }
 
@@ -227,7 +216,7 @@ func requireEnoughPlayers(r helpers.EphemeralResponder, snap *snapshot) bool {
 	if len(snap.prizes) <= holders {
 		return true
 	}
-	helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed(fmt.Sprintf(
+	helpers.RespondEphemeralCard(r, ui.Error(fmt.Sprintf(
 		"Impossible de tirer au sort : %d gain(s) pour seulement %d joueur(s) ayant des tickets. "+
 			"Chaque joueur ne peut gagner qu'un seul gain.",
 		len(snap.prizes), holders)))
@@ -296,39 +285,39 @@ func announceDraw(client *bot.Client, snap *snapshot) {
 		return
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = 0xFFD700
-	embed.Title = fmt.Sprintf("🎉 Résultats du loto: %s", snap.game.Name)
-	embed.Description = truncate(fmt.Sprintf(
-		"%s\n\nTickets vendus: **%d**\nCagnotte totale: **%d$**",
-		strings.Join(winnerLines(snap), "\n"), len(snap.tickets), snap.pot(),
-	), maxEmbedDescription)
+	card := ui.New().
+		Accent(0xFFD700).
+		Titlef("🎉 Résultats du loto : %s", snap.game.Name).
+		Text(truncate(strings.Join(winnerLines(snap), "\n"), maxBodyLength)).
+		Divider().
+		Fields(
+			ui.Field{Name: "Tickets vendus", Value: fmt.Sprintf("**%d**", len(snap.tickets)), Inline: true},
+			ui.Field{Name: "Cagnotte totale", Value: fmt.Sprintf("**%d$**", snap.pot()), Inline: true},
+		)
 
-	if _, err := client.Rest.CreateMessage(channelID, discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-	}); err != nil {
+	if _, err := client.Rest.CreateMessage(channelID, card.MessageCreate()); err != nil {
 		logger.Error("loto: announcing draw", "game", snap.game.ID, "error", err)
 	}
 }
 
 func requireActiveGame(r helpers.EphemeralResponder, args []string) (*ent.LotoGame, bool) {
 	if len(args) == 0 || args[0] == "" {
-		helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed("Loto introuvable."))
+		helpers.RespondEphemeralCard(r, ui.Error("Loto introuvable."))
 		return nil, false
 	}
 
 	game, err := gameByID(context.Background(), args[0])
 	if err != nil {
 		logger.Error("loto: loading game", "game", args[0], "error", err)
-		helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed("Erreur lors de la lecture du loto."))
+		helpers.RespondEphemeralCard(r, ui.Error("Erreur lors de la lecture du loto."))
 		return nil, false
 	}
 	if game == nil {
-		helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed("Ce loto n'existe plus."))
+		helpers.RespondEphemeralCard(r, ui.Error("Ce loto n'existe plus."))
 		return nil, false
 	}
 	if !game.Active {
-		helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed("Ce loto est terminé."))
+		helpers.RespondEphemeralCard(r, ui.Error("Ce loto est terminé."))
 		return nil, false
 	}
 	return game, true
@@ -342,7 +331,7 @@ func requireAdmin(r helpers.EphemeralResponder, member *discord.ResolvedMember) 
 	if isAdmin(member) {
 		return true
 	}
-	helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed(msgNoPermission))
+	helpers.RespondEphemeralCard(r, ui.Error(msgNoPermission))
 	return false
 }
 
@@ -373,21 +362,7 @@ func editPublicMessage(client *bot.Client, snap *snapshot) {
 		return
 	}
 
-	embed := buildEmbed(snap)
-	components := buildComponents(game.ID)
-	if !game.Active {
-		embed.Fields = append(embed.Fields, discord.EmbedField{
-			Name:  "📊 Ventes par vendeur",
-			Value: sellerSummary(snap.tickets, game.TicketPrice),
-		})
-		components = []discord.LayoutComponent{}
-	}
-
-	embedList := []discord.Embed{embed}
-	if _, err := client.Rest.UpdateMessage(channelID, messageID, discord.MessageUpdate{
-		Embeds:     &embedList,
-		Components: &components,
-	}); err != nil {
+	if _, err := client.Rest.UpdateMessage(channelID, messageID, buildCard(snap).MessageUpdate()); err != nil {
 		logger.Error("loto: updating public message", "game", game.ID, "error", err)
 	}
 }
@@ -404,15 +379,12 @@ func parseSnowflake(raw string, kind string) (snowflake.ID, bool) {
 	return id, true
 }
 
-func updateResponse(e *events.ComponentInteractionCreate, embed discord.Embed) {
-	embedList := []discord.Embed{embed}
-	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
+func updateResponse(e *events.ComponentInteractionCreate, card *ui.Card) {
+	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), card.MessageUpdate()); err != nil {
 		logger.Error("loto: updating interaction response", "error", err)
 	}
 }
 
 func followupError(e *events.ComponentInteractionCreate, message string) {
-	updateResponse(e, embeds.ErrorEmbed(message))
+	updateResponse(e, ui.Error(message))
 }

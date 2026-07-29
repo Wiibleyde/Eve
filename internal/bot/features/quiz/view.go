@@ -7,8 +7,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/router"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 
 	"github.com/disgoorg/disgo/discord"
@@ -21,43 +21,45 @@ const (
 	colorExpired = 0xFFA500
 )
 
-const authorName = "Quiz"
+const quizTitle = "🧠 Quiz"
 
 const (
 	buttonLabelLimit = 80
-	fieldValueLimit  = 1024
+	mentionListLimit = 900
 )
 
 const (
-	goodAnswersField = "Bonne(s) réponse(s)"
-	badAnswersField  = "Mauvaise(s) réponse(s)"
+	goodAnswersField = "✅ Bonne(s) réponse(s)"
+	badAnswersField  = "❌ Mauvaise(s) réponse(s)"
 )
 
 func storedAnswers(q *ent.QuizQuestion) [answerCount]string {
 	return [answerCount]string{q.GoodAnswer, q.BadAnswer1, q.BadAnswer2, q.BadAnswer3}
 }
 
-func questionEmbed(q *ent.QuizQuestion, expiresAt time.Time, good, bad []string) discord.Embed {
-	inline := true
+func questionCard(q *ent.QuizQuestion, answers [answerCount]string, expiresAt time.Time, good, bad []string) *ui.Card {
+	card := ui.New().
+		Accent(colorQuiz).
+		Title(quizTitle+" — Nouvelle question !").
+		Text("```\n"+escapeCodeBlock(q.Question)+"\n```").
+		Fields(
+			ui.Field{Name: "Catégorie", Value: fallbackText(q.Category), Inline: true},
+			ui.Field{Name: "Difficulté", Value: fallbackText(q.Difficulty), Inline: true},
+			ui.Field{Name: "Proposée par", Value: authorMention(q.AuthorID), Inline: true},
+			ui.Field{Name: "Expiration", Value: fmt.Sprintf("<t:%d:R>", expiresAt.Unix()), Inline: true},
+		)
 
-	embed := embeds.BaseEmbed()
-	embed.Color = colorQuiz
-	embed.Author = &discord.EmbedAuthor{Name: authorName}
-	embed.Title = "Nouvelle question !"
-	embed.Description = "```\n" + escapeCodeBlock(q.Question) + "\n```"
-	embed.Fields = []discord.EmbedField{
-		{Name: "Catégorie", Value: fallbackText(q.Category), Inline: &inline},
-		{Name: "Difficulté", Value: fallbackText(q.Difficulty), Inline: &inline},
-		{Name: "Proposée par", Value: authorMention(q.AuthorID), Inline: &inline},
-		{Name: "Expiration", Value: fmt.Sprintf("<t:%d:R>", expiresAt.Unix()), Inline: &inline},
+	if len(good) > 0 || len(bad) > 0 {
+		card.Divider()
 	}
 	if len(good) > 0 {
-		embed.Fields = append(embed.Fields, discord.EmbedField{Name: goodAnswersField, Value: mentionList(good), Inline: &inline})
+		card.Fields(ui.Field{Name: goodAnswersField, Value: mentionList(good)})
 	}
 	if len(bad) > 0 {
-		embed.Fields = append(embed.Fields, discord.EmbedField{Name: badAnswersField, Value: mentionList(bad), Inline: &inline})
+		card.Fields(ui.Field{Name: badAnswersField, Value: mentionList(bad)})
 	}
-	return embed
+
+	return card.Row(answerButtons(answers, q.ID)...)
 }
 
 func mentionList(userIDs []string) string {
@@ -65,11 +67,11 @@ func mentionList(userIDs []string) string {
 	for i, userID := range userIDs {
 		separator := ""
 		if b.Len() > 0 {
-			separator = "\n"
+			separator = " "
 		}
 		mention := separator + "<@" + userID + ">"
 		overflow := separator + fmt.Sprintf("… et %d autre(s)", len(userIDs)-i)
-		if b.Len()+len(mention) > fieldValueLimit-len(overflow) {
+		if b.Len()+len(mention) > mentionListLimit-len(overflow) {
 			b.WriteString(overflow)
 			break
 		}
@@ -78,47 +80,40 @@ func mentionList(userIDs []string) string {
 	return b.String()
 }
 
-func answerButtons(answers [answerCount]string, questionID string) discord.ActionRowComponent {
+func answerButtons(answers [answerCount]string, questionID string) []discord.InteractiveComponent {
 	components := make([]discord.InteractiveComponent, 0, answerCount)
 	for i, answer := range answers {
 		customID := router.BuildCustomID(ButtonAnswerPrefix, strconv.Itoa(i), questionID)
 		components = append(components, discord.NewSecondaryButton(truncate(answer, buttonLabelLimit), customID))
 	}
-	return discord.NewActionRow(components...)
+	return components
 }
 
-func resultEmbed(correct bool, goodAnswer string) discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Author = &discord.EmbedAuthor{Name: authorName}
+func resultCard(correct bool, goodAnswer string) *ui.Card {
 	if correct {
-		embed.Color = colorCorrect
-		embed.Title = "Bonne réponse !"
-		embed.Description = "Bravo, c'était bien " + inlineCode(goodAnswer) + "."
-		return embed
+		return ui.New().
+			Accent(colorCorrect).
+			Title(quizTitle + " — Bonne réponse !").
+			Text("Bravo, c'était bien " + inlineCode(goodAnswer) + ".")
 	}
-	embed.Color = colorWrong
-	embed.Title = "Mauvaise réponse"
-	embed.Description = "Dommage, la bonne réponse était " + inlineCode(goodAnswer) + "."
-	return embed
+	return ui.New().
+		Accent(colorWrong).
+		Title(quizTitle + " — Mauvaise réponse").
+		Text("Dommage, la bonne réponse était " + inlineCode(goodAnswer) + ".")
 }
 
-func expiredEmbed(goodAnswer string) discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Author = &discord.EmbedAuthor{Name: authorName}
-	embed.Color = colorExpired
-	embed.Title = "Quiz terminé"
+func expiredCard(goodAnswer string) *ui.Card {
+	card := ui.New().Accent(colorExpired).Title(quizTitle + " — Terminé")
 	if goodAnswer == "" {
-		embed.Description = "Ce quiz est terminé et sa réponse n'est plus disponible."
-		return embed
+		return card.Text("Ce quiz est terminé et sa réponse n'est plus disponible.")
 	}
-	embed.Description = "Ce quiz est terminé. La bonne réponse était " + inlineCode(goodAnswer) + "."
-	return embed
+	return card.Text("Ce quiz est terminé. La bonne réponse était " + inlineCode(goodAnswer) + ".")
 }
 
 func questionTextFromMessage(msg discord.Message) (string, bool) {
-	for _, embed := range msg.Embeds {
-		if text, ok := codeBlockContent(embed.Description); ok && text != "" {
-			return text, true
+	for _, text := range ui.Texts(msg.Components) {
+		if content, ok := codeBlockContent(text); ok && content != "" {
+			return content, true
 		}
 	}
 	return "", false

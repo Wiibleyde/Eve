@@ -1,8 +1,8 @@
 package userinfo
 
 import (
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -17,8 +17,8 @@ const (
 const imageSize = 1024
 
 const (
-	titleAvatar   = "Photo de profil"
-	titleBanner   = "Bannière"
+	titleAvatar   = "🖼️ Photo de profil"
+	titleBanner   = "🎨 Bannière"
 	msgNoBanner   = "Cet utilisateur n'a pas de bannière."
 	msgFetchError = "Impossible de récupérer cet utilisateur."
 )
@@ -32,11 +32,11 @@ func HandleAvatar(e *events.ApplicationCommandInteractionCreate) {
 	data := e.UserCommandInteractionData()
 	user := data.TargetUser()
 
-	embed := embeds.BaseEmbed()
-	embed.Title = titleAvatar
-	embed.Description = user.Mention()
-	embed.Image = &discord.EmbedResource{URL: avatarURL(e)}
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Title(titleAvatar).
+		Text(user.Mention()).
+		Image(avatarURL(e))
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func avatarURL(e *events.ApplicationCommandInteractionCreate) string {
@@ -59,7 +59,7 @@ func HandleBanner(e *events.ApplicationCommandInteractionCreate) {
 	user, err := e.Client().Rest.GetUser(target.ID)
 	if err != nil {
 		logger.Error("fetching user for banner", "user", target.ID.String(), "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgFetchError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgFetchError))
 		return
 	}
 
@@ -69,9 +69,9 @@ func HandleBanner(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Title = titleBanner
-	embed.Description = user.Mention()
-	embed.Image = &discord.EmbedResource{URL: *bannerURL}
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Title(titleBanner).
+		Text(user.Mention()).
+		Image(*bannerURL)
+	helpers.RespondEphemeralCard(e, card)
 }

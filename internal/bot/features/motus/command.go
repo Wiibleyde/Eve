@@ -3,8 +3,8 @@ package motus
 import (
 	"context"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/bot"
@@ -24,7 +24,7 @@ var Commands = []discord.ApplicationCommandCreate{
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	guildID := e.GuildID()
 	if guildID == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(MsgGuildOnly))
 		return
 	}
 
@@ -41,7 +41,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	word := PickWord(ctx)
 	if word == "" {
-		editResponse(client, appID, token, embeds.ErrorEmbed(MsgNoWord))
+		editResponse(client, appID, token, ui.Error(MsgNoWord))
 		return
 	}
 	logger.Debug("Motus game starting", "channel", channelID.String(), "word", word)
@@ -49,7 +49,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	message, err := client.Rest.CreateMessage(channelID, boardMessage(word))
 	if err != nil {
 		logger.Error("Motus: posting the board", "error", err)
-		editResponse(client, appID, token, embeds.ErrorEmbed(MsgBoardFailed))
+		editResponse(client, appID, token, ui.Error(MsgBoardFailed))
 		return
 	}
 
@@ -65,18 +65,15 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		if delErr := client.Rest.DeleteMessage(message.ChannelID, message.ID); delErr != nil {
 			logger.Error("Motus: removing the orphan board", "error", delErr)
 		}
-		editResponse(client, appID, token, embeds.ErrorEmbed(MsgStoreFailed))
+		editResponse(client, appID, token, ui.Error(MsgStoreFailed))
 		return
 	}
 
-	editResponse(client, appID, token, embeds.SuccessEmbed(MsgGameStarted))
+	editResponse(client, appID, token, ui.Success(MsgGameStarted))
 }
 
-func editResponse(client *bot.Client, appID snowflake.ID, token string, embed discord.Embed) {
-	embedList := []discord.Embed{embed}
-	if _, err := client.Rest.UpdateInteractionResponse(appID, token, discord.MessageUpdate{
-		Embeds: &embedList,
-	}); err != nil {
+func editResponse(client *bot.Client, appID snowflake.ID, token string, card *ui.Card) {
+	if _, err := client.Rest.UpdateInteractionResponse(appID, token, card.MessageUpdate()); err != nil {
 		logger.Error("Motus: updating the interaction response", "error", err)
 	}
 }

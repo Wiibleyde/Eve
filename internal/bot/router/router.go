@@ -1,9 +1,9 @@
 package router
 
 import (
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/maintenance"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"fmt"
@@ -253,21 +253,13 @@ func blockedByMaintenance(responder helpers.EphemeralResponder, userID snowflake
 		return false
 	}
 	logger.Debug("Interaction blocked by maintenance mode", "user", userID.String())
-	helpers.RespondEphemeralEmbed(responder, maintenanceEmbed())
+	helpers.RespondEphemeralCard(responder, ui.Warning("Maintenance", MsgMaintenance))
 	return true
-}
-
-func maintenanceEmbed() discord.Embed {
-	embed := embeds.BaseEmbed()
-	embed.Color = 0xFFA500
-	embed.Title = "Maintenance"
-	embed.Description = MsgMaintenance
-	return embed
 }
 
 func unknown(responder helpers.EphemeralResponder, kind string, id string) {
 	logger.Debug("No handler for interaction", "kind", kind, "id", id)
-	helpers.RespondEphemeralEmbed(responder, embeds.ErrorEmbed(MsgUnknownInteraction))
+	helpers.RespondEphemeralCard(responder, ui.Error(MsgUnknownInteraction))
 }
 
 func safeDispatch(responder helpers.EphemeralResponder, kind string, key string, fn func()) {
@@ -282,7 +274,7 @@ func safeDispatch(responder helpers.EphemeralResponder, kind string, key string,
 			"panic", fmt.Sprint(rec),
 			"stack", strings.ReplaceAll(string(debug.Stack()), "\n", " | "),
 		)
-		helpers.RespondEphemeralEmbed(responder, embeds.ErrorEmbed(MsgHandlerError))
+		helpers.RespondEphemeralCard(responder, ui.Error(MsgHandlerError))
 	}()
 	fn()
 }

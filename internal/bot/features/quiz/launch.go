@@ -4,15 +4,14 @@ import (
 	"context"
 	"time"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/quizquestion"
 	"Eve/internal/logger"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/google/uuid"
 )
@@ -31,11 +30,11 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 	question, err := pickQuestion(ctx)
 	if err != nil {
 		logger.Error("Error picking a quiz question", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération d'une question."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération d'une question."))
 		return
 	}
 	if question == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun quiz n'a été créé pour le moment. Utilisez `/quiz create` pour en ajouter un."))
+		helpers.RespondEphemeralCard(e, ui.Error("Aucun quiz n'a été créé pour le moment. Utilisez `/quiz create` pour en ajouter un."))
 		return
 	}
 
@@ -47,13 +46,11 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 	answers := applyPermutation(storedAnswers(question), perm)
 	expiresAt := time.Now().Add(Duration)
 
-	msg, err := e.Client().Rest.CreateMessage(e.Channel().ID(), discord.MessageCreate{
-		Embeds:     []discord.Embed{questionEmbed(question, expiresAt, nil, nil)},
-		Components: []discord.LayoutComponent{answerButtons(answers, question.ID)},
-	})
+	msg, err := e.Client().Rest.CreateMessage(e.Channel().ID(),
+		questionCard(question, answers, expiresAt, nil, nil).MessageCreate())
 	if err != nil {
 		logger.Error("Error sending quiz message", "error", err)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Impossible d'envoyer le quiz dans ce salon."))
+		helpers.RespondEphemeralCard(e, ui.Error("Impossible d'envoyer le quiz dans ce salon."))
 		return
 	}
 
@@ -71,12 +68,12 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 		if delErr := e.Client().Rest.DeleteMessage(msg.ChannelID, msg.ID); delErr != nil {
 			logger.Error("Error deleting orphaned quiz message", "error", delErr)
 		}
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors du lancement du quiz."))
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors du lancement du quiz."))
 		return
 	}
 
 	logger.Debug("Quiz launched", "question", question.ID, "message", msg.ID.String(), "guild", guildID)
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Quiz lancé ! Les réponses sont acceptées pendant 8 heures."))
+	helpers.RespondEphemeralCard(e, ui.Success("Quiz lancé ! Les réponses sont acceptées pendant 8 heures."))
 }
 
 func pickQuestion(ctx context.Context) (*ent.QuizQuestion, error) {

@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/features/birthday"
 	"Eve/internal/bot/features/blague"
 	"Eve/internal/bot/features/calendar"
@@ -103,7 +102,6 @@ func Run(cfg *config.Config, db *database.Client) {
 
 	client.AddEventListeners(bot.NewListenerFunc(func(e *events.Ready) {
 		logger.Info("Logged in", "user", e.User.Username)
-		embeds.Init(e.User.EffectiveAvatarURL())
 		schedulersOnce.Do(func() {
 			birthday.StartScheduler(client)
 			calendar.StartScheduler(client)

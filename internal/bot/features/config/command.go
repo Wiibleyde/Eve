@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -147,7 +147,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	default:
 		key, found := keyByCommand(name)
 		if !found {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
+			helpers.RespondEphemeralCard(e, ui.Error(msgUnknownKey))
 			return
 		}
 		handleSet(e, guildID, key)
@@ -157,16 +157,16 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 func handleSet(e *events.ApplicationCommandInteractionCreate, guildID string, key Key) {
 	raw, ok := readValue(e, key)
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgMissingValue))
+		helpers.RespondEphemeralCard(e, ui.Error(msgMissingValue))
 		return
 	}
 
 	if err := setValue(context.Background(), guildID, key.Name, raw); err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgSaveError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgSaveError))
 		return
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+	helpers.RespondEphemeralCard(e, ui.Success(
 		fmt.Sprintf("%s : %s", key.Description, formatValue(key, raw)),
 	))
 }
@@ -208,36 +208,37 @@ func readValue(e *events.ApplicationCommandInteractionCreate, key Key) (string, 
 func handleGet(e *events.ApplicationCommandInteractionCreate, guildID string) {
 	key, ok := keyByName(e.SlashCommandInteractionData().String(optionKey))
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
+		helpers.RespondEphemeralCard(e, ui.Error(msgUnknownKey))
 		return
 	}
 
 	raw, found, err := Value(context.Background(), guildID, key.Name)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgReadError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgReadError))
 		return
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Title = "Configuration"
-	if !found {
-		embed.Description = fmt.Sprintf("%s : %s", key.Description, msgNotSet)
-	} else {
-		embed.Description = fmt.Sprintf("%s : %s", key.Description, formatValue(key, raw))
+	value := msgNotSet
+	if found {
+		value = formatValue(key, raw)
 	}
-	helpers.RespondEphemeralEmbed(e, embed)
+	card := ui.New().
+		Title("⚙️ Configuration").
+		Fields(ui.Field{Name: key.Description, Value: value, Inline: true}).
+		Subtext("Clé : `" + key.Name + "`")
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func handleReset(e *events.ApplicationCommandInteractionCreate, guildID string) {
 	key, ok := keyByName(e.SlashCommandInteractionData().String(optionKey))
 	if !ok {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
+		helpers.RespondEphemeralCard(e, ui.Error(msgUnknownKey))
 		return
 	}
 
 	n, err := resetValue(context.Background(), guildID, key.Name)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDeleteError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgDeleteError))
 		return
 	}
 	if n == 0 {
@@ -245,7 +246,7 @@ func handleReset(e *events.ApplicationCommandInteractionCreate, guildID string) 
 		return
 	}
 
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+	helpers.RespondEphemeralCard(e, ui.Success(
 		fmt.Sprintf("%s : valeur réinitialisée.", key.Description),
 	))
 }
@@ -253,7 +254,7 @@ func handleReset(e *events.ApplicationCommandInteractionCreate, guildID string) 
 func handleList(e *events.ApplicationCommandInteractionCreate, guildID string) {
 	values, err := visibleValues(context.Background(), guildID)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgReadError))
+		helpers.RespondEphemeralCard(e, ui.Error(msgReadError))
 		return
 	}
 
@@ -270,14 +271,13 @@ func handleList(e *events.ApplicationCommandInteractionCreate, guildID string) {
 		lines = append(lines, fmt.Sprintf("**%s** (`%s`) — %s", k.Description, k.Name, display))
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Title = "Configuration du serveur"
+	card := ui.New().Title("⚙️ Configuration du serveur")
 	if len(lines) == 0 {
-		embed.Description = "Aucun paramètre configurable."
+		card.Text("Aucun paramètre configurable.")
 	} else {
-		embed.Description = strings.Join(lines, "\n")
+		card.Text(strings.Join(lines, "\n"))
 	}
-	helpers.RespondEphemeralEmbed(e, embed)
+	helpers.RespondEphemeralCard(e, card)
 }
 
 func requireAdmin(e *events.ApplicationCommandInteractionCreate) bool {
@@ -290,7 +290,7 @@ func requireAdmin(e *events.ApplicationCommandInteractionCreate) bool {
 func requireGuild(e *events.ApplicationCommandInteractionCreate) (string, bool) {
 	guildID := e.GuildID()
 	if guildID == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
+		helpers.RespondEphemeralCard(e, ui.Error(msgGuildOnly))
 		return "", false
 	}
 	return guildID.String(), true

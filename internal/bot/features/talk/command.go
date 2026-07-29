@@ -3,8 +3,8 @@ package talk
 import (
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
+	"Eve/internal/bot/ui"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/disgo/discord"
@@ -65,14 +65,14 @@ func allowedMentions() *discord.AllowedMentions {
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	if !helpers.IsOwner(e.User().ID) {
 		logger.Warn("Non-owner attempted /talk", "user", e.User().ID.String())
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgNotOwner))
+		helpers.RespondEphemeralCard(e, ui.Error(msgNotOwner))
 		return
 	}
 
 	data := e.SlashCommandInteractionData()
 	message := strings.TrimSpace(data.String(OptionMessage))
 	if message == "" {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgEmpty))
+		helpers.RespondEphemeralCard(e, ui.Error(msgEmpty))
 		return
 	}
 
@@ -80,7 +80,7 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		target, ok := data.OptUser(OptionUser)
 		if !ok {
 			logger.Error("Error resolving /talk mp option target", "user", e.User().ID.String())
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUserUnresolved))
+			helpers.RespondEphemeralCard(e, ui.Error(msgUserUnresolved))
 			return
 		}
 		sendDM(e, target, message)
@@ -100,12 +100,12 @@ func sendToChannel(e *events.ApplicationCommandInteractionCreate, message string
 			"channel", channelID.String(),
 			"error", err,
 		)
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgChannelFail))
+		helpers.RespondEphemeralCard(e, ui.Error(msgChannelFail))
 		return
 	}
 
 	logger.Info("Talk message sent", "channel", channelID.String(), "by", e.User().ID.String())
-	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(msgSent))
+	helpers.RespondEphemeralCard(e, ui.Success(msgSent))
 }
 
 func sendDM(e *events.ApplicationCommandInteractionCreate, target discord.User, message string) {
@@ -117,7 +117,7 @@ func sendDM(e *events.ApplicationCommandInteractionCreate, target discord.User, 
 	channel, err := e.Client().Rest.CreateDMChannel(target.ID)
 	if err != nil {
 		logger.Warn("Error opening DM channel for /talk", "target", target.ID.String(), "error", err)
-		followupEphemeralEmbed(e, embeds.ErrorEmbed(msgDMClosed))
+		followupEphemeralCard(e, ui.Error(msgDMClosed))
 		return
 	}
 
@@ -126,23 +126,18 @@ func sendDM(e *events.ApplicationCommandInteractionCreate, target discord.User, 
 		AllowedMentions: allowedMentions(),
 	}); err != nil {
 		logger.Warn("Error sending /talk DM", "target", target.ID.String(), "error", err)
-		followupEphemeralEmbed(e, embeds.ErrorEmbed(msgDMClosed))
+		followupEphemeralCard(e, ui.Error(msgDMClosed))
 		return
 	}
 
 	logger.Info("Talk DM sent", "target", target.ID.String(), "by", e.User().ID.String())
-	followupEphemeralEmbed(e, embeds.SuccessEmbed("Message privé envoyé à <@"+target.ID.String()+">."))
+	followupEphemeralCard(e, ui.Success("Message privé envoyé à <@"+target.ID.String()+">."))
 
 	if hook := DMSentHook; hook != nil {
 		hook(target, message)
 	}
 }
 
-func followupEphemeralEmbed(e *events.ApplicationCommandInteractionCreate, embed discord.Embed) {
-	if _, err := e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-		Flags:  discord.MessageFlagEphemeral,
-	}); err != nil {
-		logger.Error("Error sending /talk DM followup", "error", err)
-	}
+func followupEphemeralCard(e *events.ApplicationCommandInteractionCreate, card *ui.Card) {
+	helpers.FollowupEphemeralCard(e.Client(), e.ApplicationID(), e.Token(), card)
 }

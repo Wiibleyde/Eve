@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"Eve/internal/bot/embeds"
+	"Eve/internal/bot/ui"
 	"Eve/internal/twitch"
 
 	"github.com/disgoorg/disgo/discord"
@@ -19,14 +19,14 @@ const (
 	thumbnailWidth  = 1280
 	thumbnailHeight = 720
 
-	embedTitleLimit = 256
+	titleLimit = 200
 )
 
 func channelURL(login string) string {
 	return "https://twitch.tv/" + login
 }
 
-func liveEmbed(s twitch.Stream, user twitch.User, hasUser bool) discord.Embed {
+func liveCard(s twitch.Stream, user twitch.User, hasUser bool, roleMention string) *ui.Card {
 	name := s.Name()
 	if hasUser && user.Name() != "" {
 		name = user.Name()
@@ -36,73 +36,69 @@ func liveEmbed(s twitch.Stream, user twitch.User, hasUser bool) discord.Embed {
 		login = user.Login
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = twitchColor
-	embed.Title = truncate(orDefault(s.Title, "Stream en cours"), embedTitleLimit)
-	embed.URL = channelURL(login)
-	embed.Description = fmt.Sprintf("**%s** est en live sur Twitch !", name)
+	card := ui.New().
+		Accent(twitchColor).
+		Titlef("🔴 [%s](%s)", escapeLinkLabel(truncate(orDefault(s.Title, "Stream en cours"), titleLimit)), channelURL(login))
 
-	author := &discord.EmbedAuthor{Name: name, URL: channelURL(login)}
 	if hasUser {
-		author.IconURL = user.ProfileImageURL
-	}
-	embed.Author = author
-
-	inline := true
-	embed.Fields = []discord.EmbedField{
-		{Name: "Jeu", Value: orDefault(s.GameName, "Inconnu"), Inline: &inline},
-		{Name: "Spectateurs", Value: strconv.Itoa(s.ViewerCount), Inline: &inline},
-		{Name: "En live depuis", Value: relativeTimestamp(s.StartedAt), Inline: &inline},
+		card.Thumbnail(user.ProfileImageURL)
 	}
 
-	if url := cacheBust(s.Thumbnail(thumbnailWidth, thumbnailHeight)); url != "" {
-		embed.Image = &discord.EmbedResource{URL: url}
+	if roleMention != "" {
+		card.Text(roleMention)
 	}
-	return embed
+
+	card.Textf("**%s** est en live sur Twitch !", name).
+		Fields(
+			ui.Field{Name: "Jeu", Value: orDefault(s.GameName, "Inconnu"), Inline: true},
+			ui.Field{Name: "Spectateurs", Value: strconv.Itoa(s.ViewerCount), Inline: true},
+			ui.Field{Name: "En live depuis", Value: relativeTimestamp(s.StartedAt), Inline: true},
+		).
+		Image(cacheBust(s.Thumbnail(thumbnailWidth, thumbnailHeight))).
+		Row(discord.NewLinkButton("Regarder le stream", channelURL(login)))
+
+	return card
 }
 
-func endedEmbed(st *trackState, login string, user twitch.User, hasUser bool) discord.Embed {
+func endedCard(st *trackState, login string, user twitch.User, hasUser bool) *ui.Card {
 	name := login
 	if hasUser && user.Name() != "" {
 		name = user.Name()
 	}
 
-	embed := embeds.BaseEmbed()
-	embed.Color = endedColor
-	embed.Title = "Stream terminé"
-	embed.URL = channelURL(login)
-	embed.Description = fmt.Sprintf("**%s** n'est plus en live.", name)
+	card := ui.New().
+		Accent(endedColor).
+		Titlef("⚫ [Stream terminé](%s)", channelURL(login)).
+		Textf("**%s** n'est plus en live.", name)
 
-	author := &discord.EmbedAuthor{Name: name, URL: channelURL(login)}
 	if hasUser {
-		author.IconURL = user.ProfileImageURL
+		card.Thumbnail(user.ProfileImageURL)
 	}
-	embed.Author = author
 
-	inline := true
-	fields := make([]discord.EmbedField, 0, 3)
 	if st != nil && st.title != "" {
-		fields = append(fields, discord.EmbedField{
-			Name:  "Dernier titre",
-			Value: truncate(st.title, 1024),
-		})
+		card.Fields(ui.Field{Name: "Dernier titre", Value: truncate(st.title, titleLimit)})
 	}
+
+	stats := make([]ui.Field, 0, 2)
 	if st != nil && st.game != "" {
-		fields = append(fields, discord.EmbedField{Name: "Jeu", Value: st.game, Inline: &inline})
+		stats = append(stats, ui.Field{Name: "Jeu", Value: st.game, Inline: true})
 	}
 	if st != nil && !st.startedAt.IsZero() {
-		fields = append(fields, discord.EmbedField{
-			Name:   "Durée",
-			Value:  formatDuration(time.Since(st.startedAt)),
-			Inline: &inline,
-		})
+		stats = append(stats, ui.Field{Name: "Durée", Value: formatDuration(time.Since(st.startedAt)), Inline: true})
 	}
-	embed.Fields = fields
+	card.Fields(stats...)
 
-	if hasUser && user.OfflineImageURL != "" {
-		embed.Image = &discord.EmbedResource{URL: user.OfflineImageURL}
+	if hasUser {
+		card.Image(user.OfflineImageURL)
 	}
-	return embed
+
+	return card.Row(discord.NewLinkButton("Voir la chaîne", channelURL(login)))
+}
+
+var linkLabelEscaper = strings.NewReplacer("[", "(", "]", ")")
+
+func escapeLinkLabel(s string) string {
+	return linkLabelEscaper.Replace(s)
 }
 
 func cacheBust(url string) string {

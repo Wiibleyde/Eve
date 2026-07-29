@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"Eve/internal/bot/ui"
+
 	"github.com/disgoorg/disgo/discord"
 )
 
@@ -57,39 +59,39 @@ func TestSplitEventsCapsUpcoming(t *testing.T) {
 	}
 }
 
-func TestBuildEmbedEmpty(t *testing.T) {
-	embed := buildEmbed(nil, time.Now())
-	if embed.Description != msgNoEvents {
-		t.Fatalf("description = %q, want %q", embed.Description, msgNoEvents)
+func TestBuildCardEmpty(t *testing.T) {
+	joined := strings.Join(ui.Texts(buildCard(nil, time.Now()).Components()), "\n")
+	if !strings.Contains(joined, msgNoEvents) {
+		t.Fatalf("card = %q, want it to contain %q", joined, msgNoEvents)
 	}
-	if len(embed.Fields) != 0 {
-		t.Fatalf("expected no fields, got %d", len(embed.Fields))
+	if strings.Contains(joined, sectionOngoing) || strings.Contains(joined, sectionUpcoming) {
+		t.Fatalf("expected no section headings, got %q", joined)
 	}
 }
 
-func TestBuildEmbedSections(t *testing.T) {
+func TestBuildCardSections(t *testing.T) {
 	now := time.Date(2026, 7, 29, 12, 0, 0, 0, time.UTC)
 	events := []Event{
 		{Summary: "En réunion", Start: now.Add(-time.Hour), End: now.Add(time.Hour), Location: "Salle A"},
 		{Summary: "Plus tard", Start: now.Add(time.Hour), End: now.Add(2 * time.Hour)},
 	}
 
-	embed := buildEmbed(events, now)
-	if len(embed.Fields) != 2 {
-		t.Fatalf("expected 2 fields, got %d", len(embed.Fields))
+	texts := ui.Texts(buildCard(events, now).Components())
+	joined := strings.Join(texts, "\n")
+
+	for _, want := range []string{
+		"### " + sectionOngoing,
+		"### " + sectionUpcoming,
+		"📍 Salle A",
+		fmt.Sprintf("<t:%d:R>", events[1].Start.Unix()),
+	} {
+		if !strings.Contains(joined, want) {
+			t.Fatalf("card is missing %q, got:\n%s", want, joined)
+		}
 	}
-	if embed.Fields[0].Name != fieldOngoing || embed.Fields[1].Name != fieldUpcoming {
-		t.Fatalf("unexpected field names: %q / %q", embed.Fields[0].Name, embed.Fields[1].Name)
-	}
-	if !strings.Contains(embed.Fields[0].Value, "📍 Salle A") {
-		t.Fatalf("location missing from line: %q", embed.Fields[0].Value)
-	}
-	if !strings.Contains(embed.Fields[1].Value, fmt.Sprintf("<t:%d:R>", events[1].Start.Unix())) {
-		t.Fatalf("relative timestamp missing from line: %q", embed.Fields[1].Value)
-	}
-	for _, field := range embed.Fields {
-		if len(field.Value) > maxFieldLength {
-			t.Fatalf("field %q exceeds the Discord limit (%d)", field.Name, len(field.Value))
+	for _, text := range texts {
+		if len(text) > maxSectionLength {
+			t.Fatalf("text block exceeds the section limit: %d", len(text))
 		}
 	}
 }
@@ -104,8 +106,8 @@ func TestRenderLinesRespectsFieldLimit(t *testing.T) {
 			Start:    now.Add(time.Duration(i) * time.Hour),
 		})
 	}
-	if got := len(renderLines(events)); got > maxFieldLength {
-		t.Fatalf("rendered %d characters, limit is %d", got, maxFieldLength)
+	if got := len(renderLines(events)); got > maxSectionLength {
+		t.Fatalf("rendered %d characters, limit is %d", got, maxSectionLength)
 	}
 }
 

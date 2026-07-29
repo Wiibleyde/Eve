@@ -5,18 +5,20 @@ import (
 	"sort"
 	"strings"
 
-	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/router"
+	"Eve/internal/bot/ui"
 	"Eve/internal/database/ent"
 
 	"github.com/disgoorg/disgo/discord"
 )
 
 const (
-	maxEmbedDescription = 4096
-	maxFieldValue       = 1024
-	maxListedPlayers    = 50
+	maxBodyLength    = 2000
+	maxSectionLength = 900
+	maxListedPlayers = 50
 )
+
+const lotoColor = 0x9B59B6
 
 type tally struct {
 	name  string
@@ -60,76 +62,79 @@ func (s *snapshot) pot() int {
 	return len(s.tickets) * s.game.TicketPrice
 }
 
-func buildEmbed(s *snapshot) discord.Embed {
+func buildCard(s *snapshot) *ui.Card {
 	game := s.game
-	embed := embeds.BaseEmbed()
-	embed.Title = fmt.Sprintf("🎟️ Loto: %s 🎟️", game.Name)
 
-	ticketsSold := len(s.tickets)
-	lines := []string{
-		"⚠️ __**Attention, l'écriture des noms est sensible à la case !**__",
-		fmt.Sprintf("Nombre de tickets vendus: **%d**", ticketsSold),
+	card := ui.New().
+		Accent(lotoColor).
+		Titlef("🎟️ Loto : %s", game.Name).
+		Text("⚠️ __**Attention, l'écriture des noms est sensible à la case !**__")
+
+	stats := []ui.Field{
+		{Name: "Tickets vendus", Value: fmt.Sprintf("**%d**", len(s.tickets)), Inline: true},
 	}
-
 	if game.CooldownMinutes > 0 {
-		lines = append(lines, fmt.Sprintf("Cooldown par joueur: **%d %s**", game.CooldownMinutes, pluralize(game.CooldownMinutes, "minute", "minutes")))
-		if game.MaxTicketsPerPurchase > 0 {
-			lines = append(lines, fmt.Sprintf("Limite par achat: **%d ticket(s)**", game.MaxTicketsPerPurchase))
-		}
-	} else if game.MaxTicketsPerPurchase > 0 {
-		lines = append(lines, fmt.Sprintf("Limite par achat: **%d ticket(s)**", game.MaxTicketsPerPurchase))
+		stats = append(stats, ui.Field{
+			Name:   "Cooldown par joueur",
+			Value:  fmt.Sprintf("**%d %s**", game.CooldownMinutes, pluralize(game.CooldownMinutes, "minute", "minutes")),
+			Inline: true,
+		})
 	}
-
+	if game.MaxTicketsPerPurchase > 0 {
+		stats = append(stats, ui.Field{
+			Name:   "Limite par achat",
+			Value:  fmt.Sprintf("**%d ticket(s)**", game.MaxTicketsPerPurchase),
+			Inline: true,
+		})
+	}
 	if len(s.prizes) > 0 {
-		lines = append(lines, fmt.Sprintf("Nombre de gains: **%d**", len(s.prizes)))
+		stats = append(stats, ui.Field{Name: "Nombre de gains", Value: fmt.Sprintf("**%d**", len(s.prizes)), Inline: true})
 	}
-	if ticketsSold > 0 {
-		lines = append(lines, fmt.Sprintf("Cagnotte actuelle: **%d**$", s.pot()))
+	if len(s.tickets) > 0 {
+		stats = append(stats, ui.Field{Name: "Cagnotte actuelle", Value: fmt.Sprintf("**%d$**", s.pot()), Inline: true})
 	}
+	card.Fields(stats...)
+
 	if !game.Active {
-		lines = append(lines, "", "🔒 **Ce loto est terminé, le tirage a été effectué.**")
+		card.Text("🔒 **Ce loto est terminé, le tirage a été effectué.**")
 	}
 
+	card.Divider().Heading("👥 Participants")
 	board := s.leaderboard()
 	if len(board) == 0 {
-		lines = append(lines, "", "Aucun ticket vendu pour le moment.")
+		card.Text("Aucun ticket vendu pour le moment.")
 	} else {
 		if len(board) > maxListedPlayers {
 			board = board[:maxListedPlayers]
 		}
-		lines = append(lines, "")
+		lines := make([]string, 0, len(board))
 		for _, entry := range board {
 			lines = append(lines, fmt.Sprintf("- %s (%d)", entry.name, entry.count))
 		}
+		card.Text(truncate(strings.Join(lines, "\n"), maxBodyLength))
 	}
-
-	embed.Description = truncate(strings.Join(lines, "\n"), maxEmbedDescription)
-
-	footerParts := []string{fmt.Sprintf("Prix du ticket: %d$", game.TicketPrice)}
-	if game.CooldownMinutes > 0 {
-		footerParts = append(footerParts, fmt.Sprintf("Cooldown: %d min", game.CooldownMinutes))
-	}
-	if game.MaxTicketsPerPurchase > 0 {
-		footerParts = append(footerParts, fmt.Sprintf("Limite achat: %d", game.MaxTicketsPerPurchase))
-	}
-	icon := ""
-	if embed.Footer != nil {
-		icon = embed.Footer.IconURL
-	}
-	embed.Footer = &discord.EmbedFooter{Text: strings.Join(footerParts, " | "), IconURL: icon}
 
 	if len(s.prizes) > 0 {
-		chunks := chunkLines(prizeLines(s), maxFieldValue)
-		for i, chunk := range chunks {
-			name := "🎁 Gains"
-			if i > 0 {
-				name = "🎁 Gains (suite)"
-			}
-			embed.Fields = append(embed.Fields, discord.EmbedField{Name: name, Value: chunk})
+		card.Divider().Heading("🎁 Gains")
+		for _, chunk := range chunkLines(prizeLines(s), maxSectionLength) {
+			card.Text(chunk)
 		}
 	}
 
-	return embed
+	if !game.Active {
+		card.Divider().Heading("📊 Ventes par vendeur").Text(sellerSummary(s.tickets, game.TicketPrice))
+	} else {
+		card.Row(actionButtons(game.ID)...)
+	}
+
+	footerParts := []string{fmt.Sprintf("Prix du ticket : %d$", game.TicketPrice)}
+	if game.CooldownMinutes > 0 {
+		footerParts = append(footerParts, fmt.Sprintf("Cooldown : %d min", game.CooldownMinutes))
+	}
+	if game.MaxTicketsPerPurchase > 0 {
+		footerParts = append(footerParts, fmt.Sprintf("Limite achat : %d", game.MaxTicketsPerPurchase))
+	}
+	return card.Footer(strings.Join(footerParts, " · "))
 }
 
 func prizeLines(s *snapshot) []string {
@@ -179,23 +184,21 @@ func sellerSummary(tickets []*ent.LotoTicket, ticketPrice int) string {
 
 	lines := make([]string, 0, len(order))
 	for _, sellerID := range order {
-		lines = append(lines, fmt.Sprintf("<@%s> : %d ticket(s) - **%d$**", sellerID, counts[sellerID], counts[sellerID]*ticketPrice))
+		lines = append(lines, fmt.Sprintf("<@%s> : %d ticket(s) — **%d$**", sellerID, counts[sellerID], counts[sellerID]*ticketPrice))
 	}
-	return truncate(strings.Join(lines, "\n"), maxFieldValue)
+	return truncate(strings.Join(lines, "\n"), maxSectionLength)
 }
 
-func buildComponents(gameID string) []discord.LayoutComponent {
-	return []discord.LayoutComponent{
-		discord.NewActionRow(
-			discord.NewPrimaryButton("Acheter", router.BuildCustomID(buttonBuy, gameID)).
-				WithEmoji(discord.NewComponentEmoji("🎟️")),
-			discord.NewSecondaryButton("Retirer des tickets", router.BuildCustomID(buttonRemove, gameID)).
-				WithEmoji(discord.NewComponentEmoji("🗑️")),
-			discord.NewSecondaryButton("Corriger un nom", router.BuildCustomID(buttonEditPlayer, gameID)).
-				WithEmoji(discord.NewComponentEmoji("✏️")),
-			discord.NewDangerButton("Tirer au sort", router.BuildCustomID(buttonDraw, gameID)).
-				WithEmoji(discord.NewComponentEmoji("🎲")),
-		),
+func actionButtons(gameID string) []discord.InteractiveComponent {
+	return []discord.InteractiveComponent{
+		discord.NewPrimaryButton("Acheter", router.BuildCustomID(buttonBuy, gameID)).
+			WithEmoji(discord.NewComponentEmoji("🎟️")),
+		discord.NewSecondaryButton("Retirer des tickets", router.BuildCustomID(buttonRemove, gameID)).
+			WithEmoji(discord.NewComponentEmoji("🗑️")),
+		discord.NewSecondaryButton("Corriger un nom", router.BuildCustomID(buttonEditPlayer, gameID)).
+			WithEmoji(discord.NewComponentEmoji("✏️")),
+		discord.NewDangerButton("Tirer au sort", router.BuildCustomID(buttonDraw, gameID)).
+			WithEmoji(discord.NewComponentEmoji("🎲")),
 	}
 }
 
