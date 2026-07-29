@@ -15,6 +15,7 @@ import (
 	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/logger"
 
+	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/google/uuid"
 )
@@ -110,6 +111,43 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	}
 
 	helpers.RespondEphemeralEmbed(e, resultEmbed(correct, question.GoodAnswer))
+
+	refreshQuizMessage(ctx, e, active, question)
+}
+
+func refreshQuizMessage(ctx context.Context, e *events.ComponentInteractionCreate, active *ent.ActiveQuiz, question *ent.QuizQuestion) {
+	good, bad, err := answerers(ctx, active.ID)
+	if err != nil {
+		logger.Error("Error loading quiz answerers", "error", err, "quiz", active.ID)
+		return
+	}
+
+	embedList := []discord.Embed{questionEmbed(question, active.ExpiresAt, good, bad)}
+	if _, err := e.Client().Rest.UpdateMessage(e.Message.ChannelID, e.Message.ID, discord.MessageUpdate{
+		Embeds: &embedList,
+	}); err != nil {
+		logger.Error("Error updating quiz message", "error", err, "quiz", active.ID)
+	}
+}
+
+func answerers(ctx context.Context, activeQuizID string) ([]string, []string, error) {
+	answers, err := database.Default.Ent().QuizUserAnswer.Query().
+		Where(quizuseranswer.ActiveQuizID(activeQuizID)).
+		Order(quizuseranswer.ByAnsweredAt()).
+		All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var good, bad []string
+	for _, answer := range answers {
+		if answer.Correct {
+			good = append(good, answer.UserID)
+			continue
+		}
+		bad = append(bad, answer.UserID)
+	}
+	return good, bad, nil
 }
 
 func purgedQuizGoodAnswer(ctx context.Context, questionID string, e *events.ComponentInteractionCreate) string {

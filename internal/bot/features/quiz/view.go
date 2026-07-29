@@ -23,13 +23,21 @@ const (
 
 const authorName = "Quiz"
 
-const buttonLabelLimit = 80
+const (
+	buttonLabelLimit = 80
+	fieldValueLimit  = 1024
+)
+
+const (
+	goodAnswersField = "Bonne(s) réponse(s)"
+	badAnswersField  = "Mauvaise(s) réponse(s)"
+)
 
 func storedAnswers(q *ent.QuizQuestion) [answerCount]string {
 	return [answerCount]string{q.GoodAnswer, q.BadAnswer1, q.BadAnswer2, q.BadAnswer3}
 }
 
-func questionEmbed(q *ent.QuizQuestion, expiresAt time.Time) discord.Embed {
+func questionEmbed(q *ent.QuizQuestion, expiresAt time.Time, good, bad []string) discord.Embed {
 	inline := true
 
 	embed := embeds.BaseEmbed()
@@ -41,9 +49,33 @@ func questionEmbed(q *ent.QuizQuestion, expiresAt time.Time) discord.Embed {
 		{Name: "Catégorie", Value: fallbackText(q.Category), Inline: &inline},
 		{Name: "Difficulté", Value: fallbackText(q.Difficulty), Inline: &inline},
 		{Name: "Proposée par", Value: authorMention(q.AuthorID), Inline: &inline},
-		{Name: "Expiration", Value: fmt.Sprintf("<t:%d:R>", expiresAt.Unix())},
+		{Name: "Expiration", Value: fmt.Sprintf("<t:%d:R>", expiresAt.Unix()), Inline: &inline},
+	}
+	if len(good) > 0 {
+		embed.Fields = append(embed.Fields, discord.EmbedField{Name: goodAnswersField, Value: mentionList(good), Inline: &inline})
+	}
+	if len(bad) > 0 {
+		embed.Fields = append(embed.Fields, discord.EmbedField{Name: badAnswersField, Value: mentionList(bad), Inline: &inline})
 	}
 	return embed
+}
+
+func mentionList(userIDs []string) string {
+	var b strings.Builder
+	for i, userID := range userIDs {
+		separator := ""
+		if b.Len() > 0 {
+			separator = "\n"
+		}
+		mention := separator + "<@" + userID + ">"
+		overflow := separator + fmt.Sprintf("… et %d autre(s)", len(userIDs)-i)
+		if b.Len()+len(mention) > fieldValueLimit-len(overflow) {
+			b.WriteString(overflow)
+			break
+		}
+		b.WriteString(mention)
+	}
+	return b.String()
 }
 
 func answerButtons(answers [answerCount]string, questionID string) discord.ActionRowComponent {

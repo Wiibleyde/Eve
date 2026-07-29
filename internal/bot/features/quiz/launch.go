@@ -48,7 +48,7 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 	expiresAt := time.Now().Add(Duration)
 
 	msg, err := e.Client().Rest.CreateMessage(e.Channel().ID(), discord.MessageCreate{
-		Embeds:     []discord.Embed{questionEmbed(question, expiresAt)},
+		Embeds:     []discord.Embed{questionEmbed(question, expiresAt, nil, nil)},
 		Components: []discord.LayoutComponent{answerButtons(answers, question.ID)},
 	})
 	if err != nil {
