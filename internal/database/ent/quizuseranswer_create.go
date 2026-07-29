@@ -3,8 +3,7 @@
 package ent
 
 import (
-	"Eve/internal/database/ent/quizanswer"
-	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/quizuseranswer"
 	"context"
 	"errors"
@@ -22,9 +21,29 @@ type QuizUserAnswerCreate struct {
 	hooks    []Hook
 }
 
+// SetActiveQuizID sets the "active_quiz_id" field.
+func (_c *QuizUserAnswerCreate) SetActiveQuizID(v string) *QuizUserAnswerCreate {
+	_c.mutation.SetActiveQuizID(v)
+	return _c
+}
+
 // SetUserID sets the "user_id" field.
 func (_c *QuizUserAnswerCreate) SetUserID(v string) *QuizUserAnswerCreate {
 	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetCorrect sets the "correct" field.
+func (_c *QuizUserAnswerCreate) SetCorrect(v bool) *QuizUserAnswerCreate {
+	_c.mutation.SetCorrect(v)
+	return _c
+}
+
+// SetNillableCorrect sets the "correct" field if the given value is not nil.
+func (_c *QuizUserAnswerCreate) SetNillableCorrect(v *bool) *QuizUserAnswerCreate {
+	if v != nil {
+		_c.SetCorrect(*v)
+	}
 	return _c
 }
 
@@ -48,26 +67,9 @@ func (_c *QuizUserAnswerCreate) SetID(v string) *QuizUserAnswerCreate {
 	return _c
 }
 
-// SetQuestionID sets the "question" edge to the QuizQuestion entity by ID.
-func (_c *QuizUserAnswerCreate) SetQuestionID(id string) *QuizUserAnswerCreate {
-	_c.mutation.SetQuestionID(id)
-	return _c
-}
-
-// SetQuestion sets the "question" edge to the QuizQuestion entity.
-func (_c *QuizUserAnswerCreate) SetQuestion(v *QuizQuestion) *QuizUserAnswerCreate {
-	return _c.SetQuestionID(v.ID)
-}
-
-// SetAnswerID sets the "answer" edge to the QuizAnswer entity by ID.
-func (_c *QuizUserAnswerCreate) SetAnswerID(id string) *QuizUserAnswerCreate {
-	_c.mutation.SetAnswerID(id)
-	return _c
-}
-
-// SetAnswer sets the "answer" edge to the QuizAnswer entity.
-func (_c *QuizUserAnswerCreate) SetAnswer(v *QuizAnswer) *QuizUserAnswerCreate {
-	return _c.SetAnswerID(v.ID)
+// SetActiveQuiz sets the "active_quiz" edge to the ActiveQuiz entity.
+func (_c *QuizUserAnswerCreate) SetActiveQuiz(v *ActiveQuiz) *QuizUserAnswerCreate {
+	return _c.SetActiveQuizID(v.ID)
 }
 
 // Mutation returns the QuizUserAnswerMutation object of the builder.
@@ -105,6 +107,10 @@ func (_c *QuizUserAnswerCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *QuizUserAnswerCreate) defaults() {
+	if _, ok := _c.mutation.Correct(); !ok {
+		v := quizuseranswer.DefaultCorrect
+		_c.mutation.SetCorrect(v)
+	}
 	if _, ok := _c.mutation.AnsweredAt(); !ok {
 		v := quizuseranswer.DefaultAnsweredAt()
 		_c.mutation.SetAnsweredAt(v)
@@ -113,17 +119,20 @@ func (_c *QuizUserAnswerCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *QuizUserAnswerCreate) check() error {
+	if _, ok := _c.mutation.ActiveQuizID(); !ok {
+		return &ValidationError{Name: "active_quiz_id", err: errors.New(`ent: missing required field "QuizUserAnswer.active_quiz_id"`)}
+	}
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "QuizUserAnswer.user_id"`)}
+	}
+	if _, ok := _c.mutation.Correct(); !ok {
+		return &ValidationError{Name: "correct", err: errors.New(`ent: missing required field "QuizUserAnswer.correct"`)}
 	}
 	if _, ok := _c.mutation.AnsweredAt(); !ok {
 		return &ValidationError{Name: "answered_at", err: errors.New(`ent: missing required field "QuizUserAnswer.answered_at"`)}
 	}
-	if len(_c.mutation.QuestionIDs()) == 0 {
-		return &ValidationError{Name: "question", err: errors.New(`ent: missing required edge "QuizUserAnswer.question"`)}
-	}
-	if len(_c.mutation.AnswerIDs()) == 0 {
-		return &ValidationError{Name: "answer", err: errors.New(`ent: missing required edge "QuizUserAnswer.answer"`)}
+	if len(_c.mutation.ActiveQuizIDs()) == 0 {
+		return &ValidationError{Name: "active_quiz", err: errors.New(`ent: missing required edge "QuizUserAnswer.active_quiz"`)}
 	}
 	return nil
 }
@@ -164,42 +173,29 @@ func (_c *QuizUserAnswerCreate) createSpec() (*QuizUserAnswer, *sqlgraph.CreateS
 		_spec.SetField(quizuseranswer.FieldUserID, field.TypeString, value)
 		_node.UserID = value
 	}
+	if value, ok := _c.mutation.Correct(); ok {
+		_spec.SetField(quizuseranswer.FieldCorrect, field.TypeBool, value)
+		_node.Correct = value
+	}
 	if value, ok := _c.mutation.AnsweredAt(); ok {
 		_spec.SetField(quizuseranswer.FieldAnsweredAt, field.TypeTime, value)
 		_node.AnsweredAt = value
 	}
-	if nodes := _c.mutation.QuestionIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ActiveQuizIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   quizuseranswer.QuestionTable,
-			Columns: []string{quizuseranswer.QuestionColumn},
+			Table:   quizuseranswer.ActiveQuizTable,
+			Columns: []string{quizuseranswer.ActiveQuizColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizquestion.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.quiz_question_user_answers = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AnswerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizuseranswer.AnswerTable,
-			Columns: []string{quizuseranswer.AnswerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.quiz_answer_user_answers = &nodes[0]
+		_node.ActiveQuizID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

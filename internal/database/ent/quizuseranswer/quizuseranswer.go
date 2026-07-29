@@ -14,44 +14,34 @@ const (
 	Label = "quiz_user_answer"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldActiveQuizID holds the string denoting the active_quiz_id field in the database.
+	FieldActiveQuizID = "active_quiz_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldCorrect holds the string denoting the correct field in the database.
+	FieldCorrect = "correct"
 	// FieldAnsweredAt holds the string denoting the answered_at field in the database.
 	FieldAnsweredAt = "answered_at"
-	// EdgeQuestion holds the string denoting the question edge name in mutations.
-	EdgeQuestion = "question"
-	// EdgeAnswer holds the string denoting the answer edge name in mutations.
-	EdgeAnswer = "answer"
+	// EdgeActiveQuiz holds the string denoting the active_quiz edge name in mutations.
+	EdgeActiveQuiz = "active_quiz"
 	// Table holds the table name of the quizuseranswer in the database.
 	Table = "quiz_user_answers"
-	// QuestionTable is the table that holds the question relation/edge.
-	QuestionTable = "quiz_user_answers"
-	// QuestionInverseTable is the table name for the QuizQuestion entity.
-	// It exists in this package in order to avoid circular dependency with the "quizquestion" package.
-	QuestionInverseTable = "quiz_questions"
-	// QuestionColumn is the table column denoting the question relation/edge.
-	QuestionColumn = "quiz_question_user_answers"
-	// AnswerTable is the table that holds the answer relation/edge.
-	AnswerTable = "quiz_user_answers"
-	// AnswerInverseTable is the table name for the QuizAnswer entity.
-	// It exists in this package in order to avoid circular dependency with the "quizanswer" package.
-	AnswerInverseTable = "quiz_answers"
-	// AnswerColumn is the table column denoting the answer relation/edge.
-	AnswerColumn = "quiz_answer_user_answers"
+	// ActiveQuizTable is the table that holds the active_quiz relation/edge.
+	ActiveQuizTable = "quiz_user_answers"
+	// ActiveQuizInverseTable is the table name for the ActiveQuiz entity.
+	// It exists in this package in order to avoid circular dependency with the "activequiz" package.
+	ActiveQuizInverseTable = "active_quizs"
+	// ActiveQuizColumn is the table column denoting the active_quiz relation/edge.
+	ActiveQuizColumn = "active_quiz_id"
 )
 
 // Columns holds all SQL columns for quizuseranswer fields.
 var Columns = []string{
 	FieldID,
+	FieldActiveQuizID,
 	FieldUserID,
+	FieldCorrect,
 	FieldAnsweredAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "quiz_user_answers"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"quiz_answer_user_answers",
-	"quiz_question_user_answers",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -61,15 +51,12 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
-			return true
-		}
-	}
 	return false
 }
 
 var (
+	// DefaultCorrect holds the default value on creation for the "correct" field.
+	DefaultCorrect bool
 	// DefaultAnsweredAt holds the default value on creation for the "answered_at" field.
 	DefaultAnsweredAt func() time.Time
 )
@@ -82,9 +69,19 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByActiveQuizID orders the results by the active_quiz_id field.
+func ByActiveQuizID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActiveQuizID, opts...).ToFunc()
+}
+
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByCorrect orders the results by the correct field.
+func ByCorrect(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrect, opts...).ToFunc()
 }
 
 // ByAnsweredAt orders the results by the answered_at field.
@@ -92,30 +89,16 @@ func ByAnsweredAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAnsweredAt, opts...).ToFunc()
 }
 
-// ByQuestionField orders the results by question field.
-func ByQuestionField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByActiveQuizField orders the results by active_quiz field.
+func ByActiveQuizField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newQuestionStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newActiveQuizStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByAnswerField orders the results by answer field.
-func ByAnswerField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAnswerStep(), sql.OrderByField(field, opts...))
-	}
-}
-func newQuestionStep() *sqlgraph.Step {
+func newActiveQuizStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(QuestionInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, QuestionTable, QuestionColumn),
-	)
-}
-func newAnswerStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AnswerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, AnswerTable, AnswerColumn),
+		sqlgraph.To(ActiveQuizInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ActiveQuizTable, ActiveQuizColumn),
 	)
 }

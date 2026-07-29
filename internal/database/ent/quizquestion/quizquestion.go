@@ -14,55 +14,55 @@ const (
 	Label = "quiz_question"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldQuestionText holds the string denoting the question_text field in the database.
-	FieldQuestionText = "question_text"
+	// FieldQuestion holds the string denoting the question field in the database.
+	FieldQuestion = "question"
+	// FieldGoodAnswer holds the string denoting the good_answer field in the database.
+	FieldGoodAnswer = "good_answer"
+	// FieldBadAnswer1 holds the string denoting the bad_answer_1 field in the database.
+	FieldBadAnswer1 = "bad_answer_1"
+	// FieldBadAnswer2 holds the string denoting the bad_answer_2 field in the database.
+	FieldBadAnswer2 = "bad_answer_2"
+	// FieldBadAnswer3 holds the string denoting the bad_answer_3 field in the database.
+	FieldBadAnswer3 = "bad_answer_3"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
+	// FieldDifficulty holds the string denoting the difficulty field in the database.
+	FieldDifficulty = "difficulty"
+	// FieldAuthorID holds the string denoting the author_id field in the database.
+	FieldAuthorID = "author_id"
+	// FieldGuildID holds the string denoting the guild_id field in the database.
+	FieldGuildID = "guild_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// EdgeQuiz holds the string denoting the quiz edge name in mutations.
-	EdgeQuiz = "quiz"
-	// EdgeAnswers holds the string denoting the answers edge name in mutations.
-	EdgeAnswers = "answers"
-	// EdgeUserAnswers holds the string denoting the user_answers edge name in mutations.
-	EdgeUserAnswers = "user_answers"
+	// FieldLastUsedAt holds the string denoting the last_used_at field in the database.
+	FieldLastUsedAt = "last_used_at"
+	// EdgeActiveQuizzes holds the string denoting the active_quizzes edge name in mutations.
+	EdgeActiveQuizzes = "active_quizzes"
 	// Table holds the table name of the quizquestion in the database.
 	Table = "quiz_questions"
-	// QuizTable is the table that holds the quiz relation/edge.
-	QuizTable = "quiz_questions"
-	// QuizInverseTable is the table name for the Quiz entity.
-	// It exists in this package in order to avoid circular dependency with the "quiz" package.
-	QuizInverseTable = "quizs"
-	// QuizColumn is the table column denoting the quiz relation/edge.
-	QuizColumn = "quiz_questions"
-	// AnswersTable is the table that holds the answers relation/edge.
-	AnswersTable = "quiz_answers"
-	// AnswersInverseTable is the table name for the QuizAnswer entity.
-	// It exists in this package in order to avoid circular dependency with the "quizanswer" package.
-	AnswersInverseTable = "quiz_answers"
-	// AnswersColumn is the table column denoting the answers relation/edge.
-	AnswersColumn = "quiz_question_answers"
-	// UserAnswersTable is the table that holds the user_answers relation/edge.
-	UserAnswersTable = "quiz_user_answers"
-	// UserAnswersInverseTable is the table name for the QuizUserAnswer entity.
-	// It exists in this package in order to avoid circular dependency with the "quizuseranswer" package.
-	UserAnswersInverseTable = "quiz_user_answers"
-	// UserAnswersColumn is the table column denoting the user_answers relation/edge.
-	UserAnswersColumn = "quiz_question_user_answers"
+	// ActiveQuizzesTable is the table that holds the active_quizzes relation/edge.
+	ActiveQuizzesTable = "active_quizs"
+	// ActiveQuizzesInverseTable is the table name for the ActiveQuiz entity.
+	// It exists in this package in order to avoid circular dependency with the "activequiz" package.
+	ActiveQuizzesInverseTable = "active_quizs"
+	// ActiveQuizzesColumn is the table column denoting the active_quizzes relation/edge.
+	ActiveQuizzesColumn = "question_id"
 )
 
 // Columns holds all SQL columns for quizquestion fields.
 var Columns = []string{
 	FieldID,
-	FieldQuestionText,
+	FieldQuestion,
+	FieldGoodAnswer,
+	FieldBadAnswer1,
+	FieldBadAnswer2,
+	FieldBadAnswer3,
+	FieldCategory,
+	FieldDifficulty,
+	FieldAuthorID,
+	FieldGuildID,
 	FieldCreatedAt,
-	FieldUpdatedAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "quiz_questions"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"quiz_questions",
+	FieldLastUsedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -72,21 +72,26 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
-			return true
-		}
-	}
 	return false
 }
 
 var (
+	// QuestionValidator is a validator for the "question" field. It is called by the builders before save.
+	QuestionValidator func(string) error
+	// GoodAnswerValidator is a validator for the "good_answer" field. It is called by the builders before save.
+	GoodAnswerValidator func(string) error
+	// BadAnswer1Validator is a validator for the "bad_answer_1" field. It is called by the builders before save.
+	BadAnswer1Validator func(string) error
+	// BadAnswer2Validator is a validator for the "bad_answer_2" field. It is called by the builders before save.
+	BadAnswer2Validator func(string) error
+	// BadAnswer3Validator is a validator for the "bad_answer_3" field. It is called by the builders before save.
+	BadAnswer3Validator func(string) error
+	// CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	CategoryValidator func(string) error
+	// DifficultyValidator is a validator for the "difficulty" field. It is called by the builders before save.
+	DifficultyValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the QuizQuestion queries.
@@ -97,9 +102,49 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByQuestionText orders the results by the question_text field.
-func ByQuestionText(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldQuestionText, opts...).ToFunc()
+// ByQuestion orders the results by the question field.
+func ByQuestion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuestion, opts...).ToFunc()
+}
+
+// ByGoodAnswer orders the results by the good_answer field.
+func ByGoodAnswer(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoodAnswer, opts...).ToFunc()
+}
+
+// ByBadAnswer1 orders the results by the bad_answer_1 field.
+func ByBadAnswer1(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBadAnswer1, opts...).ToFunc()
+}
+
+// ByBadAnswer2 orders the results by the bad_answer_2 field.
+func ByBadAnswer2(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBadAnswer2, opts...).ToFunc()
+}
+
+// ByBadAnswer3 orders the results by the bad_answer_3 field.
+func ByBadAnswer3(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBadAnswer3, opts...).ToFunc()
+}
+
+// ByCategory orders the results by the category field.
+func ByCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
+// ByDifficulty orders the results by the difficulty field.
+func ByDifficulty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDifficulty, opts...).ToFunc()
+}
+
+// ByAuthorID orders the results by the author_id field.
+func ByAuthorID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAuthorID, opts...).ToFunc()
+}
+
+// ByGuildID orders the results by the guild_id field.
+func ByGuildID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGuildID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
@@ -107,63 +152,28 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+// ByLastUsedAt orders the results by the last_used_at field.
+func ByLastUsedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastUsedAt, opts...).ToFunc()
 }
 
-// ByQuizField orders the results by quiz field.
-func ByQuizField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByActiveQuizzesCount orders the results by active_quizzes count.
+func ByActiveQuizzesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newQuizStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newActiveQuizzesStep(), opts...)
 	}
 }
 
-// ByAnswersCount orders the results by answers count.
-func ByAnswersCount(opts ...sql.OrderTermOption) OrderOption {
+// ByActiveQuizzes orders the results by active_quizzes terms.
+func ByActiveQuizzes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAnswersStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newActiveQuizzesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByAnswers orders the results by answers terms.
-func ByAnswers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAnswersStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByUserAnswersCount orders the results by user_answers count.
-func ByUserAnswersCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUserAnswersStep(), opts...)
-	}
-}
-
-// ByUserAnswers orders the results by user_answers terms.
-func ByUserAnswers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserAnswersStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newQuizStep() *sqlgraph.Step {
+func newActiveQuizzesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(QuizInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, QuizTable, QuizColumn),
-	)
-}
-func newAnswersStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AnswersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AnswersTable, AnswersColumn),
-	)
-}
-func newUserAnswersStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserAnswersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, UserAnswersTable, UserAnswersColumn),
+		sqlgraph.To(ActiveQuizzesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ActiveQuizzesTable, ActiveQuizzesColumn),
 	)
 }

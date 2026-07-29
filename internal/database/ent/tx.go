@@ -12,20 +12,34 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// ActiveMotus is the client for interacting with the ActiveMotus builders.
+	ActiveMotus *ActiveMotusClient
+	// ActiveQuiz is the client for interacting with the ActiveQuiz builders.
+	ActiveQuiz *ActiveQuizClient
 	// Birthday is the client for interacting with the Birthday builders.
 	Birthday *BirthdayClient
 	// GuildConfig is the client for interacting with the GuildConfig builders.
 	GuildConfig *GuildConfigClient
-	// Quiz is the client for interacting with the Quiz builders.
-	Quiz *QuizClient
-	// QuizAnswer is the client for interacting with the QuizAnswer builders.
-	QuizAnswer *QuizAnswerClient
+	// LotoGame is the client for interacting with the LotoGame builders.
+	LotoGame *LotoGameClient
+	// LotoPlayer is the client for interacting with the LotoPlayer builders.
+	LotoPlayer *LotoPlayerClient
+	// LotoPrize is the client for interacting with the LotoPrize builders.
+	LotoPrize *LotoPrizeClient
+	// LotoTicket is the client for interacting with the LotoTicket builders.
+	LotoTicket *LotoTicketClient
+	// MPThread is the client for interacting with the MPThread builders.
+	MPThread *MPThreadClient
 	// QuizQuestion is the client for interacting with the QuizQuestion builders.
 	QuizQuestion *QuizQuestionClient
+	// QuizStat is the client for interacting with the QuizStat builders.
+	QuizStat *QuizStatClient
 	// QuizUserAnswer is the client for interacting with the QuizUserAnswer builders.
 	QuizUserAnswer *QuizUserAnswerClient
 	// Quote is the client for interacting with the Quote builders.
 	Quote *QuoteClient
+	// Stream is the client for interacting with the Stream builders.
+	Stream *StreamClient
 
 	// lazily loaded.
 	client     *Client
@@ -157,13 +171,20 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.ActiveMotus = NewActiveMotusClient(tx.config)
+	tx.ActiveQuiz = NewActiveQuizClient(tx.config)
 	tx.Birthday = NewBirthdayClient(tx.config)
 	tx.GuildConfig = NewGuildConfigClient(tx.config)
-	tx.Quiz = NewQuizClient(tx.config)
-	tx.QuizAnswer = NewQuizAnswerClient(tx.config)
+	tx.LotoGame = NewLotoGameClient(tx.config)
+	tx.LotoPlayer = NewLotoPlayerClient(tx.config)
+	tx.LotoPrize = NewLotoPrizeClient(tx.config)
+	tx.LotoTicket = NewLotoTicketClient(tx.config)
+	tx.MPThread = NewMPThreadClient(tx.config)
 	tx.QuizQuestion = NewQuizQuestionClient(tx.config)
+	tx.QuizStat = NewQuizStatClient(tx.config)
 	tx.QuizUserAnswer = NewQuizUserAnswerClient(tx.config)
 	tx.Quote = NewQuoteClient(tx.config)
+	tx.Stream = NewStreamClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -173,7 +194,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Birthday.QueryXXX(), the query will be executed
+// applies a query, for example: ActiveMotus.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

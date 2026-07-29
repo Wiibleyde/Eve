@@ -8,6 +8,30 @@ import (
 	"fmt"
 )
 
+// The ActiveMotusFunc type is an adapter to allow the use of ordinary
+// function as ActiveMotus mutator.
+type ActiveMotusFunc func(context.Context, *ent.ActiveMotusMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActiveMotusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ActiveMotusMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActiveMotusMutation", m)
+}
+
+// The ActiveQuizFunc type is an adapter to allow the use of ordinary
+// function as ActiveQuiz mutator.
+type ActiveQuizFunc func(context.Context, *ent.ActiveQuizMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ActiveQuizFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ActiveQuizMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ActiveQuizMutation", m)
+}
+
 // The BirthdayFunc type is an adapter to allow the use of ordinary
 // function as Birthday mutator.
 type BirthdayFunc func(context.Context, *ent.BirthdayMutation) (ent.Value, error)
@@ -32,28 +56,64 @@ func (f GuildConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GuildConfigMutation", m)
 }
 
-// The QuizFunc type is an adapter to allow the use of ordinary
-// function as Quiz mutator.
-type QuizFunc func(context.Context, *ent.QuizMutation) (ent.Value, error)
+// The LotoGameFunc type is an adapter to allow the use of ordinary
+// function as LotoGame mutator.
+type LotoGameFunc func(context.Context, *ent.LotoGameMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f QuizFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.QuizMutation); ok {
+func (f LotoGameFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LotoGameMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LotoGameMutation", m)
 }
 
-// The QuizAnswerFunc type is an adapter to allow the use of ordinary
-// function as QuizAnswer mutator.
-type QuizAnswerFunc func(context.Context, *ent.QuizAnswerMutation) (ent.Value, error)
+// The LotoPlayerFunc type is an adapter to allow the use of ordinary
+// function as LotoPlayer mutator.
+type LotoPlayerFunc func(context.Context, *ent.LotoPlayerMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f QuizAnswerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.QuizAnswerMutation); ok {
+func (f LotoPlayerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LotoPlayerMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizAnswerMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LotoPlayerMutation", m)
+}
+
+// The LotoPrizeFunc type is an adapter to allow the use of ordinary
+// function as LotoPrize mutator.
+type LotoPrizeFunc func(context.Context, *ent.LotoPrizeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LotoPrizeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LotoPrizeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LotoPrizeMutation", m)
+}
+
+// The LotoTicketFunc type is an adapter to allow the use of ordinary
+// function as LotoTicket mutator.
+type LotoTicketFunc func(context.Context, *ent.LotoTicketMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LotoTicketFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LotoTicketMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LotoTicketMutation", m)
+}
+
+// The MPThreadFunc type is an adapter to allow the use of ordinary
+// function as MPThread mutator.
+type MPThreadFunc func(context.Context, *ent.MPThreadMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MPThreadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MPThreadMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MPThreadMutation", m)
 }
 
 // The QuizQuestionFunc type is an adapter to allow the use of ordinary
@@ -66,6 +126,18 @@ func (f QuizQuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizQuestionMutation", m)
+}
+
+// The QuizStatFunc type is an adapter to allow the use of ordinary
+// function as QuizStat mutator.
+type QuizStatFunc func(context.Context, *ent.QuizStatMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuizStatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuizStatMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuizStatMutation", m)
 }
 
 // The QuizUserAnswerFunc type is an adapter to allow the use of ordinary
@@ -90,6 +162,18 @@ func (f QuoteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuoteMutation", m)
+}
+
+// The StreamFunc type is an adapter to allow the use of ordinary
+// function as Stream mutator.
+type StreamFunc func(context.Context, *ent.StreamMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StreamFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StreamMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StreamMutation", m)
 }
 
 // Condition is a hook condition function.

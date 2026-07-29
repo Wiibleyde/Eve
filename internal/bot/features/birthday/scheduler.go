@@ -11,6 +11,7 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 
 	"Eve/internal/bot/embeds"
+	"Eve/internal/bot/maintenance"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/guildconfig"
@@ -24,6 +25,11 @@ func StartScheduler(bot *bot.Client) {
 			now := time.Now()
 			next := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, now.Location())
 			time.Sleep(time.Until(next))
+
+			if maintenance.Enabled() {
+				logger.Debug("Skipping birthday tick: maintenance mode enabled")
+				continue
+			}
 
 			birthdays, err := getTodayBirthdays(context.Background())
 			if err != nil {

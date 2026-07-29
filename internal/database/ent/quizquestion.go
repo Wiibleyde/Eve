@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"Eve/internal/database/ent/quiz"
 	"Eve/internal/database/ent/quizquestion"
 	"fmt"
 	"strings"
@@ -18,59 +17,50 @@ type QuizQuestion struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
-	// QuestionText holds the value of the "question_text" field.
-	QuestionText string `json:"question_text,omitempty"`
+	// Question holds the value of the "question" field.
+	Question string `json:"question,omitempty"`
+	// GoodAnswer holds the value of the "good_answer" field.
+	GoodAnswer string `json:"good_answer,omitempty"`
+	// BadAnswer1 holds the value of the "bad_answer_1" field.
+	BadAnswer1 string `json:"bad_answer_1,omitempty"`
+	// BadAnswer2 holds the value of the "bad_answer_2" field.
+	BadAnswer2 string `json:"bad_answer_2,omitempty"`
+	// BadAnswer3 holds the value of the "bad_answer_3" field.
+	BadAnswer3 string `json:"bad_answer_3,omitempty"`
+	// Category holds the value of the "category" field.
+	Category string `json:"category,omitempty"`
+	// Difficulty holds the value of the "difficulty" field.
+	Difficulty string `json:"difficulty,omitempty"`
+	// AuthorID holds the value of the "author_id" field.
+	AuthorID string `json:"author_id,omitempty"`
+	// GuildID holds the value of the "guild_id" field.
+	GuildID string `json:"guild_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// LastUsedAt holds the value of the "last_used_at" field.
+	LastUsedAt time.Time `json:"last_used_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuizQuestionQuery when eager-loading is set.
-	Edges          QuizQuestionEdges `json:"edges"`
-	quiz_questions *string
-	selectValues   sql.SelectValues
+	Edges        QuizQuestionEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // QuizQuestionEdges holds the relations/edges for other nodes in the graph.
 type QuizQuestionEdges struct {
-	// Quiz holds the value of the quiz edge.
-	Quiz *Quiz `json:"quiz,omitempty"`
-	// Answers holds the value of the answers edge.
-	Answers []*QuizAnswer `json:"answers,omitempty"`
-	// UserAnswers holds the value of the user_answers edge.
-	UserAnswers []*QuizUserAnswer `json:"user_answers,omitempty"`
+	// ActiveQuizzes holds the value of the active_quizzes edge.
+	ActiveQuizzes []*ActiveQuiz `json:"active_quizzes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [1]bool
 }
 
-// QuizOrErr returns the Quiz value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e QuizQuestionEdges) QuizOrErr() (*Quiz, error) {
-	if e.Quiz != nil {
-		return e.Quiz, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: quiz.Label}
-	}
-	return nil, &NotLoadedError{edge: "quiz"}
-}
-
-// AnswersOrErr returns the Answers value or an error if the edge
+// ActiveQuizzesOrErr returns the ActiveQuizzes value or an error if the edge
 // was not loaded in eager-loading.
-func (e QuizQuestionEdges) AnswersOrErr() ([]*QuizAnswer, error) {
-	if e.loadedTypes[1] {
-		return e.Answers, nil
+func (e QuizQuestionEdges) ActiveQuizzesOrErr() ([]*ActiveQuiz, error) {
+	if e.loadedTypes[0] {
+		return e.ActiveQuizzes, nil
 	}
-	return nil, &NotLoadedError{edge: "answers"}
-}
-
-// UserAnswersOrErr returns the UserAnswers value or an error if the edge
-// was not loaded in eager-loading.
-func (e QuizQuestionEdges) UserAnswersOrErr() ([]*QuizUserAnswer, error) {
-	if e.loadedTypes[2] {
-		return e.UserAnswers, nil
-	}
-	return nil, &NotLoadedError{edge: "user_answers"}
+	return nil, &NotLoadedError{edge: "active_quizzes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -78,12 +68,10 @@ func (*QuizQuestion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case quizquestion.FieldID, quizquestion.FieldQuestionText:
+		case quizquestion.FieldID, quizquestion.FieldQuestion, quizquestion.FieldGoodAnswer, quizquestion.FieldBadAnswer1, quizquestion.FieldBadAnswer2, quizquestion.FieldBadAnswer3, quizquestion.FieldCategory, quizquestion.FieldDifficulty, quizquestion.FieldAuthorID, quizquestion.FieldGuildID:
 			values[i] = new(sql.NullString)
-		case quizquestion.FieldCreatedAt, quizquestion.FieldUpdatedAt:
+		case quizquestion.FieldCreatedAt, quizquestion.FieldLastUsedAt:
 			values[i] = new(sql.NullTime)
-		case quizquestion.ForeignKeys[0]: // quiz_questions
-			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -105,11 +93,59 @@ func (_m *QuizQuestion) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ID = value.String
 			}
-		case quizquestion.FieldQuestionText:
+		case quizquestion.FieldQuestion:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field question_text", values[i])
+				return fmt.Errorf("unexpected type %T for field question", values[i])
 			} else if value.Valid {
-				_m.QuestionText = value.String
+				_m.Question = value.String
+			}
+		case quizquestion.FieldGoodAnswer:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field good_answer", values[i])
+			} else if value.Valid {
+				_m.GoodAnswer = value.String
+			}
+		case quizquestion.FieldBadAnswer1:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bad_answer_1", values[i])
+			} else if value.Valid {
+				_m.BadAnswer1 = value.String
+			}
+		case quizquestion.FieldBadAnswer2:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bad_answer_2", values[i])
+			} else if value.Valid {
+				_m.BadAnswer2 = value.String
+			}
+		case quizquestion.FieldBadAnswer3:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bad_answer_3", values[i])
+			} else if value.Valid {
+				_m.BadAnswer3 = value.String
+			}
+		case quizquestion.FieldCategory:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field category", values[i])
+			} else if value.Valid {
+				_m.Category = value.String
+			}
+		case quizquestion.FieldDifficulty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field difficulty", values[i])
+			} else if value.Valid {
+				_m.Difficulty = value.String
+			}
+		case quizquestion.FieldAuthorID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field author_id", values[i])
+			} else if value.Valid {
+				_m.AuthorID = value.String
+			}
+		case quizquestion.FieldGuildID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field guild_id", values[i])
+			} else if value.Valid {
+				_m.GuildID = value.String
 			}
 		case quizquestion.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -117,18 +153,11 @@ func (_m *QuizQuestion) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case quizquestion.FieldUpdatedAt:
+		case quizquestion.FieldLastUsedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+				return fmt.Errorf("unexpected type %T for field last_used_at", values[i])
 			} else if value.Valid {
-				_m.UpdatedAt = value.Time
-			}
-		case quizquestion.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field quiz_questions", values[i])
-			} else if value.Valid {
-				_m.quiz_questions = new(string)
-				*_m.quiz_questions = value.String
+				_m.LastUsedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -143,19 +172,9 @@ func (_m *QuizQuestion) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryQuiz queries the "quiz" edge of the QuizQuestion entity.
-func (_m *QuizQuestion) QueryQuiz() *QuizQuery {
-	return NewQuizQuestionClient(_m.config).QueryQuiz(_m)
-}
-
-// QueryAnswers queries the "answers" edge of the QuizQuestion entity.
-func (_m *QuizQuestion) QueryAnswers() *QuizAnswerQuery {
-	return NewQuizQuestionClient(_m.config).QueryAnswers(_m)
-}
-
-// QueryUserAnswers queries the "user_answers" edge of the QuizQuestion entity.
-func (_m *QuizQuestion) QueryUserAnswers() *QuizUserAnswerQuery {
-	return NewQuizQuestionClient(_m.config).QueryUserAnswers(_m)
+// QueryActiveQuizzes queries the "active_quizzes" edge of the QuizQuestion entity.
+func (_m *QuizQuestion) QueryActiveQuizzes() *ActiveQuizQuery {
+	return NewQuizQuestionClient(_m.config).QueryActiveQuizzes(_m)
 }
 
 // Update returns a builder for updating this QuizQuestion.
@@ -181,14 +200,38 @@ func (_m *QuizQuestion) String() string {
 	var builder strings.Builder
 	builder.WriteString("QuizQuestion(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("question_text=")
-	builder.WriteString(_m.QuestionText)
+	builder.WriteString("question=")
+	builder.WriteString(_m.Question)
+	builder.WriteString(", ")
+	builder.WriteString("good_answer=")
+	builder.WriteString(_m.GoodAnswer)
+	builder.WriteString(", ")
+	builder.WriteString("bad_answer_1=")
+	builder.WriteString(_m.BadAnswer1)
+	builder.WriteString(", ")
+	builder.WriteString("bad_answer_2=")
+	builder.WriteString(_m.BadAnswer2)
+	builder.WriteString(", ")
+	builder.WriteString("bad_answer_3=")
+	builder.WriteString(_m.BadAnswer3)
+	builder.WriteString(", ")
+	builder.WriteString("category=")
+	builder.WriteString(_m.Category)
+	builder.WriteString(", ")
+	builder.WriteString("difficulty=")
+	builder.WriteString(_m.Difficulty)
+	builder.WriteString(", ")
+	builder.WriteString("author_id=")
+	builder.WriteString(_m.AuthorID)
+	builder.WriteString(", ")
+	builder.WriteString("guild_id=")
+	builder.WriteString(_m.GuildID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString("last_used_at=")
+	builder.WriteString(_m.LastUsedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -3,13 +3,20 @@
 package ent
 
 import (
+	"Eve/internal/database/ent/activemotus"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/birthday"
 	"Eve/internal/database/ent/guildconfig"
-	"Eve/internal/database/ent/quiz"
-	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/lotogame"
+	"Eve/internal/database/ent/lotoplayer"
+	"Eve/internal/database/ent/lotoprize"
+	"Eve/internal/database/ent/lototicket"
+	"Eve/internal/database/ent/mpthread"
 	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/quizstat"
 	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/database/ent/quote"
+	"Eve/internal/database/ent/stream"
 	"context"
 	"errors"
 	"fmt"
@@ -79,13 +86,20 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			activemotus.Table:    activemotus.ValidColumn,
+			activequiz.Table:     activequiz.ValidColumn,
 			birthday.Table:       birthday.ValidColumn,
 			guildconfig.Table:    guildconfig.ValidColumn,
-			quiz.Table:           quiz.ValidColumn,
-			quizanswer.Table:     quizanswer.ValidColumn,
+			lotogame.Table:       lotogame.ValidColumn,
+			lotoplayer.Table:     lotoplayer.ValidColumn,
+			lotoprize.Table:      lotoprize.ValidColumn,
+			lototicket.Table:     lototicket.ValidColumn,
+			mpthread.Table:       mpthread.ValidColumn,
 			quizquestion.Table:   quizquestion.ValidColumn,
+			quizstat.Table:       quizstat.ValidColumn,
 			quizuseranswer.Table: quizuseranswer.ValidColumn,
 			quote.Table:          quote.ValidColumn,
+			stream.Table:         stream.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

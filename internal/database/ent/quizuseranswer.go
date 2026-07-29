@@ -3,8 +3,7 @@
 package ent
 
 import (
-	"Eve/internal/database/ent/quizanswer"
-	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/quizuseranswer"
 	"fmt"
 	"strings"
@@ -19,49 +18,38 @@ type QuizUserAnswer struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
+	// ActiveQuizID holds the value of the "active_quiz_id" field.
+	ActiveQuizID string `json:"active_quiz_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID string `json:"user_id,omitempty"`
+	// Correct holds the value of the "correct" field.
+	Correct bool `json:"correct,omitempty"`
 	// AnsweredAt holds the value of the "answered_at" field.
 	AnsweredAt time.Time `json:"answered_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuizUserAnswerQuery when eager-loading is set.
-	Edges                      QuizUserAnswerEdges `json:"edges"`
-	quiz_answer_user_answers   *string
-	quiz_question_user_answers *string
-	selectValues               sql.SelectValues
+	Edges        QuizUserAnswerEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // QuizUserAnswerEdges holds the relations/edges for other nodes in the graph.
 type QuizUserAnswerEdges struct {
-	// Question holds the value of the question edge.
-	Question *QuizQuestion `json:"question,omitempty"`
-	// Answer holds the value of the answer edge.
-	Answer *QuizAnswer `json:"answer,omitempty"`
+	// ActiveQuiz holds the value of the active_quiz edge.
+	ActiveQuiz *ActiveQuiz `json:"active_quiz,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// QuestionOrErr returns the Question value or an error if the edge
+// ActiveQuizOrErr returns the ActiveQuiz value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e QuizUserAnswerEdges) QuestionOrErr() (*QuizQuestion, error) {
-	if e.Question != nil {
-		return e.Question, nil
+func (e QuizUserAnswerEdges) ActiveQuizOrErr() (*ActiveQuiz, error) {
+	if e.ActiveQuiz != nil {
+		return e.ActiveQuiz, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: quizquestion.Label}
+		return nil, &NotFoundError{label: activequiz.Label}
 	}
-	return nil, &NotLoadedError{edge: "question"}
-}
-
-// AnswerOrErr returns the Answer value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e QuizUserAnswerEdges) AnswerOrErr() (*QuizAnswer, error) {
-	if e.Answer != nil {
-		return e.Answer, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: quizanswer.Label}
-	}
-	return nil, &NotLoadedError{edge: "answer"}
+	return nil, &NotLoadedError{edge: "active_quiz"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -69,14 +57,12 @@ func (*QuizUserAnswer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case quizuseranswer.FieldID, quizuseranswer.FieldUserID:
+		case quizuseranswer.FieldCorrect:
+			values[i] = new(sql.NullBool)
+		case quizuseranswer.FieldID, quizuseranswer.FieldActiveQuizID, quizuseranswer.FieldUserID:
 			values[i] = new(sql.NullString)
 		case quizuseranswer.FieldAnsweredAt:
 			values[i] = new(sql.NullTime)
-		case quizuseranswer.ForeignKeys[0]: // quiz_answer_user_answers
-			values[i] = new(sql.NullString)
-		case quizuseranswer.ForeignKeys[1]: // quiz_question_user_answers
-			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -98,31 +84,29 @@ func (_m *QuizUserAnswer) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ID = value.String
 			}
+		case quizuseranswer.FieldActiveQuizID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field active_quiz_id", values[i])
+			} else if value.Valid {
+				_m.ActiveQuizID = value.String
+			}
 		case quizuseranswer.FieldUserID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
 				_m.UserID = value.String
 			}
+		case quizuseranswer.FieldCorrect:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field correct", values[i])
+			} else if value.Valid {
+				_m.Correct = value.Bool
+			}
 		case quizuseranswer.FieldAnsweredAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field answered_at", values[i])
 			} else if value.Valid {
 				_m.AnsweredAt = value.Time
-			}
-		case quizuseranswer.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field quiz_answer_user_answers", values[i])
-			} else if value.Valid {
-				_m.quiz_answer_user_answers = new(string)
-				*_m.quiz_answer_user_answers = value.String
-			}
-		case quizuseranswer.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field quiz_question_user_answers", values[i])
-			} else if value.Valid {
-				_m.quiz_question_user_answers = new(string)
-				*_m.quiz_question_user_answers = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -137,14 +121,9 @@ func (_m *QuizUserAnswer) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryQuestion queries the "question" edge of the QuizUserAnswer entity.
-func (_m *QuizUserAnswer) QueryQuestion() *QuizQuestionQuery {
-	return NewQuizUserAnswerClient(_m.config).QueryQuestion(_m)
-}
-
-// QueryAnswer queries the "answer" edge of the QuizUserAnswer entity.
-func (_m *QuizUserAnswer) QueryAnswer() *QuizAnswerQuery {
-	return NewQuizUserAnswerClient(_m.config).QueryAnswer(_m)
+// QueryActiveQuiz queries the "active_quiz" edge of the QuizUserAnswer entity.
+func (_m *QuizUserAnswer) QueryActiveQuiz() *ActiveQuizQuery {
+	return NewQuizUserAnswerClient(_m.config).QueryActiveQuiz(_m)
 }
 
 // Update returns a builder for updating this QuizUserAnswer.
@@ -170,8 +149,14 @@ func (_m *QuizUserAnswer) String() string {
 	var builder strings.Builder
 	builder.WriteString("QuizUserAnswer(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("active_quiz_id=")
+	builder.WriteString(_m.ActiveQuizID)
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("correct=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Correct))
 	builder.WriteString(", ")
 	builder.WriteString("answered_at=")
 	builder.WriteString(_m.AnsweredAt.Format(time.ANSIC))

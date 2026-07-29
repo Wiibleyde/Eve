@@ -65,14 +65,89 @@ func IDContainsFold(id string) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldContainsFold(FieldID, id))
 }
 
+// ActiveQuizID applies equality check predicate on the "active_quiz_id" field. It's identical to ActiveQuizIDEQ.
+func ActiveQuizID(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldEQ(FieldActiveQuizID, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v string) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldEQ(FieldUserID, v))
 }
 
+// Correct applies equality check predicate on the "correct" field. It's identical to CorrectEQ.
+func Correct(v bool) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldEQ(FieldCorrect, v))
+}
+
 // AnsweredAt applies equality check predicate on the "answered_at" field. It's identical to AnsweredAtEQ.
 func AnsweredAt(v time.Time) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldEQ(FieldAnsweredAt, v))
+}
+
+// ActiveQuizIDEQ applies the EQ predicate on the "active_quiz_id" field.
+func ActiveQuizIDEQ(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldEQ(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDNEQ applies the NEQ predicate on the "active_quiz_id" field.
+func ActiveQuizIDNEQ(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldNEQ(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDIn applies the In predicate on the "active_quiz_id" field.
+func ActiveQuizIDIn(vs ...string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldIn(FieldActiveQuizID, vs...))
+}
+
+// ActiveQuizIDNotIn applies the NotIn predicate on the "active_quiz_id" field.
+func ActiveQuizIDNotIn(vs ...string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldNotIn(FieldActiveQuizID, vs...))
+}
+
+// ActiveQuizIDGT applies the GT predicate on the "active_quiz_id" field.
+func ActiveQuizIDGT(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldGT(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDGTE applies the GTE predicate on the "active_quiz_id" field.
+func ActiveQuizIDGTE(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldGTE(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDLT applies the LT predicate on the "active_quiz_id" field.
+func ActiveQuizIDLT(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldLT(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDLTE applies the LTE predicate on the "active_quiz_id" field.
+func ActiveQuizIDLTE(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldLTE(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDContains applies the Contains predicate on the "active_quiz_id" field.
+func ActiveQuizIDContains(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldContains(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDHasPrefix applies the HasPrefix predicate on the "active_quiz_id" field.
+func ActiveQuizIDHasPrefix(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldHasPrefix(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDHasSuffix applies the HasSuffix predicate on the "active_quiz_id" field.
+func ActiveQuizIDHasSuffix(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldHasSuffix(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDEqualFold applies the EqualFold predicate on the "active_quiz_id" field.
+func ActiveQuizIDEqualFold(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldEqualFold(FieldActiveQuizID, v))
+}
+
+// ActiveQuizIDContainsFold applies the ContainsFold predicate on the "active_quiz_id" field.
+func ActiveQuizIDContainsFold(v string) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldContainsFold(FieldActiveQuizID, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
@@ -140,6 +215,16 @@ func UserIDContainsFold(v string) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldContainsFold(FieldUserID, v))
 }
 
+// CorrectEQ applies the EQ predicate on the "correct" field.
+func CorrectEQ(v bool) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldEQ(FieldCorrect, v))
+}
+
+// CorrectNEQ applies the NEQ predicate on the "correct" field.
+func CorrectNEQ(v bool) predicate.QuizUserAnswer {
+	return predicate.QuizUserAnswer(sql.FieldNEQ(FieldCorrect, v))
+}
+
 // AnsweredAtEQ applies the EQ predicate on the "answered_at" field.
 func AnsweredAtEQ(v time.Time) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldEQ(FieldAnsweredAt, v))
@@ -180,44 +265,21 @@ func AnsweredAtLTE(v time.Time) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(sql.FieldLTE(FieldAnsweredAt, v))
 }
 
-// HasQuestion applies the HasEdge predicate on the "question" edge.
-func HasQuestion() predicate.QuizUserAnswer {
+// HasActiveQuiz applies the HasEdge predicate on the "active_quiz" edge.
+func HasActiveQuiz() predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, QuestionTable, QuestionColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ActiveQuizTable, ActiveQuizColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasQuestionWith applies the HasEdge predicate on the "question" edge with a given conditions (other predicates).
-func HasQuestionWith(preds ...predicate.QuizQuestion) predicate.QuizUserAnswer {
+// HasActiveQuizWith applies the HasEdge predicate on the "active_quiz" edge with a given conditions (other predicates).
+func HasActiveQuizWith(preds ...predicate.ActiveQuiz) predicate.QuizUserAnswer {
 	return predicate.QuizUserAnswer(func(s *sql.Selector) {
-		step := newQuestionStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAnswer applies the HasEdge predicate on the "answer" edge.
-func HasAnswer() predicate.QuizUserAnswer {
-	return predicate.QuizUserAnswer(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, AnswerTable, AnswerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAnswerWith applies the HasEdge predicate on the "answer" edge with a given conditions (other predicates).
-func HasAnswerWith(preds ...predicate.QuizAnswer) predicate.QuizUserAnswer {
-	return predicate.QuizUserAnswer(func(s *sql.Selector) {
-		step := newAnswerStep()
+		step := newActiveQuizStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

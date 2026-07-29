@@ -3,10 +3,8 @@
 package ent
 
 import (
-	"Eve/internal/database/ent/quiz"
-	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/quizquestion"
-	"Eve/internal/database/ent/quizuseranswer"
 	"context"
 	"errors"
 	"fmt"
@@ -23,9 +21,65 @@ type QuizQuestionCreate struct {
 	hooks    []Hook
 }
 
-// SetQuestionText sets the "question_text" field.
-func (_c *QuizQuestionCreate) SetQuestionText(v string) *QuizQuestionCreate {
-	_c.mutation.SetQuestionText(v)
+// SetQuestion sets the "question" field.
+func (_c *QuizQuestionCreate) SetQuestion(v string) *QuizQuestionCreate {
+	_c.mutation.SetQuestion(v)
+	return _c
+}
+
+// SetGoodAnswer sets the "good_answer" field.
+func (_c *QuizQuestionCreate) SetGoodAnswer(v string) *QuizQuestionCreate {
+	_c.mutation.SetGoodAnswer(v)
+	return _c
+}
+
+// SetBadAnswer1 sets the "bad_answer_1" field.
+func (_c *QuizQuestionCreate) SetBadAnswer1(v string) *QuizQuestionCreate {
+	_c.mutation.SetBadAnswer1(v)
+	return _c
+}
+
+// SetBadAnswer2 sets the "bad_answer_2" field.
+func (_c *QuizQuestionCreate) SetBadAnswer2(v string) *QuizQuestionCreate {
+	_c.mutation.SetBadAnswer2(v)
+	return _c
+}
+
+// SetBadAnswer3 sets the "bad_answer_3" field.
+func (_c *QuizQuestionCreate) SetBadAnswer3(v string) *QuizQuestionCreate {
+	_c.mutation.SetBadAnswer3(v)
+	return _c
+}
+
+// SetCategory sets the "category" field.
+func (_c *QuizQuestionCreate) SetCategory(v string) *QuizQuestionCreate {
+	_c.mutation.SetCategory(v)
+	return _c
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (_c *QuizQuestionCreate) SetDifficulty(v string) *QuizQuestionCreate {
+	_c.mutation.SetDifficulty(v)
+	return _c
+}
+
+// SetAuthorID sets the "author_id" field.
+func (_c *QuizQuestionCreate) SetAuthorID(v string) *QuizQuestionCreate {
+	_c.mutation.SetAuthorID(v)
+	return _c
+}
+
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (_c *QuizQuestionCreate) SetNillableAuthorID(v *string) *QuizQuestionCreate {
+	if v != nil {
+		_c.SetAuthorID(*v)
+	}
+	return _c
+}
+
+// SetGuildID sets the "guild_id" field.
+func (_c *QuizQuestionCreate) SetGuildID(v string) *QuizQuestionCreate {
+	_c.mutation.SetGuildID(v)
 	return _c
 }
 
@@ -43,16 +97,16 @@ func (_c *QuizQuestionCreate) SetNillableCreatedAt(v *time.Time) *QuizQuestionCr
 	return _c
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (_c *QuizQuestionCreate) SetUpdatedAt(v time.Time) *QuizQuestionCreate {
-	_c.mutation.SetUpdatedAt(v)
+// SetLastUsedAt sets the "last_used_at" field.
+func (_c *QuizQuestionCreate) SetLastUsedAt(v time.Time) *QuizQuestionCreate {
+	_c.mutation.SetLastUsedAt(v)
 	return _c
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *QuizQuestionCreate) SetNillableUpdatedAt(v *time.Time) *QuizQuestionCreate {
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_c *QuizQuestionCreate) SetNillableLastUsedAt(v *time.Time) *QuizQuestionCreate {
 	if v != nil {
-		_c.SetUpdatedAt(*v)
+		_c.SetLastUsedAt(*v)
 	}
 	return _c
 }
@@ -63,45 +117,19 @@ func (_c *QuizQuestionCreate) SetID(v string) *QuizQuestionCreate {
 	return _c
 }
 
-// SetQuizID sets the "quiz" edge to the Quiz entity by ID.
-func (_c *QuizQuestionCreate) SetQuizID(id string) *QuizQuestionCreate {
-	_c.mutation.SetQuizID(id)
+// AddActiveQuizzeIDs adds the "active_quizzes" edge to the ActiveQuiz entity by IDs.
+func (_c *QuizQuestionCreate) AddActiveQuizzeIDs(ids ...string) *QuizQuestionCreate {
+	_c.mutation.AddActiveQuizzeIDs(ids...)
 	return _c
 }
 
-// SetQuiz sets the "quiz" edge to the Quiz entity.
-func (_c *QuizQuestionCreate) SetQuiz(v *Quiz) *QuizQuestionCreate {
-	return _c.SetQuizID(v.ID)
-}
-
-// AddAnswerIDs adds the "answers" edge to the QuizAnswer entity by IDs.
-func (_c *QuizQuestionCreate) AddAnswerIDs(ids ...string) *QuizQuestionCreate {
-	_c.mutation.AddAnswerIDs(ids...)
-	return _c
-}
-
-// AddAnswers adds the "answers" edges to the QuizAnswer entity.
-func (_c *QuizQuestionCreate) AddAnswers(v ...*QuizAnswer) *QuizQuestionCreate {
+// AddActiveQuizzes adds the "active_quizzes" edges to the ActiveQuiz entity.
+func (_c *QuizQuestionCreate) AddActiveQuizzes(v ...*ActiveQuiz) *QuizQuestionCreate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddAnswerIDs(ids...)
-}
-
-// AddUserAnswerIDs adds the "user_answers" edge to the QuizUserAnswer entity by IDs.
-func (_c *QuizQuestionCreate) AddUserAnswerIDs(ids ...string) *QuizQuestionCreate {
-	_c.mutation.AddUserAnswerIDs(ids...)
-	return _c
-}
-
-// AddUserAnswers adds the "user_answers" edges to the QuizUserAnswer entity.
-func (_c *QuizQuestionCreate) AddUserAnswers(v ...*QuizUserAnswer) *QuizQuestionCreate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddUserAnswerIDs(ids...)
+	return _c.AddActiveQuizzeIDs(ids...)
 }
 
 // Mutation returns the QuizQuestionMutation object of the builder.
@@ -143,25 +171,71 @@ func (_c *QuizQuestionCreate) defaults() {
 		v := quizquestion.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := quizquestion.DefaultUpdatedAt()
-		_c.mutation.SetUpdatedAt(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *QuizQuestionCreate) check() error {
-	if _, ok := _c.mutation.QuestionText(); !ok {
-		return &ValidationError{Name: "question_text", err: errors.New(`ent: missing required field "QuizQuestion.question_text"`)}
+	if _, ok := _c.mutation.Question(); !ok {
+		return &ValidationError{Name: "question", err: errors.New(`ent: missing required field "QuizQuestion.question"`)}
+	}
+	if v, ok := _c.mutation.Question(); ok {
+		if err := quizquestion.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.question": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.GoodAnswer(); !ok {
+		return &ValidationError{Name: "good_answer", err: errors.New(`ent: missing required field "QuizQuestion.good_answer"`)}
+	}
+	if v, ok := _c.mutation.GoodAnswer(); ok {
+		if err := quizquestion.GoodAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "good_answer", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.good_answer": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.BadAnswer1(); !ok {
+		return &ValidationError{Name: "bad_answer_1", err: errors.New(`ent: missing required field "QuizQuestion.bad_answer_1"`)}
+	}
+	if v, ok := _c.mutation.BadAnswer1(); ok {
+		if err := quizquestion.BadAnswer1Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_1", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_1": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.BadAnswer2(); !ok {
+		return &ValidationError{Name: "bad_answer_2", err: errors.New(`ent: missing required field "QuizQuestion.bad_answer_2"`)}
+	}
+	if v, ok := _c.mutation.BadAnswer2(); ok {
+		if err := quizquestion.BadAnswer2Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_2", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_2": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.BadAnswer3(); !ok {
+		return &ValidationError{Name: "bad_answer_3", err: errors.New(`ent: missing required field "QuizQuestion.bad_answer_3"`)}
+	}
+	if v, ok := _c.mutation.BadAnswer3(); ok {
+		if err := quizquestion.BadAnswer3Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_3", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_3": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Category(); !ok {
+		return &ValidationError{Name: "category", err: errors.New(`ent: missing required field "QuizQuestion.category"`)}
+	}
+	if v, ok := _c.mutation.Category(); ok {
+		if err := quizquestion.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.category": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Difficulty(); !ok {
+		return &ValidationError{Name: "difficulty", err: errors.New(`ent: missing required field "QuizQuestion.difficulty"`)}
+	}
+	if v, ok := _c.mutation.Difficulty(); ok {
+		if err := quizquestion.DifficultyValidator(v); err != nil {
+			return &ValidationError{Name: "difficulty", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.difficulty": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.GuildID(); !ok {
+		return &ValidationError{Name: "guild_id", err: errors.New(`ent: missing required field "QuizQuestion.guild_id"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "QuizQuestion.created_at"`)}
-	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "QuizQuestion.updated_at"`)}
-	}
-	if len(_c.mutation.QuizIDs()) == 0 {
-		return &ValidationError{Name: "quiz", err: errors.New(`ent: missing required edge "QuizQuestion.quiz"`)}
 	}
 	return nil
 }
@@ -198,60 +272,59 @@ func (_c *QuizQuestionCreate) createSpec() (*QuizQuestion, *sqlgraph.CreateSpec)
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := _c.mutation.QuestionText(); ok {
-		_spec.SetField(quizquestion.FieldQuestionText, field.TypeString, value)
-		_node.QuestionText = value
+	if value, ok := _c.mutation.Question(); ok {
+		_spec.SetField(quizquestion.FieldQuestion, field.TypeString, value)
+		_node.Question = value
+	}
+	if value, ok := _c.mutation.GoodAnswer(); ok {
+		_spec.SetField(quizquestion.FieldGoodAnswer, field.TypeString, value)
+		_node.GoodAnswer = value
+	}
+	if value, ok := _c.mutation.BadAnswer1(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer1, field.TypeString, value)
+		_node.BadAnswer1 = value
+	}
+	if value, ok := _c.mutation.BadAnswer2(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer2, field.TypeString, value)
+		_node.BadAnswer2 = value
+	}
+	if value, ok := _c.mutation.BadAnswer3(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer3, field.TypeString, value)
+		_node.BadAnswer3 = value
+	}
+	if value, ok := _c.mutation.Category(); ok {
+		_spec.SetField(quizquestion.FieldCategory, field.TypeString, value)
+		_node.Category = value
+	}
+	if value, ok := _c.mutation.Difficulty(); ok {
+		_spec.SetField(quizquestion.FieldDifficulty, field.TypeString, value)
+		_node.Difficulty = value
+	}
+	if value, ok := _c.mutation.AuthorID(); ok {
+		_spec.SetField(quizquestion.FieldAuthorID, field.TypeString, value)
+		_node.AuthorID = value
+	}
+	if value, ok := _c.mutation.GuildID(); ok {
+		_spec.SetField(quizquestion.FieldGuildID, field.TypeString, value)
+		_node.GuildID = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(quizquestion.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(quizquestion.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
+	if value, ok := _c.mutation.LastUsedAt(); ok {
+		_spec.SetField(quizquestion.FieldLastUsedAt, field.TypeTime, value)
+		_node.LastUsedAt = value
 	}
-	if nodes := _c.mutation.QuizIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizquestion.QuizTable,
-			Columns: []string{quizquestion.QuizColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.quiz_questions = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AnswersIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ActiveQuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.UserAnswersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

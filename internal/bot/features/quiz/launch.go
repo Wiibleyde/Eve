@@ -1,0 +1,107 @@
+package quiz
+
+import (
+	"context"
+	"time"
+
+	"Eve/internal/bot/embeds"
+	"Eve/internal/bot/helpers"
+	"Eve/internal/database"
+	"Eve/internal/database/ent"
+	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/logger"
+
+	"entgo.io/ent/dialect/sql"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/google/uuid"
+)
+
+// Duration is how long a launched quiz accepts answers.
+const Duration = 8 * time.Hour
+
+func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
+	guildID, ok := requireGuild(e)
+	if !ok {
+		return
+	}
+
+	ctx := context.Background()
+	db := database.Default.Ent()
+
+	question, err := pickQuestion(ctx)
+	if err != nil {
+		logger.Error("Error picking a quiz question", "error", err)
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération d'une question."))
+		return
+	}
+	if question == nil {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Aucun quiz n'a été créé pour le moment. Utilisez `/quiz create` pour en ajouter un."))
+		return
+	}
+
+	// Mark the question as used right away: two launches in the same second
+	// should not pick the same question. A failure here only degrades the LRU
+	// rotation, so it is logged and the launch continues.
+	if err := db.QuizQuestion.UpdateOneID(question.ID).SetLastUsedAt(time.Now()).Exec(ctx); err != nil {
+		logger.Error("Error updating quiz question last_used_at", "error", err, "question", question.ID)
+	}
+
+	perm := shufflePermutation()
+	answers := applyPermutation(storedAnswers(question), perm)
+	expiresAt := time.Now().Add(Duration)
+
+	msg, err := e.Client().Rest.CreateMessage(e.Channel().ID(), discord.MessageCreate{
+		Embeds:     []discord.Embed{questionEmbed(question, expiresAt)},
+		Components: []discord.LayoutComponent{answerButtons(answers, question.ID)},
+	})
+	if err != nil {
+		logger.Error("Error sending quiz message", "error", err)
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Impossible d'envoyer le quiz dans ce salon."))
+		return
+	}
+
+	err = db.ActiveQuiz.Create().
+		SetID(uuid.New().String()).
+		SetQuestionID(question.ID).
+		SetMessageID(msg.ID.String()).
+		SetChannelID(msg.ChannelID.String()).
+		SetGuildID(guildID).
+		SetShuffle(encodePermutation(perm)).
+		SetExpiresAt(expiresAt).
+		Exec(ctx)
+	if err != nil {
+		// Without its row the message would only hold dead buttons: remove it.
+		logger.Error("Error saving active quiz", "error", err)
+		if delErr := e.Client().Rest.DeleteMessage(msg.ChannelID, msg.ID); delErr != nil {
+			logger.Error("Error deleting orphaned quiz message", "error", delErr)
+		}
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors du lancement du quiz."))
+		return
+	}
+
+	logger.Debug("Quiz launched", "question", question.ID, "message", msg.ID.String(), "guild", guildID)
+	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Quiz lancé ! Les réponses sont acceptées pendant 8 heures."))
+}
+
+// pickQuestion returns the least recently used question, ties broken at random.
+//
+// The TS version picked uniformly at random, which repeated questions on small
+// pools. Ordering by last_used_at with NULLs first plays every unseen question
+// before recycling the oldest one. It returns (nil, nil) on an empty pool.
+func pickQuestion(ctx context.Context) (*ent.QuizQuestion, error) {
+	questions, err := database.Default.Ent().QuizQuestion.Query().
+		Order(
+			quizquestion.ByLastUsedAt(sql.OrderAsc(), sql.OrderNullsFirst()),
+			func(s *sql.Selector) { s.OrderExpr(sql.Expr("random()")) },
+		).
+		Limit(1).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(questions) == 0 {
+		return nil, nil
+	}
+	return questions[0], nil
+}

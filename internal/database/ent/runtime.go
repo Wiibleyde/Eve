@@ -3,13 +3,20 @@
 package ent
 
 import (
+	"Eve/internal/database/ent/activemotus"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/birthday"
 	"Eve/internal/database/ent/guildconfig"
-	"Eve/internal/database/ent/quiz"
-	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/lotogame"
+	"Eve/internal/database/ent/lotoplayer"
+	"Eve/internal/database/ent/lotoprize"
+	"Eve/internal/database/ent/lototicket"
+	"Eve/internal/database/ent/mpthread"
 	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/quizstat"
 	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/database/ent/quote"
+	"Eve/internal/database/ent/stream"
 	"Eve/internal/database/tables"
 	"time"
 )
@@ -18,6 +25,36 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	activemotusFields := tables.ActiveMotus{}.Fields()
+	_ = activemotusFields
+	// activemotusDescAttempts is the schema descriptor for attempts field.
+	activemotusDescAttempts := activemotusFields[5].Descriptor()
+	// activemotus.DefaultAttempts holds the default value on creation for the attempts field.
+	activemotus.DefaultAttempts = activemotusDescAttempts.Default.([]tables.MotusAttempt)
+	// activemotusDescState is the schema descriptor for state field.
+	activemotusDescState := activemotusFields[6].Descriptor()
+	// activemotus.DefaultState holds the default value on creation for the state field.
+	activemotus.DefaultState = activemotusDescState.Default.(string)
+	// activemotusDescCreatedAt is the schema descriptor for created_at field.
+	activemotusDescCreatedAt := activemotusFields[8].Descriptor()
+	// activemotus.DefaultCreatedAt holds the default value on creation for the created_at field.
+	activemotus.DefaultCreatedAt = activemotusDescCreatedAt.Default.(func() time.Time)
+	// activemotusDescUpdatedAt is the schema descriptor for updated_at field.
+	activemotusDescUpdatedAt := activemotusFields[9].Descriptor()
+	// activemotus.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	activemotus.DefaultUpdatedAt = activemotusDescUpdatedAt.Default.(func() time.Time)
+	// activemotus.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	activemotus.UpdateDefaultUpdatedAt = activemotusDescUpdatedAt.UpdateDefault.(func() time.Time)
+	activequizFields := tables.ActiveQuiz{}.Fields()
+	_ = activequizFields
+	// activequizDescShuffle is the schema descriptor for shuffle field.
+	activequizDescShuffle := activequizFields[5].Descriptor()
+	// activequiz.ShuffleValidator is a validator for the "shuffle" field. It is called by the builders before save.
+	activequiz.ShuffleValidator = activequizDescShuffle.Validators[0].(func(string) error)
+	// activequizDescLaunchedAt is the schema descriptor for launched_at field.
+	activequizDescLaunchedAt := activequizFields[6].Descriptor()
+	// activequiz.DefaultLaunchedAt holds the default value on creation for the launched_at field.
+	activequiz.DefaultLaunchedAt = activequizDescLaunchedAt.Default.(func() time.Time)
 	birthdayFields := tables.Birthday{}.Fields()
 	_ = birthdayFields
 	// birthdayDescCreatedAt is the schema descriptor for created_at field.
@@ -42,50 +79,144 @@ func init() {
 	guildconfig.DefaultUpdatedAt = guildconfigDescUpdatedAt.Default.(func() time.Time)
 	// guildconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	guildconfig.UpdateDefaultUpdatedAt = guildconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
-	quizFields := tables.Quiz{}.Fields()
-	_ = quizFields
-	// quizDescCreatedAt is the schema descriptor for created_at field.
-	quizDescCreatedAt := quizFields[3].Descriptor()
-	// quiz.DefaultCreatedAt holds the default value on creation for the created_at field.
-	quiz.DefaultCreatedAt = quizDescCreatedAt.Default.(func() time.Time)
-	// quizDescUpdatedAt is the schema descriptor for updated_at field.
-	quizDescUpdatedAt := quizFields[4].Descriptor()
-	// quiz.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	quiz.DefaultUpdatedAt = quizDescUpdatedAt.Default.(func() time.Time)
-	// quiz.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	quiz.UpdateDefaultUpdatedAt = quizDescUpdatedAt.UpdateDefault.(func() time.Time)
-	quizanswerFields := tables.QuizAnswer{}.Fields()
-	_ = quizanswerFields
-	// quizanswerDescIsValid is the schema descriptor for is_valid field.
-	quizanswerDescIsValid := quizanswerFields[2].Descriptor()
-	// quizanswer.DefaultIsValid holds the default value on creation for the is_valid field.
-	quizanswer.DefaultIsValid = quizanswerDescIsValid.Default.(bool)
-	// quizanswerDescCreatedAt is the schema descriptor for created_at field.
-	quizanswerDescCreatedAt := quizanswerFields[3].Descriptor()
-	// quizanswer.DefaultCreatedAt holds the default value on creation for the created_at field.
-	quizanswer.DefaultCreatedAt = quizanswerDescCreatedAt.Default.(func() time.Time)
-	// quizanswerDescUpdatedAt is the schema descriptor for updated_at field.
-	quizanswerDescUpdatedAt := quizanswerFields[4].Descriptor()
-	// quizanswer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	quizanswer.DefaultUpdatedAt = quizanswerDescUpdatedAt.Default.(func() time.Time)
-	// quizanswer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	quizanswer.UpdateDefaultUpdatedAt = quizanswerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lotogameFields := tables.LotoGame{}.Fields()
+	_ = lotogameFields
+	// lotogameDescName is the schema descriptor for name field.
+	lotogameDescName := lotogameFields[2].Descriptor()
+	// lotogame.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	lotogame.NameValidator = lotogameDescName.Validators[0].(func(string) error)
+	// lotogameDescActive is the schema descriptor for active field.
+	lotogameDescActive := lotogameFields[3].Descriptor()
+	// lotogame.DefaultActive holds the default value on creation for the active field.
+	lotogame.DefaultActive = lotogameDescActive.Default.(bool)
+	// lotogameDescTicketPrice is the schema descriptor for ticket_price field.
+	lotogameDescTicketPrice := lotogameFields[4].Descriptor()
+	// lotogame.DefaultTicketPrice holds the default value on creation for the ticket_price field.
+	lotogame.DefaultTicketPrice = lotogameDescTicketPrice.Default.(int)
+	// lotogameDescCooldownMinutes is the schema descriptor for cooldown_minutes field.
+	lotogameDescCooldownMinutes := lotogameFields[5].Descriptor()
+	// lotogame.DefaultCooldownMinutes holds the default value on creation for the cooldown_minutes field.
+	lotogame.DefaultCooldownMinutes = lotogameDescCooldownMinutes.Default.(int)
+	// lotogameDescCreatedAt is the schema descriptor for created_at field.
+	lotogameDescCreatedAt := lotogameFields[9].Descriptor()
+	// lotogame.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lotogame.DefaultCreatedAt = lotogameDescCreatedAt.Default.(func() time.Time)
+	// lotogameDescUpdatedAt is the schema descriptor for updated_at field.
+	lotogameDescUpdatedAt := lotogameFields[10].Descriptor()
+	// lotogame.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lotogame.DefaultUpdatedAt = lotogameDescUpdatedAt.Default.(func() time.Time)
+	// lotogame.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lotogame.UpdateDefaultUpdatedAt = lotogameDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lotoplayerFields := tables.LotoPlayer{}.Fields()
+	_ = lotoplayerFields
+	// lotoplayerDescName is the schema descriptor for name field.
+	lotoplayerDescName := lotoplayerFields[2].Descriptor()
+	// lotoplayer.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	lotoplayer.NameValidator = lotoplayerDescName.Validators[0].(func(string) error)
+	// lotoplayerDescLastPlay is the schema descriptor for last_play field.
+	lotoplayerDescLastPlay := lotoplayerFields[3].Descriptor()
+	// lotoplayer.DefaultLastPlay holds the default value on creation for the last_play field.
+	lotoplayer.DefaultLastPlay = lotoplayerDescLastPlay.Default.(func() time.Time)
+	// lotoplayerDescCreatedAt is the schema descriptor for created_at field.
+	lotoplayerDescCreatedAt := lotoplayerFields[4].Descriptor()
+	// lotoplayer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lotoplayer.DefaultCreatedAt = lotoplayerDescCreatedAt.Default.(func() time.Time)
+	// lotoplayerDescUpdatedAt is the schema descriptor for updated_at field.
+	lotoplayerDescUpdatedAt := lotoplayerFields[5].Descriptor()
+	// lotoplayer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lotoplayer.DefaultUpdatedAt = lotoplayerDescUpdatedAt.Default.(func() time.Time)
+	// lotoplayer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lotoplayer.UpdateDefaultUpdatedAt = lotoplayerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lotoprizeFields := tables.LotoPrize{}.Fields()
+	_ = lotoprizeFields
+	// lotoprizeDescLabel is the schema descriptor for label field.
+	lotoprizeDescLabel := lotoprizeFields[2].Descriptor()
+	// lotoprize.LabelValidator is a validator for the "label" field. It is called by the builders before save.
+	lotoprize.LabelValidator = lotoprizeDescLabel.Validators[0].(func(string) error)
+	// lotoprizeDescCreatedAt is the schema descriptor for created_at field.
+	lotoprizeDescCreatedAt := lotoprizeFields[7].Descriptor()
+	// lotoprize.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lotoprize.DefaultCreatedAt = lotoprizeDescCreatedAt.Default.(func() time.Time)
+	// lotoprizeDescUpdatedAt is the schema descriptor for updated_at field.
+	lotoprizeDescUpdatedAt := lotoprizeFields[8].Descriptor()
+	// lotoprize.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lotoprize.DefaultUpdatedAt = lotoprizeDescUpdatedAt.Default.(func() time.Time)
+	// lotoprize.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lotoprize.UpdateDefaultUpdatedAt = lotoprizeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lototicketFields := tables.LotoTicket{}.Fields()
+	_ = lototicketFields
+	// lototicketDescCreatedAt is the schema descriptor for created_at field.
+	lototicketDescCreatedAt := lototicketFields[5].Descriptor()
+	// lototicket.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lototicket.DefaultCreatedAt = lototicketDescCreatedAt.Default.(func() time.Time)
+	mpthreadFields := tables.MPThread{}.Fields()
+	_ = mpthreadFields
+	// mpthreadDescCreatedAt is the schema descriptor for created_at field.
+	mpthreadDescCreatedAt := mpthreadFields[2].Descriptor()
+	// mpthread.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mpthread.DefaultCreatedAt = mpthreadDescCreatedAt.Default.(func() time.Time)
 	quizquestionFields := tables.QuizQuestion{}.Fields()
 	_ = quizquestionFields
+	// quizquestionDescQuestion is the schema descriptor for question field.
+	quizquestionDescQuestion := quizquestionFields[1].Descriptor()
+	// quizquestion.QuestionValidator is a validator for the "question" field. It is called by the builders before save.
+	quizquestion.QuestionValidator = quizquestionDescQuestion.Validators[0].(func(string) error)
+	// quizquestionDescGoodAnswer is the schema descriptor for good_answer field.
+	quizquestionDescGoodAnswer := quizquestionFields[2].Descriptor()
+	// quizquestion.GoodAnswerValidator is a validator for the "good_answer" field. It is called by the builders before save.
+	quizquestion.GoodAnswerValidator = quizquestionDescGoodAnswer.Validators[0].(func(string) error)
+	// quizquestionDescBadAnswer1 is the schema descriptor for bad_answer_1 field.
+	quizquestionDescBadAnswer1 := quizquestionFields[3].Descriptor()
+	// quizquestion.BadAnswer1Validator is a validator for the "bad_answer_1" field. It is called by the builders before save.
+	quizquestion.BadAnswer1Validator = quizquestionDescBadAnswer1.Validators[0].(func(string) error)
+	// quizquestionDescBadAnswer2 is the schema descriptor for bad_answer_2 field.
+	quizquestionDescBadAnswer2 := quizquestionFields[4].Descriptor()
+	// quizquestion.BadAnswer2Validator is a validator for the "bad_answer_2" field. It is called by the builders before save.
+	quizquestion.BadAnswer2Validator = quizquestionDescBadAnswer2.Validators[0].(func(string) error)
+	// quizquestionDescBadAnswer3 is the schema descriptor for bad_answer_3 field.
+	quizquestionDescBadAnswer3 := quizquestionFields[5].Descriptor()
+	// quizquestion.BadAnswer3Validator is a validator for the "bad_answer_3" field. It is called by the builders before save.
+	quizquestion.BadAnswer3Validator = quizquestionDescBadAnswer3.Validators[0].(func(string) error)
+	// quizquestionDescCategory is the schema descriptor for category field.
+	quizquestionDescCategory := quizquestionFields[6].Descriptor()
+	// quizquestion.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	quizquestion.CategoryValidator = quizquestionDescCategory.Validators[0].(func(string) error)
+	// quizquestionDescDifficulty is the schema descriptor for difficulty field.
+	quizquestionDescDifficulty := quizquestionFields[7].Descriptor()
+	// quizquestion.DifficultyValidator is a validator for the "difficulty" field. It is called by the builders before save.
+	quizquestion.DifficultyValidator = quizquestionDescDifficulty.Validators[0].(func(string) error)
 	// quizquestionDescCreatedAt is the schema descriptor for created_at field.
-	quizquestionDescCreatedAt := quizquestionFields[2].Descriptor()
+	quizquestionDescCreatedAt := quizquestionFields[10].Descriptor()
 	// quizquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
 	quizquestion.DefaultCreatedAt = quizquestionDescCreatedAt.Default.(func() time.Time)
-	// quizquestionDescUpdatedAt is the schema descriptor for updated_at field.
-	quizquestionDescUpdatedAt := quizquestionFields[3].Descriptor()
-	// quizquestion.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	quizquestion.DefaultUpdatedAt = quizquestionDescUpdatedAt.Default.(func() time.Time)
-	// quizquestion.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	quizquestion.UpdateDefaultUpdatedAt = quizquestionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	quizstatFields := tables.QuizStat{}.Fields()
+	_ = quizstatFields
+	// quizstatDescGoodAnswers is the schema descriptor for good_answers field.
+	quizstatDescGoodAnswers := quizstatFields[2].Descriptor()
+	// quizstat.DefaultGoodAnswers holds the default value on creation for the good_answers field.
+	quizstat.DefaultGoodAnswers = quizstatDescGoodAnswers.Default.(int)
+	// quizstatDescBadAnswers is the schema descriptor for bad_answers field.
+	quizstatDescBadAnswers := quizstatFields[3].Descriptor()
+	// quizstat.DefaultBadAnswers holds the default value on creation for the bad_answers field.
+	quizstat.DefaultBadAnswers = quizstatDescBadAnswers.Default.(int)
+	// quizstatDescCreatedAt is the schema descriptor for created_at field.
+	quizstatDescCreatedAt := quizstatFields[4].Descriptor()
+	// quizstat.DefaultCreatedAt holds the default value on creation for the created_at field.
+	quizstat.DefaultCreatedAt = quizstatDescCreatedAt.Default.(func() time.Time)
+	// quizstatDescUpdatedAt is the schema descriptor for updated_at field.
+	quizstatDescUpdatedAt := quizstatFields[5].Descriptor()
+	// quizstat.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	quizstat.DefaultUpdatedAt = quizstatDescUpdatedAt.Default.(func() time.Time)
+	// quizstat.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	quizstat.UpdateDefaultUpdatedAt = quizstatDescUpdatedAt.UpdateDefault.(func() time.Time)
 	quizuseranswerFields := tables.QuizUserAnswer{}.Fields()
 	_ = quizuseranswerFields
+	// quizuseranswerDescCorrect is the schema descriptor for correct field.
+	quizuseranswerDescCorrect := quizuseranswerFields[3].Descriptor()
+	// quizuseranswer.DefaultCorrect holds the default value on creation for the correct field.
+	quizuseranswer.DefaultCorrect = quizuseranswerDescCorrect.Default.(bool)
 	// quizuseranswerDescAnsweredAt is the schema descriptor for answered_at field.
-	quizuseranswerDescAnsweredAt := quizuseranswerFields[2].Descriptor()
+	quizuseranswerDescAnsweredAt := quizuseranswerFields[4].Descriptor()
 	// quizuseranswer.DefaultAnsweredAt holds the default value on creation for the answered_at field.
 	quizuseranswer.DefaultAnsweredAt = quizuseranswerDescAnsweredAt.Default.(func() time.Time)
 	quoteFields := tables.Quote{}.Fields()
@@ -100,4 +231,16 @@ func init() {
 	quote.DefaultUpdatedAt = quoteDescUpdatedAt.Default.(func() time.Time)
 	// quote.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	quote.UpdateDefaultUpdatedAt = quoteDescUpdatedAt.UpdateDefault.(func() time.Time)
+	streamFields := tables.Stream{}.Fields()
+	_ = streamFields
+	// streamDescCreatedAt is the schema descriptor for created_at field.
+	streamDescCreatedAt := streamFields[6].Descriptor()
+	// stream.DefaultCreatedAt holds the default value on creation for the created_at field.
+	stream.DefaultCreatedAt = streamDescCreatedAt.Default.(func() time.Time)
+	// streamDescUpdatedAt is the schema descriptor for updated_at field.
+	streamDescUpdatedAt := streamFields[7].Descriptor()
+	// stream.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	stream.DefaultUpdatedAt = streamDescUpdatedAt.Default.(func() time.Time)
+	// stream.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	stream.UpdateDefaultUpdatedAt = streamDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

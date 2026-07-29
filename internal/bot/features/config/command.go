@@ -1,53 +1,136 @@
+// Package config exposes the /config command: one generated setter subcommand
+// per registry entry (see keys.go) plus the shared get/reset/list subcommands.
+//
+// Adding a configuration key is a single entry in Keys — the slash command
+// options, the get/reset choices and the list output all follow.
 package config
 
 import (
 	"context"
+	"fmt"
+	"sort"
+	"strings"
 
 	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
-	"Eve/internal/database"
-	"Eve/internal/database/ent/guildconfig"
-	"Eve/internal/database/tables"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 )
 
-var Commands = []discord.ApplicationCommandCreate{
-	discord.SlashCommandCreate{
+// Discord limits, applied when building the command from the registry.
+const (
+	maxDescriptionLength = 100
+	maxChoiceNameLength  = 100
+	maxStringValueLength = 500
+)
+
+// Option names shared by the generated subcommands.
+const (
+	optionValue = "valeur"
+	optionKey   = "cle"
+)
+
+// User-facing strings (French, per project conventions).
+const (
+	msgNoPermission = "Vous n'avez pas la permission d'utiliser cette commande."
+	msgGuildOnly    = "Cette commande doit être utilisée dans un serveur."
+	msgSaveError    = "Erreur lors de l'enregistrement."
+	msgReadError    = "Erreur lors de la récupération de la configuration."
+	msgDeleteError  = "Erreur lors de la réinitialisation."
+	msgUnknownKey   = "Clé de configuration inconnue."
+	msgMissingValue = "Valeur manquante ou invalide."
+	msgNotSet       = "Non défini"
+)
+
+var Commands = []discord.ApplicationCommandCreate{buildCommand()}
+
+func buildCommand() discord.SlashCommandCreate {
+	options := make([]discord.ApplicationCommandOption, 0, len(Keys)+3)
+
+	for _, k := range Keys {
+		options = append(options, discord.ApplicationCommandOptionSubCommand{
+			Name:        k.Command,
+			Description: truncate("[ADMIN] Définir : "+k.Description, maxDescriptionLength),
+			Options:     []discord.ApplicationCommandOption{valueOption(k)},
+		})
+	}
+
+	options = append(options,
+		discord.ApplicationCommandOptionSubCommand{
+			Name:        "get",
+			Description: "[ADMIN] Afficher la valeur d'un paramètre",
+			Options:     []discord.ApplicationCommandOption{keyOption("Paramètre à afficher")},
+		},
+		discord.ApplicationCommandOptionSubCommand{
+			Name:        "reset",
+			Description: "[ADMIN] Réinitialiser un paramètre",
+			Options:     []discord.ApplicationCommandOption{keyOption("Paramètre à réinitialiser")},
+		},
+		discord.ApplicationCommandOptionSubCommand{
+			Name:        "list",
+			Description: "[ADMIN] Lister la configuration du serveur",
+		},
+	)
+
+	return discord.SlashCommandCreate{
 		Name:        "config",
 		Description: "Configuration du serveur",
-		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionSubCommand{
-				Name:        "birthday-channel",
-				Description: "[ADMIN] Définir le salon des anniversaires",
-				Options: []discord.ApplicationCommandOption{
-					discord.ApplicationCommandOptionChannel{
-						Name:        "channel",
-						Description: "Salon cible",
-						Required:    true,
-						ChannelTypes: []discord.ChannelType{
-							discord.ChannelTypeGuildText,
-						},
-					},
-				},
+		Contexts:    []discord.InteractionContextType{discord.InteractionContextTypeGuild},
+		Options:     options,
+	}
+}
+
+func valueOption(k Key) discord.ApplicationCommandOption {
+	description := truncate(k.Description, maxDescriptionLength)
+	switch k.Kind {
+	case KindChannel:
+		return discord.ApplicationCommandOptionChannel{
+			Name:        optionValue,
+			Description: description,
+			Required:    true,
+			ChannelTypes: []discord.ChannelType{
+				discord.ChannelTypeGuildText,
 			},
-			discord.ApplicationCommandOptionSubCommand{
-				Name:        "quote-channel",
-				Description: "[ADMIN] Définir le salon des citations",
-				Options: []discord.ApplicationCommandOption{
-					discord.ApplicationCommandOptionChannel{
-						Name:        "channel",
-						Description: "Salon cible",
-						Required:    true,
-						ChannelTypes: []discord.ChannelType{
-							discord.ChannelTypeGuildText,
-						},
-					},
-				},
-			},
-		},
-	},
+		}
+	case KindRole:
+		return discord.ApplicationCommandOptionRole{
+			Name:        optionValue,
+			Description: description,
+			Required:    true,
+		}
+	case KindBool:
+		return discord.ApplicationCommandOptionBool{
+			Name:        optionValue,
+			Description: description,
+			Required:    true,
+		}
+	default:
+		maxLength := maxStringValueLength
+		return discord.ApplicationCommandOptionString{
+			Name:        optionValue,
+			Description: description,
+			Required:    true,
+			MaxLength:   &maxLength,
+		}
+	}
+}
+
+// keyOption builds the key choice option shared by get and reset.
+func keyOption(description string) discord.ApplicationCommandOption {
+	choices := make([]discord.ApplicationCommandOptionChoiceString, 0, len(Keys))
+	for _, k := range Keys {
+		choices = append(choices, discord.ApplicationCommandOptionChoiceString{
+			Name:  choiceLabel(k),
+			Value: k.Name,
+		})
+	}
+	return discord.ApplicationCommandOptionString{
+		Name:        optionKey,
+		Description: truncate(description, maxDescriptionLength),
+		Required:    true,
+		Choices:     choices,
+	}
 }
 
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
@@ -55,94 +138,174 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	if data.SubCommandName == nil {
 		return
 	}
-	switch *data.SubCommandName {
-	case "birthday-channel":
-		handleSetBirthdayChannel(e)
-	case "quote-channel":
-		handleSetQuoteChannel(e)
+	guildID, ok := requireGuild(e)
+	if !ok {
+		return
+	}
+	if !requireAdmin(e) {
+		return
+	}
+
+	switch name := *data.SubCommandName; name {
+	case "get":
+		handleGet(e, guildID)
+	case "reset":
+		handleReset(e, guildID)
+	case "list":
+		handleList(e, guildID)
+	default:
+		key, found := keyByCommand(name)
+		if !found {
+			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
+			return
+		}
+		handleSet(e, guildID, key)
 	}
 }
 
-func handleSetBirthdayChannel(e *events.ApplicationCommandInteractionCreate) {
-	if !helpers.RequirePermission(e, discord.PermissionAdministrator, "Vous n'avez pas la permission d'utiliser cette commande.") {
-		return
-	}
-	if e.GuildID() == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Cette commande doit être utilisée dans un serveur."))
+func handleSet(e *events.ApplicationCommandInteractionCreate, guildID string, key Key) {
+	raw, ok := readValue(e, key)
+	if !ok {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgMissingValue))
 		return
 	}
 
+	if err := setValue(context.Background(), guildID, key.Name, raw); err != nil {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgSaveError))
+		return
+	}
+
+	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+		fmt.Sprintf("%s : %s", key.Description, formatValue(key, raw)),
+	))
+}
+
+// readValue extracts the option value for a key and normalises it to the string
+// stored in guild_configs.
+func readValue(e *events.ApplicationCommandInteractionCreate, key Key) (string, bool) {
 	data := e.SlashCommandInteractionData()
-	channel := data.Channel("channel")
-	guildID := e.GuildID().String()
-	channelID := channel.ID.String()
-	key := tables.BirthdayChannel.String()
+	switch key.Kind {
+	case KindChannel:
+		channel, ok := data.OptChannel(optionValue)
+		if !ok {
+			return "", false
+		}
+		return channel.ID.String(), true
+	case KindRole:
+		role, ok := data.OptRole(optionValue)
+		if !ok {
+			return "", false
+		}
+		return role.ID.String(), true
+	case KindBool:
+		value, ok := data.OptBool(optionValue)
+		if !ok {
+			return "", false
+		}
+		return FormatBool(value), true
+	default:
+		value, ok := data.OptString(optionValue)
+		if !ok {
+			return "", false
+		}
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return "", false
+		}
+		return truncate(value, maxStringValueLength), true
+	}
+}
 
-	ctx := context.Background()
-
-	n, err := database.Default.Ent().GuildConfig.Update().
-		Where(guildconfig.GuildID(guildID), guildconfig.Key(key)).
-		SetValue(channelID).
-		Save(ctx)
-	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+func handleGet(e *events.ApplicationCommandInteractionCreate, guildID string) {
+	key, ok := keyByName(e.SlashCommandInteractionData().String(optionKey))
+	if !ok {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
 		return
 	}
 
-	if n == 0 {
-		err = database.Default.Ent().GuildConfig.Create().
-			SetGuildID(guildID).
-			SetKey(key).
-			SetValue(channelID).
-			Exec(ctx)
-		if err != nil {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
-			return
-		}
+	raw, found, err := Value(context.Background(), guildID, key.Name)
+	if err != nil {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgReadError))
+		return
 	}
 
-	embed := embeds.SuccessEmbed("Salon des anniversaires défini sur <#" + channelID + ">.")
+	embed := embeds.BaseEmbed()
+	embed.Title = "Configuration"
+	if !found {
+		embed.Description = fmt.Sprintf("%s : %s", key.Description, msgNotSet)
+	} else {
+		embed.Description = fmt.Sprintf("%s : %s", key.Description, formatValue(key, raw))
+	}
 	helpers.RespondEphemeralEmbed(e, embed)
 }
 
-func handleSetQuoteChannel(e *events.ApplicationCommandInteractionCreate) {
-	if !helpers.RequirePermission(e, discord.PermissionAdministrator, "Vous n'avez pas la permission d'utiliser cette commande.") {
+func handleReset(e *events.ApplicationCommandInteractionCreate, guildID string) {
+	key, ok := keyByName(e.SlashCommandInteractionData().String(optionKey))
+	if !ok {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgUnknownKey))
 		return
 	}
-	if e.GuildID() == nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Cette commande doit être utilisée dans un serveur."))
-		return
-	}
 
-	data := e.SlashCommandInteractionData()
-	channel := data.Channel("channel")
-	guildID := e.GuildID().String()
-	channelID := channel.ID.String()
-	key := tables.QuoteChannel.String()
-
-	ctx := context.Background()
-
-	n, err := database.Default.Ent().GuildConfig.Update().
-		Where(guildconfig.GuildID(guildID), guildconfig.Key(key)).
-		SetValue(channelID).
-		Save(ctx)
+	n, err := resetValue(context.Background(), guildID, key.Name)
 	if err != nil {
-		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDeleteError))
+		return
+	}
+	if n == 0 {
+		helpers.RespondEphemeral(e, fmt.Sprintf("Aucune valeur définie pour « %s ».", key.Description))
 		return
 	}
 
-	if n == 0 {
-		err = database.Default.Ent().GuildConfig.Create().
-			SetGuildID(guildID).
-			SetKey(key).
-			SetValue(channelID).
-			Exec(ctx)
-		if err != nil {
-			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de l'enregistrement."))
-			return
-		}
+	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(
+		fmt.Sprintf("%s : valeur réinitialisée.", key.Description),
+	))
+}
+
+func handleList(e *events.ApplicationCommandInteractionCreate, guildID string) {
+	values, err := visibleValues(context.Background(), guildID)
+	if err != nil {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgReadError))
+		return
 	}
 
-	embed := embeds.SuccessEmbed("Salon des anniversaires défini sur <#" + channelID + ">.")
+	sorted := make([]Key, len(Keys))
+	copy(sorted, Keys)
+	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Name < sorted[j].Name })
+
+	lines := make([]string, 0, len(sorted))
+	for _, k := range sorted {
+		display := msgNotSet
+		if raw, ok := values[k.Name]; ok {
+			display = formatValue(k, raw)
+		}
+		lines = append(lines, fmt.Sprintf("**%s** (`%s`) — %s", k.Description, k.Name, display))
+	}
+
+	embed := embeds.BaseEmbed()
+	embed.Title = "Configuration du serveur"
+	if len(lines) == 0 {
+		embed.Description = "Aucun paramètre configurable."
+	} else {
+		embed.Description = strings.Join(lines, "\n")
+	}
 	helpers.RespondEphemeralEmbed(e, embed)
+}
+
+// requireAdmin allows administrators, and otherwise requires Manage Guild.
+// Discord grants every permission bit to administrators, so the second check
+// alone would suffice — it is kept explicit so the intent stays readable.
+func requireAdmin(e *events.ApplicationCommandInteractionCreate) bool {
+	if member := e.Member(); member != nil && member.Permissions.Has(discord.PermissionAdministrator) {
+		return true
+	}
+	return helpers.RequirePermission(e, discord.PermissionManageGuild, msgNoPermission)
+}
+
+func requireGuild(e *events.ApplicationCommandInteractionCreate) (string, bool) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
+		return "", false
+	}
+	return guildID.String(), true
 }

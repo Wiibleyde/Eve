@@ -3,11 +3,57 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
 
 var (
+	// ActiveMotusColumns holds the columns for the "active_motus" table.
+	ActiveMotusColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "message_id", Type: field.TypeString, Unique: true},
+		{Name: "channel_id", Type: field.TypeString},
+		{Name: "guild_id", Type: field.TypeString},
+		{Name: "word", Type: field.TypeString},
+		{Name: "attempts", Type: field.TypeJSON},
+		{Name: "state", Type: field.TypeString, Default: "playing"},
+		{Name: "started_by", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime},
+	}
+	// ActiveMotusTable holds the schema information for the "active_motus" table.
+	ActiveMotusTable = &schema.Table{
+		Name:       "active_motus",
+		Columns:    ActiveMotusColumns,
+		PrimaryKey: []*schema.Column{ActiveMotusColumns[0]},
+	}
+	// ActiveQuizsColumns holds the columns for the "active_quizs" table.
+	ActiveQuizsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "message_id", Type: field.TypeString, Unique: true},
+		{Name: "channel_id", Type: field.TypeString},
+		{Name: "guild_id", Type: field.TypeString},
+		{Name: "shuffle", Type: field.TypeString, Size: 16},
+		{Name: "launched_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "question_id", Type: field.TypeString},
+	}
+	// ActiveQuizsTable holds the schema information for the "active_quizs" table.
+	ActiveQuizsTable = &schema.Table{
+		Name:       "active_quizs",
+		Columns:    ActiveQuizsColumns,
+		PrimaryKey: []*schema.Column{ActiveQuizsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "active_quizs_quiz_questions_active_quizzes",
+				Columns:    []*schema.Column{ActiveQuizsColumns[7]},
+				RefColumns: []*schema.Column{QuizQuestionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// BirthdaysColumns holds the columns for the "birthdays" table.
 	BirthdaysColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -44,72 +90,207 @@ var (
 			},
 		},
 	}
-	// QuizsColumns holds the columns for the "quizs" table.
-	QuizsColumns = []*schema.Column{
+	// LotoGamesColumns holds the columns for the "loto_games" table.
+	LotoGamesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "author_id", Type: field.TypeString},
-		{Name: "title", Type: field.TypeString},
+		{Name: "guild_id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "ticket_price", Type: field.TypeInt, Default: 500},
+		{Name: "cooldown_minutes", Type: field.TypeInt, Default: 0},
+		{Name: "max_tickets_per_purchase", Type: field.TypeInt, Nullable: true},
+		{Name: "message_id", Type: field.TypeString, Nullable: true},
+		{Name: "channel_id", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
-	// QuizsTable holds the schema information for the "quizs" table.
-	QuizsTable = &schema.Table{
-		Name:       "quizs",
-		Columns:    QuizsColumns,
-		PrimaryKey: []*schema.Column{QuizsColumns[0]},
-	}
-	// QuizAnswersColumns holds the columns for the "quiz_answers" table.
-	QuizAnswersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "answer_text", Type: field.TypeString},
-		{Name: "is_valid", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "quiz_question_answers", Type: field.TypeString},
-	}
-	// QuizAnswersTable holds the schema information for the "quiz_answers" table.
-	QuizAnswersTable = &schema.Table{
-		Name:       "quiz_answers",
-		Columns:    QuizAnswersColumns,
-		PrimaryKey: []*schema.Column{QuizAnswersColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
+	// LotoGamesTable holds the schema information for the "loto_games" table.
+	LotoGamesTable = &schema.Table{
+		Name:       "loto_games",
+		Columns:    LotoGamesColumns,
+		PrimaryKey: []*schema.Column{LotoGamesColumns[0]},
+		Indexes: []*schema.Index{
 			{
-				Symbol:     "quiz_answers_quiz_questions_answers",
-				Columns:    []*schema.Column{QuizAnswersColumns[5]},
-				RefColumns: []*schema.Column{QuizQuestionsColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "lotogame_guild_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{LotoGamesColumns[1], LotoGamesColumns[3]},
+			},
+			{
+				Name:    "lotogame_one_active_per_guild",
+				Unique:  true,
+				Columns: []*schema.Column{LotoGamesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "active",
+				},
 			},
 		},
+	}
+	// LotoPlayersColumns holds the columns for the "loto_players" table.
+	LotoPlayersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "last_play", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "game_id", Type: field.TypeString},
+	}
+	// LotoPlayersTable holds the schema information for the "loto_players" table.
+	LotoPlayersTable = &schema.Table{
+		Name:       "loto_players",
+		Columns:    LotoPlayersColumns,
+		PrimaryKey: []*schema.Column{LotoPlayersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "loto_players_loto_games_players",
+				Columns:    []*schema.Column{LotoPlayersColumns[5]},
+				RefColumns: []*schema.Column{LotoGamesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lotoplayer_game_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{LotoPlayersColumns[5], LotoPlayersColumns[1]},
+			},
+		},
+	}
+	// LotoPrizesColumns holds the columns for the "loto_prizes" table.
+	LotoPrizesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "label", Type: field.TypeString, Size: 255},
+		{Name: "position", Type: field.TypeInt},
+		{Name: "winning_ticket_number", Type: field.TypeInt, Nullable: true},
+		{Name: "drawn_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "game_id", Type: field.TypeString},
+		{Name: "winner_player_id", Type: field.TypeString, Nullable: true},
+	}
+	// LotoPrizesTable holds the schema information for the "loto_prizes" table.
+	LotoPrizesTable = &schema.Table{
+		Name:       "loto_prizes",
+		Columns:    LotoPrizesColumns,
+		PrimaryKey: []*schema.Column{LotoPrizesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "loto_prizes_loto_games_prizes",
+				Columns:    []*schema.Column{LotoPrizesColumns[7]},
+				RefColumns: []*schema.Column{LotoGamesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "loto_prizes_loto_players_won_prizes",
+				Columns:    []*schema.Column{LotoPrizesColumns[8]},
+				RefColumns: []*schema.Column{LotoPlayersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lotoprize_game_id_position",
+				Unique:  true,
+				Columns: []*schema.Column{LotoPrizesColumns[7], LotoPrizesColumns[2]},
+			},
+		},
+	}
+	// LotoTicketsColumns holds the columns for the "loto_tickets" table.
+	LotoTicketsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "seller_id", Type: field.TypeString},
+		{Name: "number", Type: field.TypeInt},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "game_id", Type: field.TypeString},
+		{Name: "player_id", Type: field.TypeString},
+	}
+	// LotoTicketsTable holds the schema information for the "loto_tickets" table.
+	LotoTicketsTable = &schema.Table{
+		Name:       "loto_tickets",
+		Columns:    LotoTicketsColumns,
+		PrimaryKey: []*schema.Column{LotoTicketsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "loto_tickets_loto_games_tickets",
+				Columns:    []*schema.Column{LotoTicketsColumns[4]},
+				RefColumns: []*schema.Column{LotoGamesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "loto_tickets_loto_players_tickets",
+				Columns:    []*schema.Column{LotoTicketsColumns[5]},
+				RefColumns: []*schema.Column{LotoPlayersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lototicket_game_id_number",
+				Unique:  true,
+				Columns: []*schema.Column{LotoTicketsColumns[4], LotoTicketsColumns[2]},
+			},
+			{
+				Name:    "lototicket_player_id",
+				Unique:  false,
+				Columns: []*schema.Column{LotoTicketsColumns[5]},
+			},
+		},
+	}
+	// MpThreadsColumns holds the columns for the "mp_threads" table.
+	MpThreadsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeString, Unique: true},
+		{Name: "thread_id", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// MpThreadsTable holds the schema information for the "mp_threads" table.
+	MpThreadsTable = &schema.Table{
+		Name:       "mp_threads",
+		Columns:    MpThreadsColumns,
+		PrimaryKey: []*schema.Column{MpThreadsColumns[0]},
 	}
 	// QuizQuestionsColumns holds the columns for the "quiz_questions" table.
 	QuizQuestionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "question_text", Type: field.TypeString},
+		{Name: "question", Type: field.TypeString, Unique: true, Size: 2048},
+		{Name: "good_answer", Type: field.TypeString, Size: 256},
+		{Name: "bad_answer_1", Type: field.TypeString, Size: 256},
+		{Name: "bad_answer_2", Type: field.TypeString, Size: 256},
+		{Name: "bad_answer_3", Type: field.TypeString, Size: 256},
+		{Name: "category", Type: field.TypeString, Size: 128},
+		{Name: "difficulty", Type: field.TypeString, Size: 32},
+		{Name: "author_id", Type: field.TypeString, Nullable: true},
+		{Name: "guild_id", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "quiz_questions", Type: field.TypeString},
+		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
 	}
 	// QuizQuestionsTable holds the schema information for the "quiz_questions" table.
 	QuizQuestionsTable = &schema.Table{
 		Name:       "quiz_questions",
 		Columns:    QuizQuestionsColumns,
 		PrimaryKey: []*schema.Column{QuizQuestionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "quiz_questions_quizs_questions",
-				Columns:    []*schema.Column{QuizQuestionsColumns[4]},
-				RefColumns: []*schema.Column{QuizsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
+	}
+	// QuizStatsColumns holds the columns for the "quiz_stats" table.
+	QuizStatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "user_id", Type: field.TypeString, Unique: true},
+		{Name: "good_answers", Type: field.TypeInt, Default: 0},
+		{Name: "bad_answers", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// QuizStatsTable holds the schema information for the "quiz_stats" table.
+	QuizStatsTable = &schema.Table{
+		Name:       "quiz_stats",
+		Columns:    QuizStatsColumns,
+		PrimaryKey: []*schema.Column{QuizStatsColumns[0]},
 	}
 	// QuizUserAnswersColumns holds the columns for the "quiz_user_answers" table.
 	QuizUserAnswersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "user_id", Type: field.TypeString},
+		{Name: "correct", Type: field.TypeBool, Default: false},
 		{Name: "answered_at", Type: field.TypeTime},
-		{Name: "quiz_answer_user_answers", Type: field.TypeString},
-		{Name: "quiz_question_user_answers", Type: field.TypeString},
+		{Name: "active_quiz_id", Type: field.TypeString},
 	}
 	// QuizUserAnswersTable holds the schema information for the "quiz_user_answers" table.
 	QuizUserAnswersTable = &schema.Table{
@@ -118,16 +299,17 @@ var (
 		PrimaryKey: []*schema.Column{QuizUserAnswersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "quiz_user_answers_quiz_answers_user_answers",
-				Columns:    []*schema.Column{QuizUserAnswersColumns[3]},
-				RefColumns: []*schema.Column{QuizAnswersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "quiz_user_answers_quiz_questions_user_answers",
+				Symbol:     "quiz_user_answers_active_quizs_user_answers",
 				Columns:    []*schema.Column{QuizUserAnswersColumns[4]},
-				RefColumns: []*schema.Column{QuizQuestionsColumns[0]},
-				OnDelete:   schema.NoAction,
+				RefColumns: []*schema.Column{ActiveQuizsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "quizuseranswer_active_quiz_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{QuizUserAnswersColumns[4], QuizUserAnswersColumns[1]},
 			},
 		},
 	}
@@ -147,21 +329,56 @@ var (
 		Columns:    QuotesColumns,
 		PrimaryKey: []*schema.Column{QuotesColumns[0]},
 	}
+	// StreamsColumns holds the columns for the "streams" table.
+	StreamsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "guild_id", Type: field.TypeString},
+		{Name: "channel_id", Type: field.TypeString},
+		{Name: "role_id", Type: field.TypeString, Nullable: true},
+		{Name: "twitch_user_id", Type: field.TypeString},
+		{Name: "twitch_login", Type: field.TypeString},
+		{Name: "message_id", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// StreamsTable holds the schema information for the "streams" table.
+	StreamsTable = &schema.Table{
+		Name:       "streams",
+		Columns:    StreamsColumns,
+		PrimaryKey: []*schema.Column{StreamsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "stream_guild_id_twitch_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{StreamsColumns[1], StreamsColumns[4]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ActiveMotusTable,
+		ActiveQuizsTable,
 		BirthdaysTable,
 		GuildConfigsTable,
-		QuizsTable,
-		QuizAnswersTable,
+		LotoGamesTable,
+		LotoPlayersTable,
+		LotoPrizesTable,
+		LotoTicketsTable,
+		MpThreadsTable,
 		QuizQuestionsTable,
+		QuizStatsTable,
 		QuizUserAnswersTable,
 		QuotesTable,
+		StreamsTable,
 	}
 )
 
 func init() {
-	QuizAnswersTable.ForeignKeys[0].RefTable = QuizQuestionsTable
-	QuizQuestionsTable.ForeignKeys[0].RefTable = QuizsTable
-	QuizUserAnswersTable.ForeignKeys[0].RefTable = QuizAnswersTable
-	QuizUserAnswersTable.ForeignKeys[1].RefTable = QuizQuestionsTable
+	ActiveQuizsTable.ForeignKeys[0].RefTable = QuizQuestionsTable
+	LotoPlayersTable.ForeignKeys[0].RefTable = LotoGamesTable
+	LotoPrizesTable.ForeignKeys[0].RefTable = LotoGamesTable
+	LotoPrizesTable.ForeignKeys[1].RefTable = LotoPlayersTable
+	LotoTicketsTable.ForeignKeys[0].RefTable = LotoGamesTable
+	LotoTicketsTable.ForeignKeys[1].RefTable = LotoPlayersTable
+	QuizUserAnswersTable.ForeignKeys[0].RefTable = ActiveQuizsTable
 }

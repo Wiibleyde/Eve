@@ -65,9 +65,49 @@ func IDContainsFold(id string) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldContainsFold(FieldID, id))
 }
 
-// QuestionText applies equality check predicate on the "question_text" field. It's identical to QuestionTextEQ.
-func QuestionText(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldEQ(FieldQuestionText, v))
+// Question applies equality check predicate on the "question" field. It's identical to QuestionEQ.
+func Question(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldQuestion, v))
+}
+
+// GoodAnswer applies equality check predicate on the "good_answer" field. It's identical to GoodAnswerEQ.
+func GoodAnswer(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldGoodAnswer, v))
+}
+
+// BadAnswer1 applies equality check predicate on the "bad_answer_1" field. It's identical to BadAnswer1EQ.
+func BadAnswer1(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer1, v))
+}
+
+// BadAnswer2 applies equality check predicate on the "bad_answer_2" field. It's identical to BadAnswer2EQ.
+func BadAnswer2(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer2, v))
+}
+
+// BadAnswer3 applies equality check predicate on the "bad_answer_3" field. It's identical to BadAnswer3EQ.
+func BadAnswer3(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer3, v))
+}
+
+// Category applies equality check predicate on the "category" field. It's identical to CategoryEQ.
+func Category(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldCategory, v))
+}
+
+// Difficulty applies equality check predicate on the "difficulty" field. It's identical to DifficultyEQ.
+func Difficulty(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldDifficulty, v))
+}
+
+// AuthorID applies equality check predicate on the "author_id" field. It's identical to AuthorIDEQ.
+func AuthorID(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldAuthorID, v))
+}
+
+// GuildID applies equality check predicate on the "guild_id" field. It's identical to GuildIDEQ.
+func GuildID(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldGuildID, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -75,74 +115,604 @@ func CreatedAt(v time.Time) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
-func UpdatedAt(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldEQ(FieldUpdatedAt, v))
+// LastUsedAt applies equality check predicate on the "last_used_at" field. It's identical to LastUsedAtEQ.
+func LastUsedAt(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldLastUsedAt, v))
 }
 
-// QuestionTextEQ applies the EQ predicate on the "question_text" field.
-func QuestionTextEQ(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldEQ(FieldQuestionText, v))
+// QuestionEQ applies the EQ predicate on the "question" field.
+func QuestionEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldQuestion, v))
 }
 
-// QuestionTextNEQ applies the NEQ predicate on the "question_text" field.
-func QuestionTextNEQ(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldNEQ(FieldQuestionText, v))
+// QuestionNEQ applies the NEQ predicate on the "question" field.
+func QuestionNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldQuestion, v))
 }
 
-// QuestionTextIn applies the In predicate on the "question_text" field.
-func QuestionTextIn(vs ...string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldIn(FieldQuestionText, vs...))
+// QuestionIn applies the In predicate on the "question" field.
+func QuestionIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldQuestion, vs...))
 }
 
-// QuestionTextNotIn applies the NotIn predicate on the "question_text" field.
-func QuestionTextNotIn(vs ...string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldNotIn(FieldQuestionText, vs...))
+// QuestionNotIn applies the NotIn predicate on the "question" field.
+func QuestionNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldQuestion, vs...))
 }
 
-// QuestionTextGT applies the GT predicate on the "question_text" field.
-func QuestionTextGT(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldGT(FieldQuestionText, v))
+// QuestionGT applies the GT predicate on the "question" field.
+func QuestionGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldQuestion, v))
 }
 
-// QuestionTextGTE applies the GTE predicate on the "question_text" field.
-func QuestionTextGTE(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldGTE(FieldQuestionText, v))
+// QuestionGTE applies the GTE predicate on the "question" field.
+func QuestionGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldQuestion, v))
 }
 
-// QuestionTextLT applies the LT predicate on the "question_text" field.
-func QuestionTextLT(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldLT(FieldQuestionText, v))
+// QuestionLT applies the LT predicate on the "question" field.
+func QuestionLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldQuestion, v))
 }
 
-// QuestionTextLTE applies the LTE predicate on the "question_text" field.
-func QuestionTextLTE(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldLTE(FieldQuestionText, v))
+// QuestionLTE applies the LTE predicate on the "question" field.
+func QuestionLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldQuestion, v))
 }
 
-// QuestionTextContains applies the Contains predicate on the "question_text" field.
-func QuestionTextContains(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldContains(FieldQuestionText, v))
+// QuestionContains applies the Contains predicate on the "question" field.
+func QuestionContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldQuestion, v))
 }
 
-// QuestionTextHasPrefix applies the HasPrefix predicate on the "question_text" field.
-func QuestionTextHasPrefix(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldQuestionText, v))
+// QuestionHasPrefix applies the HasPrefix predicate on the "question" field.
+func QuestionHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldQuestion, v))
 }
 
-// QuestionTextHasSuffix applies the HasSuffix predicate on the "question_text" field.
-func QuestionTextHasSuffix(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldQuestionText, v))
+// QuestionHasSuffix applies the HasSuffix predicate on the "question" field.
+func QuestionHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldQuestion, v))
 }
 
-// QuestionTextEqualFold applies the EqualFold predicate on the "question_text" field.
-func QuestionTextEqualFold(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldEqualFold(FieldQuestionText, v))
+// QuestionEqualFold applies the EqualFold predicate on the "question" field.
+func QuestionEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldQuestion, v))
 }
 
-// QuestionTextContainsFold applies the ContainsFold predicate on the "question_text" field.
-func QuestionTextContainsFold(v string) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldContainsFold(FieldQuestionText, v))
+// QuestionContainsFold applies the ContainsFold predicate on the "question" field.
+func QuestionContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldQuestion, v))
+}
+
+// GoodAnswerEQ applies the EQ predicate on the "good_answer" field.
+func GoodAnswerEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldGoodAnswer, v))
+}
+
+// GoodAnswerNEQ applies the NEQ predicate on the "good_answer" field.
+func GoodAnswerNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldGoodAnswer, v))
+}
+
+// GoodAnswerIn applies the In predicate on the "good_answer" field.
+func GoodAnswerIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldGoodAnswer, vs...))
+}
+
+// GoodAnswerNotIn applies the NotIn predicate on the "good_answer" field.
+func GoodAnswerNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldGoodAnswer, vs...))
+}
+
+// GoodAnswerGT applies the GT predicate on the "good_answer" field.
+func GoodAnswerGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldGoodAnswer, v))
+}
+
+// GoodAnswerGTE applies the GTE predicate on the "good_answer" field.
+func GoodAnswerGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldGoodAnswer, v))
+}
+
+// GoodAnswerLT applies the LT predicate on the "good_answer" field.
+func GoodAnswerLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldGoodAnswer, v))
+}
+
+// GoodAnswerLTE applies the LTE predicate on the "good_answer" field.
+func GoodAnswerLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldGoodAnswer, v))
+}
+
+// GoodAnswerContains applies the Contains predicate on the "good_answer" field.
+func GoodAnswerContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldGoodAnswer, v))
+}
+
+// GoodAnswerHasPrefix applies the HasPrefix predicate on the "good_answer" field.
+func GoodAnswerHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldGoodAnswer, v))
+}
+
+// GoodAnswerHasSuffix applies the HasSuffix predicate on the "good_answer" field.
+func GoodAnswerHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldGoodAnswer, v))
+}
+
+// GoodAnswerEqualFold applies the EqualFold predicate on the "good_answer" field.
+func GoodAnswerEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldGoodAnswer, v))
+}
+
+// GoodAnswerContainsFold applies the ContainsFold predicate on the "good_answer" field.
+func GoodAnswerContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldGoodAnswer, v))
+}
+
+// BadAnswer1EQ applies the EQ predicate on the "bad_answer_1" field.
+func BadAnswer1EQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer1, v))
+}
+
+// BadAnswer1NEQ applies the NEQ predicate on the "bad_answer_1" field.
+func BadAnswer1NEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldBadAnswer1, v))
+}
+
+// BadAnswer1In applies the In predicate on the "bad_answer_1" field.
+func BadAnswer1In(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldBadAnswer1, vs...))
+}
+
+// BadAnswer1NotIn applies the NotIn predicate on the "bad_answer_1" field.
+func BadAnswer1NotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldBadAnswer1, vs...))
+}
+
+// BadAnswer1GT applies the GT predicate on the "bad_answer_1" field.
+func BadAnswer1GT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldBadAnswer1, v))
+}
+
+// BadAnswer1GTE applies the GTE predicate on the "bad_answer_1" field.
+func BadAnswer1GTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldBadAnswer1, v))
+}
+
+// BadAnswer1LT applies the LT predicate on the "bad_answer_1" field.
+func BadAnswer1LT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldBadAnswer1, v))
+}
+
+// BadAnswer1LTE applies the LTE predicate on the "bad_answer_1" field.
+func BadAnswer1LTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldBadAnswer1, v))
+}
+
+// BadAnswer1Contains applies the Contains predicate on the "bad_answer_1" field.
+func BadAnswer1Contains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldBadAnswer1, v))
+}
+
+// BadAnswer1HasPrefix applies the HasPrefix predicate on the "bad_answer_1" field.
+func BadAnswer1HasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldBadAnswer1, v))
+}
+
+// BadAnswer1HasSuffix applies the HasSuffix predicate on the "bad_answer_1" field.
+func BadAnswer1HasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldBadAnswer1, v))
+}
+
+// BadAnswer1EqualFold applies the EqualFold predicate on the "bad_answer_1" field.
+func BadAnswer1EqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldBadAnswer1, v))
+}
+
+// BadAnswer1ContainsFold applies the ContainsFold predicate on the "bad_answer_1" field.
+func BadAnswer1ContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldBadAnswer1, v))
+}
+
+// BadAnswer2EQ applies the EQ predicate on the "bad_answer_2" field.
+func BadAnswer2EQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer2, v))
+}
+
+// BadAnswer2NEQ applies the NEQ predicate on the "bad_answer_2" field.
+func BadAnswer2NEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldBadAnswer2, v))
+}
+
+// BadAnswer2In applies the In predicate on the "bad_answer_2" field.
+func BadAnswer2In(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldBadAnswer2, vs...))
+}
+
+// BadAnswer2NotIn applies the NotIn predicate on the "bad_answer_2" field.
+func BadAnswer2NotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldBadAnswer2, vs...))
+}
+
+// BadAnswer2GT applies the GT predicate on the "bad_answer_2" field.
+func BadAnswer2GT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldBadAnswer2, v))
+}
+
+// BadAnswer2GTE applies the GTE predicate on the "bad_answer_2" field.
+func BadAnswer2GTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldBadAnswer2, v))
+}
+
+// BadAnswer2LT applies the LT predicate on the "bad_answer_2" field.
+func BadAnswer2LT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldBadAnswer2, v))
+}
+
+// BadAnswer2LTE applies the LTE predicate on the "bad_answer_2" field.
+func BadAnswer2LTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldBadAnswer2, v))
+}
+
+// BadAnswer2Contains applies the Contains predicate on the "bad_answer_2" field.
+func BadAnswer2Contains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldBadAnswer2, v))
+}
+
+// BadAnswer2HasPrefix applies the HasPrefix predicate on the "bad_answer_2" field.
+func BadAnswer2HasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldBadAnswer2, v))
+}
+
+// BadAnswer2HasSuffix applies the HasSuffix predicate on the "bad_answer_2" field.
+func BadAnswer2HasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldBadAnswer2, v))
+}
+
+// BadAnswer2EqualFold applies the EqualFold predicate on the "bad_answer_2" field.
+func BadAnswer2EqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldBadAnswer2, v))
+}
+
+// BadAnswer2ContainsFold applies the ContainsFold predicate on the "bad_answer_2" field.
+func BadAnswer2ContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldBadAnswer2, v))
+}
+
+// BadAnswer3EQ applies the EQ predicate on the "bad_answer_3" field.
+func BadAnswer3EQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldBadAnswer3, v))
+}
+
+// BadAnswer3NEQ applies the NEQ predicate on the "bad_answer_3" field.
+func BadAnswer3NEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldBadAnswer3, v))
+}
+
+// BadAnswer3In applies the In predicate on the "bad_answer_3" field.
+func BadAnswer3In(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldBadAnswer3, vs...))
+}
+
+// BadAnswer3NotIn applies the NotIn predicate on the "bad_answer_3" field.
+func BadAnswer3NotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldBadAnswer3, vs...))
+}
+
+// BadAnswer3GT applies the GT predicate on the "bad_answer_3" field.
+func BadAnswer3GT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldBadAnswer3, v))
+}
+
+// BadAnswer3GTE applies the GTE predicate on the "bad_answer_3" field.
+func BadAnswer3GTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldBadAnswer3, v))
+}
+
+// BadAnswer3LT applies the LT predicate on the "bad_answer_3" field.
+func BadAnswer3LT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldBadAnswer3, v))
+}
+
+// BadAnswer3LTE applies the LTE predicate on the "bad_answer_3" field.
+func BadAnswer3LTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldBadAnswer3, v))
+}
+
+// BadAnswer3Contains applies the Contains predicate on the "bad_answer_3" field.
+func BadAnswer3Contains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldBadAnswer3, v))
+}
+
+// BadAnswer3HasPrefix applies the HasPrefix predicate on the "bad_answer_3" field.
+func BadAnswer3HasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldBadAnswer3, v))
+}
+
+// BadAnswer3HasSuffix applies the HasSuffix predicate on the "bad_answer_3" field.
+func BadAnswer3HasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldBadAnswer3, v))
+}
+
+// BadAnswer3EqualFold applies the EqualFold predicate on the "bad_answer_3" field.
+func BadAnswer3EqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldBadAnswer3, v))
+}
+
+// BadAnswer3ContainsFold applies the ContainsFold predicate on the "bad_answer_3" field.
+func BadAnswer3ContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldBadAnswer3, v))
+}
+
+// CategoryEQ applies the EQ predicate on the "category" field.
+func CategoryEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldCategory, v))
+}
+
+// CategoryNEQ applies the NEQ predicate on the "category" field.
+func CategoryNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldCategory, v))
+}
+
+// CategoryIn applies the In predicate on the "category" field.
+func CategoryIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldCategory, vs...))
+}
+
+// CategoryNotIn applies the NotIn predicate on the "category" field.
+func CategoryNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldCategory, vs...))
+}
+
+// CategoryGT applies the GT predicate on the "category" field.
+func CategoryGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldCategory, v))
+}
+
+// CategoryGTE applies the GTE predicate on the "category" field.
+func CategoryGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldCategory, v))
+}
+
+// CategoryLT applies the LT predicate on the "category" field.
+func CategoryLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldCategory, v))
+}
+
+// CategoryLTE applies the LTE predicate on the "category" field.
+func CategoryLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldCategory, v))
+}
+
+// CategoryContains applies the Contains predicate on the "category" field.
+func CategoryContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldCategory, v))
+}
+
+// CategoryHasPrefix applies the HasPrefix predicate on the "category" field.
+func CategoryHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldCategory, v))
+}
+
+// CategoryHasSuffix applies the HasSuffix predicate on the "category" field.
+func CategoryHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldCategory, v))
+}
+
+// CategoryEqualFold applies the EqualFold predicate on the "category" field.
+func CategoryEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldCategory, v))
+}
+
+// CategoryContainsFold applies the ContainsFold predicate on the "category" field.
+func CategoryContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldCategory, v))
+}
+
+// DifficultyEQ applies the EQ predicate on the "difficulty" field.
+func DifficultyEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldDifficulty, v))
+}
+
+// DifficultyNEQ applies the NEQ predicate on the "difficulty" field.
+func DifficultyNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldDifficulty, v))
+}
+
+// DifficultyIn applies the In predicate on the "difficulty" field.
+func DifficultyIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldDifficulty, vs...))
+}
+
+// DifficultyNotIn applies the NotIn predicate on the "difficulty" field.
+func DifficultyNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldDifficulty, vs...))
+}
+
+// DifficultyGT applies the GT predicate on the "difficulty" field.
+func DifficultyGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldDifficulty, v))
+}
+
+// DifficultyGTE applies the GTE predicate on the "difficulty" field.
+func DifficultyGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldDifficulty, v))
+}
+
+// DifficultyLT applies the LT predicate on the "difficulty" field.
+func DifficultyLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldDifficulty, v))
+}
+
+// DifficultyLTE applies the LTE predicate on the "difficulty" field.
+func DifficultyLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldDifficulty, v))
+}
+
+// DifficultyContains applies the Contains predicate on the "difficulty" field.
+func DifficultyContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldDifficulty, v))
+}
+
+// DifficultyHasPrefix applies the HasPrefix predicate on the "difficulty" field.
+func DifficultyHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldDifficulty, v))
+}
+
+// DifficultyHasSuffix applies the HasSuffix predicate on the "difficulty" field.
+func DifficultyHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldDifficulty, v))
+}
+
+// DifficultyEqualFold applies the EqualFold predicate on the "difficulty" field.
+func DifficultyEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldDifficulty, v))
+}
+
+// DifficultyContainsFold applies the ContainsFold predicate on the "difficulty" field.
+func DifficultyContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldDifficulty, v))
+}
+
+// AuthorIDEQ applies the EQ predicate on the "author_id" field.
+func AuthorIDEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldAuthorID, v))
+}
+
+// AuthorIDNEQ applies the NEQ predicate on the "author_id" field.
+func AuthorIDNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldAuthorID, v))
+}
+
+// AuthorIDIn applies the In predicate on the "author_id" field.
+func AuthorIDIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldAuthorID, vs...))
+}
+
+// AuthorIDNotIn applies the NotIn predicate on the "author_id" field.
+func AuthorIDNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldAuthorID, vs...))
+}
+
+// AuthorIDGT applies the GT predicate on the "author_id" field.
+func AuthorIDGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldAuthorID, v))
+}
+
+// AuthorIDGTE applies the GTE predicate on the "author_id" field.
+func AuthorIDGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldAuthorID, v))
+}
+
+// AuthorIDLT applies the LT predicate on the "author_id" field.
+func AuthorIDLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldAuthorID, v))
+}
+
+// AuthorIDLTE applies the LTE predicate on the "author_id" field.
+func AuthorIDLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldAuthorID, v))
+}
+
+// AuthorIDContains applies the Contains predicate on the "author_id" field.
+func AuthorIDContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldAuthorID, v))
+}
+
+// AuthorIDHasPrefix applies the HasPrefix predicate on the "author_id" field.
+func AuthorIDHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldAuthorID, v))
+}
+
+// AuthorIDHasSuffix applies the HasSuffix predicate on the "author_id" field.
+func AuthorIDHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldAuthorID, v))
+}
+
+// AuthorIDIsNil applies the IsNil predicate on the "author_id" field.
+func AuthorIDIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldAuthorID))
+}
+
+// AuthorIDNotNil applies the NotNil predicate on the "author_id" field.
+func AuthorIDNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldAuthorID))
+}
+
+// AuthorIDEqualFold applies the EqualFold predicate on the "author_id" field.
+func AuthorIDEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldAuthorID, v))
+}
+
+// AuthorIDContainsFold applies the ContainsFold predicate on the "author_id" field.
+func AuthorIDContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldAuthorID, v))
+}
+
+// GuildIDEQ applies the EQ predicate on the "guild_id" field.
+func GuildIDEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldGuildID, v))
+}
+
+// GuildIDNEQ applies the NEQ predicate on the "guild_id" field.
+func GuildIDNEQ(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldGuildID, v))
+}
+
+// GuildIDIn applies the In predicate on the "guild_id" field.
+func GuildIDIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldGuildID, vs...))
+}
+
+// GuildIDNotIn applies the NotIn predicate on the "guild_id" field.
+func GuildIDNotIn(vs ...string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldGuildID, vs...))
+}
+
+// GuildIDGT applies the GT predicate on the "guild_id" field.
+func GuildIDGT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldGuildID, v))
+}
+
+// GuildIDGTE applies the GTE predicate on the "guild_id" field.
+func GuildIDGTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldGuildID, v))
+}
+
+// GuildIDLT applies the LT predicate on the "guild_id" field.
+func GuildIDLT(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldGuildID, v))
+}
+
+// GuildIDLTE applies the LTE predicate on the "guild_id" field.
+func GuildIDLTE(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldGuildID, v))
+}
+
+// GuildIDContains applies the Contains predicate on the "guild_id" field.
+func GuildIDContains(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContains(FieldGuildID, v))
+}
+
+// GuildIDHasPrefix applies the HasPrefix predicate on the "guild_id" field.
+func GuildIDHasPrefix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasPrefix(FieldGuildID, v))
+}
+
+// GuildIDHasSuffix applies the HasSuffix predicate on the "guild_id" field.
+func GuildIDHasSuffix(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldHasSuffix(FieldGuildID, v))
+}
+
+// GuildIDEqualFold applies the EqualFold predicate on the "guild_id" field.
+func GuildIDEqualFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEqualFold(FieldGuildID, v))
+}
+
+// GuildIDContainsFold applies the ContainsFold predicate on the "guild_id" field.
+func GuildIDContainsFold(v string) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldContainsFold(FieldGuildID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -185,107 +755,71 @@ func CreatedAtLTE(v time.Time) predicate.QuizQuestion {
 	return predicate.QuizQuestion(sql.FieldLTE(FieldCreatedAt, v))
 }
 
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldEQ(FieldUpdatedAt, v))
+// LastUsedAtEQ applies the EQ predicate on the "last_used_at" field.
+func LastUsedAtEQ(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldEQ(FieldLastUsedAt, v))
 }
 
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldNEQ(FieldUpdatedAt, v))
+// LastUsedAtNEQ applies the NEQ predicate on the "last_used_at" field.
+func LastUsedAtNEQ(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNEQ(FieldLastUsedAt, v))
 }
 
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldIn(FieldUpdatedAt, vs...))
+// LastUsedAtIn applies the In predicate on the "last_used_at" field.
+func LastUsedAtIn(vs ...time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIn(FieldLastUsedAt, vs...))
 }
 
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldNotIn(FieldUpdatedAt, vs...))
+// LastUsedAtNotIn applies the NotIn predicate on the "last_used_at" field.
+func LastUsedAtNotIn(vs ...time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotIn(FieldLastUsedAt, vs...))
 }
 
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldGT(FieldUpdatedAt, v))
+// LastUsedAtGT applies the GT predicate on the "last_used_at" field.
+func LastUsedAtGT(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGT(FieldLastUsedAt, v))
 }
 
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldGTE(FieldUpdatedAt, v))
+// LastUsedAtGTE applies the GTE predicate on the "last_used_at" field.
+func LastUsedAtGTE(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldGTE(FieldLastUsedAt, v))
 }
 
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldLT(FieldUpdatedAt, v))
+// LastUsedAtLT applies the LT predicate on the "last_used_at" field.
+func LastUsedAtLT(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLT(FieldLastUsedAt, v))
 }
 
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.QuizQuestion {
-	return predicate.QuizQuestion(sql.FieldLTE(FieldUpdatedAt, v))
+// LastUsedAtLTE applies the LTE predicate on the "last_used_at" field.
+func LastUsedAtLTE(v time.Time) predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldLTE(FieldLastUsedAt, v))
 }
 
-// HasQuiz applies the HasEdge predicate on the "quiz" edge.
-func HasQuiz() predicate.QuizQuestion {
+// LastUsedAtIsNil applies the IsNil predicate on the "last_used_at" field.
+func LastUsedAtIsNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldIsNull(FieldLastUsedAt))
+}
+
+// LastUsedAtNotNil applies the NotNil predicate on the "last_used_at" field.
+func LastUsedAtNotNil() predicate.QuizQuestion {
+	return predicate.QuizQuestion(sql.FieldNotNull(FieldLastUsedAt))
+}
+
+// HasActiveQuizzes applies the HasEdge predicate on the "active_quizzes" edge.
+func HasActiveQuizzes() predicate.QuizQuestion {
 	return predicate.QuizQuestion(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, QuizTable, QuizColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ActiveQuizzesTable, ActiveQuizzesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasQuizWith applies the HasEdge predicate on the "quiz" edge with a given conditions (other predicates).
-func HasQuizWith(preds ...predicate.Quiz) predicate.QuizQuestion {
+// HasActiveQuizzesWith applies the HasEdge predicate on the "active_quizzes" edge with a given conditions (other predicates).
+func HasActiveQuizzesWith(preds ...predicate.ActiveQuiz) predicate.QuizQuestion {
 	return predicate.QuizQuestion(func(s *sql.Selector) {
-		step := newQuizStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAnswers applies the HasEdge predicate on the "answers" edge.
-func HasAnswers() predicate.QuizQuestion {
-	return predicate.QuizQuestion(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AnswersTable, AnswersColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAnswersWith applies the HasEdge predicate on the "answers" edge with a given conditions (other predicates).
-func HasAnswersWith(preds ...predicate.QuizAnswer) predicate.QuizQuestion {
-	return predicate.QuizQuestion(func(s *sql.Selector) {
-		step := newAnswersStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasUserAnswers applies the HasEdge predicate on the "user_answers" edge.
-func HasUserAnswers() predicate.QuizQuestion {
-	return predicate.QuizQuestion(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UserAnswersTable, UserAnswersColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserAnswersWith applies the HasEdge predicate on the "user_answers" edge with a given conditions (other predicates).
-func HasUserAnswersWith(preds ...predicate.QuizUserAnswer) predicate.QuizQuestion {
-	return predicate.QuizQuestion(func(s *sql.Selector) {
-		step := newUserAnswersStep()
+		step := newActiveQuizzesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

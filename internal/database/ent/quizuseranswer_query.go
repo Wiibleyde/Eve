@@ -3,9 +3,8 @@
 package ent
 
 import (
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/predicate"
-	"Eve/internal/database/ent/quizanswer"
-	"Eve/internal/database/ent/quizquestion"
 	"Eve/internal/database/ent/quizuseranswer"
 	"context"
 	"fmt"
@@ -20,13 +19,11 @@ import (
 // QuizUserAnswerQuery is the builder for querying QuizUserAnswer entities.
 type QuizUserAnswerQuery struct {
 	config
-	ctx          *QueryContext
-	order        []quizuseranswer.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.QuizUserAnswer
-	withQuestion *QuizQuestionQuery
-	withAnswer   *QuizAnswerQuery
-	withFKs      bool
+	ctx            *QueryContext
+	order          []quizuseranswer.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.QuizUserAnswer
+	withActiveQuiz *ActiveQuizQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,9 +60,9 @@ func (_q *QuizUserAnswerQuery) Order(o ...quizuseranswer.OrderOption) *QuizUserA
 	return _q
 }
 
-// QueryQuestion chains the current query on the "question" edge.
-func (_q *QuizUserAnswerQuery) QueryQuestion() *QuizQuestionQuery {
-	query := (&QuizQuestionClient{config: _q.config}).Query()
+// QueryActiveQuiz chains the current query on the "active_quiz" edge.
+func (_q *QuizUserAnswerQuery) QueryActiveQuiz() *ActiveQuizQuery {
+	query := (&ActiveQuizClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,30 +73,8 @@ func (_q *QuizUserAnswerQuery) QueryQuestion() *QuizQuestionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(quizuseranswer.Table, quizuseranswer.FieldID, selector),
-			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.QuestionTable, quizuseranswer.QuestionColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryAnswer chains the current query on the "answer" edge.
-func (_q *QuizUserAnswerQuery) QueryAnswer() *QuizAnswerQuery {
-	query := (&QuizAnswerClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(quizuseranswer.Table, quizuseranswer.FieldID, selector),
-			sqlgraph.To(quizanswer.Table, quizanswer.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.AnswerTable, quizuseranswer.AnswerColumn),
+			sqlgraph.To(activequiz.Table, activequiz.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.ActiveQuizTable, quizuseranswer.ActiveQuizColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,38 +269,26 @@ func (_q *QuizUserAnswerQuery) Clone() *QuizUserAnswerQuery {
 		return nil
 	}
 	return &QuizUserAnswerQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]quizuseranswer.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.QuizUserAnswer{}, _q.predicates...),
-		withQuestion: _q.withQuestion.Clone(),
-		withAnswer:   _q.withAnswer.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]quizuseranswer.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.QuizUserAnswer{}, _q.predicates...),
+		withActiveQuiz: _q.withActiveQuiz.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithQuestion tells the query-builder to eager-load the nodes that are connected to
-// the "question" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *QuizUserAnswerQuery) WithQuestion(opts ...func(*QuizQuestionQuery)) *QuizUserAnswerQuery {
-	query := (&QuizQuestionClient{config: _q.config}).Query()
+// WithActiveQuiz tells the query-builder to eager-load the nodes that are connected to
+// the "active_quiz" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *QuizUserAnswerQuery) WithActiveQuiz(opts ...func(*ActiveQuizQuery)) *QuizUserAnswerQuery {
+	query := (&ActiveQuizClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withQuestion = query
-	return _q
-}
-
-// WithAnswer tells the query-builder to eager-load the nodes that are connected to
-// the "answer" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *QuizUserAnswerQuery) WithAnswer(opts ...func(*QuizAnswerQuery)) *QuizUserAnswerQuery {
-	query := (&QuizAnswerClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withAnswer = query
+	_q.withActiveQuiz = query
 	return _q
 }
 
@@ -335,12 +298,12 @@ func (_q *QuizUserAnswerQuery) WithAnswer(opts ...func(*QuizAnswerQuery)) *QuizU
 // Example:
 //
 //	var v []struct {
-//		UserID string `json:"user_id,omitempty"`
+//		ActiveQuizID string `json:"active_quiz_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.QuizUserAnswer.Query().
-//		GroupBy(quizuseranswer.FieldUserID).
+//		GroupBy(quizuseranswer.FieldActiveQuizID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *QuizUserAnswerQuery) GroupBy(field string, fields ...string) *QuizUserAnswerGroupBy {
@@ -358,11 +321,11 @@ func (_q *QuizUserAnswerQuery) GroupBy(field string, fields ...string) *QuizUser
 // Example:
 //
 //	var v []struct {
-//		UserID string `json:"user_id,omitempty"`
+//		ActiveQuizID string `json:"active_quiz_id,omitempty"`
 //	}
 //
 //	client.QuizUserAnswer.Query().
-//		Select(quizuseranswer.FieldUserID).
+//		Select(quizuseranswer.FieldActiveQuizID).
 //		Scan(ctx, &v)
 func (_q *QuizUserAnswerQuery) Select(fields ...string) *QuizUserAnswerSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -406,19 +369,11 @@ func (_q *QuizUserAnswerQuery) prepareQuery(ctx context.Context) error {
 func (_q *QuizUserAnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*QuizUserAnswer, error) {
 	var (
 		nodes       = []*QuizUserAnswer{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withQuestion != nil,
-			_q.withAnswer != nil,
+		loadedTypes = [1]bool{
+			_q.withActiveQuiz != nil,
 		}
 	)
-	if _q.withQuestion != nil || _q.withAnswer != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, quizuseranswer.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*QuizUserAnswer).scanValues(nil, columns)
 	}
@@ -437,29 +392,20 @@ func (_q *QuizUserAnswerQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withQuestion; query != nil {
-		if err := _q.loadQuestion(ctx, query, nodes, nil,
-			func(n *QuizUserAnswer, e *QuizQuestion) { n.Edges.Question = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withAnswer; query != nil {
-		if err := _q.loadAnswer(ctx, query, nodes, nil,
-			func(n *QuizUserAnswer, e *QuizAnswer) { n.Edges.Answer = e }); err != nil {
+	if query := _q.withActiveQuiz; query != nil {
+		if err := _q.loadActiveQuiz(ctx, query, nodes, nil,
+			func(n *QuizUserAnswer, e *ActiveQuiz) { n.Edges.ActiveQuiz = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *QuizUserAnswerQuery) loadQuestion(ctx context.Context, query *QuizQuestionQuery, nodes []*QuizUserAnswer, init func(*QuizUserAnswer), assign func(*QuizUserAnswer, *QuizQuestion)) error {
+func (_q *QuizUserAnswerQuery) loadActiveQuiz(ctx context.Context, query *ActiveQuizQuery, nodes []*QuizUserAnswer, init func(*QuizUserAnswer), assign func(*QuizUserAnswer, *ActiveQuiz)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*QuizUserAnswer)
 	for i := range nodes {
-		if nodes[i].quiz_question_user_answers == nil {
-			continue
-		}
-		fk := *nodes[i].quiz_question_user_answers
+		fk := nodes[i].ActiveQuizID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -468,7 +414,7 @@ func (_q *QuizUserAnswerQuery) loadQuestion(ctx context.Context, query *QuizQues
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(quizquestion.IDIn(ids...))
+	query.Where(activequiz.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -476,39 +422,7 @@ func (_q *QuizUserAnswerQuery) loadQuestion(ctx context.Context, query *QuizQues
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "quiz_question_user_answers" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *QuizUserAnswerQuery) loadAnswer(ctx context.Context, query *QuizAnswerQuery, nodes []*QuizUserAnswer, init func(*QuizUserAnswer), assign func(*QuizUserAnswer, *QuizAnswer)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*QuizUserAnswer)
-	for i := range nodes {
-		if nodes[i].quiz_answer_user_answers == nil {
-			continue
-		}
-		fk := *nodes[i].quiz_answer_user_answers
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(quizanswer.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "quiz_answer_user_answers" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "active_quiz_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -541,6 +455,9 @@ func (_q *QuizUserAnswerQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != quizuseranswer.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withActiveQuiz != nil {
+			_spec.Node.AddColumnOnce(quizuseranswer.FieldActiveQuizID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -8,7 +8,6 @@ import (
 	"Eve/internal/logger"
 	"context"
 
-
 	"github.com/joho/godotenv"
 )
 

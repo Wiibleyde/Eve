@@ -6,23 +6,44 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// ActiveMotus is the predicate function for activemotus builders.
+type ActiveMotus func(*sql.Selector)
+
+// ActiveQuiz is the predicate function for activequiz builders.
+type ActiveQuiz func(*sql.Selector)
+
 // Birthday is the predicate function for birthday builders.
 type Birthday func(*sql.Selector)
 
 // GuildConfig is the predicate function for guildconfig builders.
 type GuildConfig func(*sql.Selector)
 
-// Quiz is the predicate function for quiz builders.
-type Quiz func(*sql.Selector)
+// LotoGame is the predicate function for lotogame builders.
+type LotoGame func(*sql.Selector)
 
-// QuizAnswer is the predicate function for quizanswer builders.
-type QuizAnswer func(*sql.Selector)
+// LotoPlayer is the predicate function for lotoplayer builders.
+type LotoPlayer func(*sql.Selector)
+
+// LotoPrize is the predicate function for lotoprize builders.
+type LotoPrize func(*sql.Selector)
+
+// LotoTicket is the predicate function for lototicket builders.
+type LotoTicket func(*sql.Selector)
+
+// MPThread is the predicate function for mpthread builders.
+type MPThread func(*sql.Selector)
 
 // QuizQuestion is the predicate function for quizquestion builders.
 type QuizQuestion func(*sql.Selector)
+
+// QuizStat is the predicate function for quizstat builders.
+type QuizStat func(*sql.Selector)
 
 // QuizUserAnswer is the predicate function for quizuseranswer builders.
 type QuizUserAnswer func(*sql.Selector)
 
 // Quote is the predicate function for quote builders.
 type Quote func(*sql.Selector)
+
+// Stream is the predicate function for stream builders.
+type Stream func(*sql.Selector)

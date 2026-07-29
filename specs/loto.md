@@ -56,8 +56,8 @@ Inputs: player name, count. Delete newest N tickets of that player; player with 
 Inputs: old name, new name. Rename (unique conflict → error). Edit embed.
 
 ### Draw `loto:draw`
-1. Admin check; game active; at least 1 ticket; prizes exist.
-2. For each prize in `position` order: pick a uniformly random ticket among tickets **not already winning** (one win per ticket; a player may win multiple prizes via different tickets — same as TS logic). Record winner + ticket number + `drawn_at`.
+1. Admin check; game active; at least 1 ticket; prizes exist; at least as many distinct ticket-holding players as prizes (refuse otherwise — a player can win at most one prize).
+2. For each prize in `position` order: pick a uniformly random ticket among tickets of players **not already winning** (one prize per player — all tickets of a winner leave the pool, same as TS logic). Record winner + ticket number + `drawn_at`.
 3. Set game `active = false`, edit embed with winners, post public announcement message listing prizes → winners.
 4. Draw is **one-shot and final** — confirmation button first («Confirmer le tirage» `loto:drawconfirm:<gameID>`) since it's irreversible.
 

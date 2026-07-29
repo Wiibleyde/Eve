@@ -17,11 +17,21 @@ type ConfigKey int
 const (
 	BirthdayChannel ConfigKey = iota
 	QuoteChannel
+	CalendarURL
+	CalendarChannel
+	CalendarMessage
+	JokesDisabled
+	DebugRole
 )
 
 var configKey = map[ConfigKey]string{
 	BirthdayChannel: "birthday.channel",
 	QuoteChannel:    "quote.channel",
+	CalendarURL:     "calendar.url",
+	CalendarChannel: "calendar.channel",
+	CalendarMessage: "calendar.message",
+	JokesDisabled:   "jokes.disabled",
+	DebugRole:       "debug.role",
 }
 
 func (k ConfigKey) String() string {

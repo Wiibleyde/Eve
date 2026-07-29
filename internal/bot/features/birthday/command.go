@@ -9,6 +9,7 @@ import (
 	"Eve/internal/bot/embeds"
 	"Eve/internal/bot/helpers"
 	"Eve/internal/database"
+	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/birthday"
 
 	"github.com/disgoorg/disgo/discord"
@@ -26,6 +27,10 @@ var Commands = []discord.ApplicationCommandCreate{
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{Name: "date", Description: "Date au format DD/MM/YYYY", Required: true},
 				},
+			},
+			discord.ApplicationCommandOptionSubCommand{
+				Name:        "get",
+				Description: "Afficher votre date d'anniversaire",
 			},
 			discord.ApplicationCommandOptionSubCommand{
 				Name:        "remove",
@@ -55,6 +60,8 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	switch *data.SubCommandName {
 	case "set":
 		handleSetBirthday(e)
+	case "get":
+		handleGetBirthday(e)
 	case "remove":
 		handleRemoveBirthday(e)
 	case "list":
@@ -98,6 +105,38 @@ func handleSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 	}
 
 	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Anniversaire enregistré !"))
+}
+
+func handleGetBirthday(e *events.ApplicationCommandInteractionCreate) {
+	ctx := context.Background()
+	discordID := e.User().ID.String()
+
+	b, err := database.Default.Ent().Birthday.Query().
+		Where(birthday.DiscordID(discordID)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			helpers.RespondEphemeral(e, "Vous n'avez pas enregistré votre anniversaire.")
+			return
+		}
+		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Erreur lors de la récupération de votre anniversaire."))
+		return
+	}
+
+	now := time.Now()
+	next := time.Date(now.Year(), b.Birthday.Month(), b.Birthday.Day(), 0, 0, 0, 0, now.Location())
+	if next.Before(now) {
+		next = next.AddDate(1, 0, 0)
+	}
+
+	embed := embeds.BaseEmbed()
+	embed.Title = "Votre anniversaire"
+	embed.Description = fmt.Sprintf(
+		"Votre date d'anniversaire est le %s (<t:%d:R>)",
+		b.Birthday.Format("02/01/2006"),
+		next.Unix(),
+	)
+	helpers.RespondEphemeralEmbed(e, embed)
 }
 
 func handleRemoveBirthday(e *events.ApplicationCommandInteractionCreate) {

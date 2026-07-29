@@ -3,11 +3,9 @@
 package ent
 
 import (
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/predicate"
-	"Eve/internal/database/ent/quiz"
-	"Eve/internal/database/ent/quizanswer"
 	"Eve/internal/database/ent/quizquestion"
-	"Eve/internal/database/ent/quizuseranswer"
 	"context"
 	"errors"
 	"fmt"
@@ -31,65 +29,171 @@ func (_u *QuizQuestionUpdate) Where(ps ...predicate.QuizQuestion) *QuizQuestionU
 	return _u
 }
 
-// SetQuestionText sets the "question_text" field.
-func (_u *QuizQuestionUpdate) SetQuestionText(v string) *QuizQuestionUpdate {
-	_u.mutation.SetQuestionText(v)
+// SetQuestion sets the "question" field.
+func (_u *QuizQuestionUpdate) SetQuestion(v string) *QuizQuestionUpdate {
+	_u.mutation.SetQuestion(v)
 	return _u
 }
 
-// SetNillableQuestionText sets the "question_text" field if the given value is not nil.
-func (_u *QuizQuestionUpdate) SetNillableQuestionText(v *string) *QuizQuestionUpdate {
+// SetNillableQuestion sets the "question" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableQuestion(v *string) *QuizQuestionUpdate {
 	if v != nil {
-		_u.SetQuestionText(*v)
+		_u.SetQuestion(*v)
 	}
 	return _u
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *QuizQuestionUpdate) SetUpdatedAt(v time.Time) *QuizQuestionUpdate {
-	_u.mutation.SetUpdatedAt(v)
+// SetGoodAnswer sets the "good_answer" field.
+func (_u *QuizQuestionUpdate) SetGoodAnswer(v string) *QuizQuestionUpdate {
+	_u.mutation.SetGoodAnswer(v)
 	return _u
 }
 
-// SetQuizID sets the "quiz" edge to the Quiz entity by ID.
-func (_u *QuizQuestionUpdate) SetQuizID(id string) *QuizQuestionUpdate {
-	_u.mutation.SetQuizID(id)
+// SetNillableGoodAnswer sets the "good_answer" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableGoodAnswer(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetGoodAnswer(*v)
+	}
 	return _u
 }
 
-// SetQuiz sets the "quiz" edge to the Quiz entity.
-func (_u *QuizQuestionUpdate) SetQuiz(v *Quiz) *QuizQuestionUpdate {
-	return _u.SetQuizID(v.ID)
-}
-
-// AddAnswerIDs adds the "answers" edge to the QuizAnswer entity by IDs.
-func (_u *QuizQuestionUpdate) AddAnswerIDs(ids ...string) *QuizQuestionUpdate {
-	_u.mutation.AddAnswerIDs(ids...)
+// SetBadAnswer1 sets the "bad_answer_1" field.
+func (_u *QuizQuestionUpdate) SetBadAnswer1(v string) *QuizQuestionUpdate {
+	_u.mutation.SetBadAnswer1(v)
 	return _u
 }
 
-// AddAnswers adds the "answers" edges to the QuizAnswer entity.
-func (_u *QuizQuestionUpdate) AddAnswers(v ...*QuizAnswer) *QuizQuestionUpdate {
+// SetNillableBadAnswer1 sets the "bad_answer_1" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableBadAnswer1(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetBadAnswer1(*v)
+	}
+	return _u
+}
+
+// SetBadAnswer2 sets the "bad_answer_2" field.
+func (_u *QuizQuestionUpdate) SetBadAnswer2(v string) *QuizQuestionUpdate {
+	_u.mutation.SetBadAnswer2(v)
+	return _u
+}
+
+// SetNillableBadAnswer2 sets the "bad_answer_2" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableBadAnswer2(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetBadAnswer2(*v)
+	}
+	return _u
+}
+
+// SetBadAnswer3 sets the "bad_answer_3" field.
+func (_u *QuizQuestionUpdate) SetBadAnswer3(v string) *QuizQuestionUpdate {
+	_u.mutation.SetBadAnswer3(v)
+	return _u
+}
+
+// SetNillableBadAnswer3 sets the "bad_answer_3" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableBadAnswer3(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetBadAnswer3(*v)
+	}
+	return _u
+}
+
+// SetCategory sets the "category" field.
+func (_u *QuizQuestionUpdate) SetCategory(v string) *QuizQuestionUpdate {
+	_u.mutation.SetCategory(v)
+	return _u
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableCategory(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetCategory(*v)
+	}
+	return _u
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (_u *QuizQuestionUpdate) SetDifficulty(v string) *QuizQuestionUpdate {
+	_u.mutation.SetDifficulty(v)
+	return _u
+}
+
+// SetNillableDifficulty sets the "difficulty" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableDifficulty(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetDifficulty(*v)
+	}
+	return _u
+}
+
+// SetAuthorID sets the "author_id" field.
+func (_u *QuizQuestionUpdate) SetAuthorID(v string) *QuizQuestionUpdate {
+	_u.mutation.SetAuthorID(v)
+	return _u
+}
+
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableAuthorID(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetAuthorID(*v)
+	}
+	return _u
+}
+
+// ClearAuthorID clears the value of the "author_id" field.
+func (_u *QuizQuestionUpdate) ClearAuthorID() *QuizQuestionUpdate {
+	_u.mutation.ClearAuthorID()
+	return _u
+}
+
+// SetGuildID sets the "guild_id" field.
+func (_u *QuizQuestionUpdate) SetGuildID(v string) *QuizQuestionUpdate {
+	_u.mutation.SetGuildID(v)
+	return _u
+}
+
+// SetNillableGuildID sets the "guild_id" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableGuildID(v *string) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetGuildID(*v)
+	}
+	return _u
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (_u *QuizQuestionUpdate) SetLastUsedAt(v time.Time) *QuizQuestionUpdate {
+	_u.mutation.SetLastUsedAt(v)
+	return _u
+}
+
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_u *QuizQuestionUpdate) SetNillableLastUsedAt(v *time.Time) *QuizQuestionUpdate {
+	if v != nil {
+		_u.SetLastUsedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (_u *QuizQuestionUpdate) ClearLastUsedAt() *QuizQuestionUpdate {
+	_u.mutation.ClearLastUsedAt()
+	return _u
+}
+
+// AddActiveQuizzeIDs adds the "active_quizzes" edge to the ActiveQuiz entity by IDs.
+func (_u *QuizQuestionUpdate) AddActiveQuizzeIDs(ids ...string) *QuizQuestionUpdate {
+	_u.mutation.AddActiveQuizzeIDs(ids...)
+	return _u
+}
+
+// AddActiveQuizzes adds the "active_quizzes" edges to the ActiveQuiz entity.
+func (_u *QuizQuestionUpdate) AddActiveQuizzes(v ...*ActiveQuiz) *QuizQuestionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAnswerIDs(ids...)
-}
-
-// AddUserAnswerIDs adds the "user_answers" edge to the QuizUserAnswer entity by IDs.
-func (_u *QuizQuestionUpdate) AddUserAnswerIDs(ids ...string) *QuizQuestionUpdate {
-	_u.mutation.AddUserAnswerIDs(ids...)
-	return _u
-}
-
-// AddUserAnswers adds the "user_answers" edges to the QuizUserAnswer entity.
-func (_u *QuizQuestionUpdate) AddUserAnswers(v ...*QuizUserAnswer) *QuizQuestionUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserAnswerIDs(ids...)
+	return _u.AddActiveQuizzeIDs(ids...)
 }
 
 // Mutation returns the QuizQuestionMutation object of the builder.
@@ -97,57 +201,29 @@ func (_u *QuizQuestionUpdate) Mutation() *QuizQuestionMutation {
 	return _u.mutation
 }
 
-// ClearQuiz clears the "quiz" edge to the Quiz entity.
-func (_u *QuizQuestionUpdate) ClearQuiz() *QuizQuestionUpdate {
-	_u.mutation.ClearQuiz()
+// ClearActiveQuizzes clears all "active_quizzes" edges to the ActiveQuiz entity.
+func (_u *QuizQuestionUpdate) ClearActiveQuizzes() *QuizQuestionUpdate {
+	_u.mutation.ClearActiveQuizzes()
 	return _u
 }
 
-// ClearAnswers clears all "answers" edges to the QuizAnswer entity.
-func (_u *QuizQuestionUpdate) ClearAnswers() *QuizQuestionUpdate {
-	_u.mutation.ClearAnswers()
+// RemoveActiveQuizzeIDs removes the "active_quizzes" edge to ActiveQuiz entities by IDs.
+func (_u *QuizQuestionUpdate) RemoveActiveQuizzeIDs(ids ...string) *QuizQuestionUpdate {
+	_u.mutation.RemoveActiveQuizzeIDs(ids...)
 	return _u
 }
 
-// RemoveAnswerIDs removes the "answers" edge to QuizAnswer entities by IDs.
-func (_u *QuizQuestionUpdate) RemoveAnswerIDs(ids ...string) *QuizQuestionUpdate {
-	_u.mutation.RemoveAnswerIDs(ids...)
-	return _u
-}
-
-// RemoveAnswers removes "answers" edges to QuizAnswer entities.
-func (_u *QuizQuestionUpdate) RemoveAnswers(v ...*QuizAnswer) *QuizQuestionUpdate {
+// RemoveActiveQuizzes removes "active_quizzes" edges to ActiveQuiz entities.
+func (_u *QuizQuestionUpdate) RemoveActiveQuizzes(v ...*ActiveQuiz) *QuizQuestionUpdate {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAnswerIDs(ids...)
-}
-
-// ClearUserAnswers clears all "user_answers" edges to the QuizUserAnswer entity.
-func (_u *QuizQuestionUpdate) ClearUserAnswers() *QuizQuestionUpdate {
-	_u.mutation.ClearUserAnswers()
-	return _u
-}
-
-// RemoveUserAnswerIDs removes the "user_answers" edge to QuizUserAnswer entities by IDs.
-func (_u *QuizQuestionUpdate) RemoveUserAnswerIDs(ids ...string) *QuizQuestionUpdate {
-	_u.mutation.RemoveUserAnswerIDs(ids...)
-	return _u
-}
-
-// RemoveUserAnswers removes "user_answers" edges to QuizUserAnswer entities.
-func (_u *QuizQuestionUpdate) RemoveUserAnswers(v ...*QuizUserAnswer) *QuizQuestionUpdate {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserAnswerIDs(ids...)
+	return _u.RemoveActiveQuizzeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *QuizQuestionUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -173,18 +249,42 @@ func (_u *QuizQuestionUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_u *QuizQuestionUpdate) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := quizquestion.UpdateDefaultUpdatedAt()
-		_u.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_u *QuizQuestionUpdate) check() error {
-	if _u.mutation.QuizCleared() && len(_u.mutation.QuizIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "QuizQuestion.quiz"`)
+	if v, ok := _u.mutation.Question(); ok {
+		if err := quizquestion.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.question": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.GoodAnswer(); ok {
+		if err := quizquestion.GoodAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "good_answer", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.good_answer": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer1(); ok {
+		if err := quizquestion.BadAnswer1Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_1", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_1": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer2(); ok {
+		if err := quizquestion.BadAnswer2Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_2", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_2": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer3(); ok {
+		if err := quizquestion.BadAnswer3Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_3", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_3": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Category(); ok {
+		if err := quizquestion.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.category": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Difficulty(); ok {
+		if err := quizquestion.DifficultyValidator(v); err != nil {
+			return &ValidationError{Name: "difficulty", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.difficulty": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -201,108 +301,64 @@ func (_u *QuizQuestionUpdate) sqlSave(ctx context.Context) (_node int, err error
 			}
 		}
 	}
-	if value, ok := _u.mutation.QuestionText(); ok {
-		_spec.SetField(quizquestion.FieldQuestionText, field.TypeString, value)
+	if value, ok := _u.mutation.Question(); ok {
+		_spec.SetField(quizquestion.FieldQuestion, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(quizquestion.FieldUpdatedAt, field.TypeTime, value)
+	if value, ok := _u.mutation.GoodAnswer(); ok {
+		_spec.SetField(quizquestion.FieldGoodAnswer, field.TypeString, value)
 	}
-	if _u.mutation.QuizCleared() {
+	if value, ok := _u.mutation.BadAnswer1(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer1, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BadAnswer2(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer2, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BadAnswer3(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer3, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Category(); ok {
+		_spec.SetField(quizquestion.FieldCategory, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Difficulty(); ok {
+		_spec.SetField(quizquestion.FieldDifficulty, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AuthorID(); ok {
+		_spec.SetField(quizquestion.FieldAuthorID, field.TypeString, value)
+	}
+	if _u.mutation.AuthorIDCleared() {
+		_spec.ClearField(quizquestion.FieldAuthorID, field.TypeString)
+	}
+	if value, ok := _u.mutation.GuildID(); ok {
+		_spec.SetField(quizquestion.FieldGuildID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastUsedAt(); ok {
+		_spec.SetField(quizquestion.FieldLastUsedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedAtCleared() {
+		_spec.ClearField(quizquestion.FieldLastUsedAt, field.TypeTime)
+	}
+	if _u.mutation.ActiveQuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizquestion.QuizTable,
-			Columns: []string{quizquestion.QuizColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.QuizIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizquestion.QuizTable,
-			Columns: []string{quizquestion.QuizColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AnswersCleared() {
+	if nodes := _u.mutation.RemovedActiveQuizzesIDs(); len(nodes) > 0 && !_u.mutation.ActiveQuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAnswersIDs(); len(nodes) > 0 && !_u.mutation.AnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AnswersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UserAnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUserAnswersIDs(); len(nodes) > 0 && !_u.mutation.UserAnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -310,15 +366,15 @@ func (_u *QuizQuestionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.UserAnswersIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ActiveQuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -346,65 +402,171 @@ type QuizQuestionUpdateOne struct {
 	mutation *QuizQuestionMutation
 }
 
-// SetQuestionText sets the "question_text" field.
-func (_u *QuizQuestionUpdateOne) SetQuestionText(v string) *QuizQuestionUpdateOne {
-	_u.mutation.SetQuestionText(v)
+// SetQuestion sets the "question" field.
+func (_u *QuizQuestionUpdateOne) SetQuestion(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetQuestion(v)
 	return _u
 }
 
-// SetNillableQuestionText sets the "question_text" field if the given value is not nil.
-func (_u *QuizQuestionUpdateOne) SetNillableQuestionText(v *string) *QuizQuestionUpdateOne {
+// SetNillableQuestion sets the "question" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableQuestion(v *string) *QuizQuestionUpdateOne {
 	if v != nil {
-		_u.SetQuestionText(*v)
+		_u.SetQuestion(*v)
 	}
 	return _u
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *QuizQuestionUpdateOne) SetUpdatedAt(v time.Time) *QuizQuestionUpdateOne {
-	_u.mutation.SetUpdatedAt(v)
+// SetGoodAnswer sets the "good_answer" field.
+func (_u *QuizQuestionUpdateOne) SetGoodAnswer(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetGoodAnswer(v)
 	return _u
 }
 
-// SetQuizID sets the "quiz" edge to the Quiz entity by ID.
-func (_u *QuizQuestionUpdateOne) SetQuizID(id string) *QuizQuestionUpdateOne {
-	_u.mutation.SetQuizID(id)
+// SetNillableGoodAnswer sets the "good_answer" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableGoodAnswer(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetGoodAnswer(*v)
+	}
 	return _u
 }
 
-// SetQuiz sets the "quiz" edge to the Quiz entity.
-func (_u *QuizQuestionUpdateOne) SetQuiz(v *Quiz) *QuizQuestionUpdateOne {
-	return _u.SetQuizID(v.ID)
-}
-
-// AddAnswerIDs adds the "answers" edge to the QuizAnswer entity by IDs.
-func (_u *QuizQuestionUpdateOne) AddAnswerIDs(ids ...string) *QuizQuestionUpdateOne {
-	_u.mutation.AddAnswerIDs(ids...)
+// SetBadAnswer1 sets the "bad_answer_1" field.
+func (_u *QuizQuestionUpdateOne) SetBadAnswer1(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetBadAnswer1(v)
 	return _u
 }
 
-// AddAnswers adds the "answers" edges to the QuizAnswer entity.
-func (_u *QuizQuestionUpdateOne) AddAnswers(v ...*QuizAnswer) *QuizQuestionUpdateOne {
+// SetNillableBadAnswer1 sets the "bad_answer_1" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableBadAnswer1(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetBadAnswer1(*v)
+	}
+	return _u
+}
+
+// SetBadAnswer2 sets the "bad_answer_2" field.
+func (_u *QuizQuestionUpdateOne) SetBadAnswer2(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetBadAnswer2(v)
+	return _u
+}
+
+// SetNillableBadAnswer2 sets the "bad_answer_2" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableBadAnswer2(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetBadAnswer2(*v)
+	}
+	return _u
+}
+
+// SetBadAnswer3 sets the "bad_answer_3" field.
+func (_u *QuizQuestionUpdateOne) SetBadAnswer3(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetBadAnswer3(v)
+	return _u
+}
+
+// SetNillableBadAnswer3 sets the "bad_answer_3" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableBadAnswer3(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetBadAnswer3(*v)
+	}
+	return _u
+}
+
+// SetCategory sets the "category" field.
+func (_u *QuizQuestionUpdateOne) SetCategory(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetCategory(v)
+	return _u
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableCategory(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetCategory(*v)
+	}
+	return _u
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (_u *QuizQuestionUpdateOne) SetDifficulty(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetDifficulty(v)
+	return _u
+}
+
+// SetNillableDifficulty sets the "difficulty" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableDifficulty(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetDifficulty(*v)
+	}
+	return _u
+}
+
+// SetAuthorID sets the "author_id" field.
+func (_u *QuizQuestionUpdateOne) SetAuthorID(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetAuthorID(v)
+	return _u
+}
+
+// SetNillableAuthorID sets the "author_id" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableAuthorID(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetAuthorID(*v)
+	}
+	return _u
+}
+
+// ClearAuthorID clears the value of the "author_id" field.
+func (_u *QuizQuestionUpdateOne) ClearAuthorID() *QuizQuestionUpdateOne {
+	_u.mutation.ClearAuthorID()
+	return _u
+}
+
+// SetGuildID sets the "guild_id" field.
+func (_u *QuizQuestionUpdateOne) SetGuildID(v string) *QuizQuestionUpdateOne {
+	_u.mutation.SetGuildID(v)
+	return _u
+}
+
+// SetNillableGuildID sets the "guild_id" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableGuildID(v *string) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetGuildID(*v)
+	}
+	return _u
+}
+
+// SetLastUsedAt sets the "last_used_at" field.
+func (_u *QuizQuestionUpdateOne) SetLastUsedAt(v time.Time) *QuizQuestionUpdateOne {
+	_u.mutation.SetLastUsedAt(v)
+	return _u
+}
+
+// SetNillableLastUsedAt sets the "last_used_at" field if the given value is not nil.
+func (_u *QuizQuestionUpdateOne) SetNillableLastUsedAt(v *time.Time) *QuizQuestionUpdateOne {
+	if v != nil {
+		_u.SetLastUsedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastUsedAt clears the value of the "last_used_at" field.
+func (_u *QuizQuestionUpdateOne) ClearLastUsedAt() *QuizQuestionUpdateOne {
+	_u.mutation.ClearLastUsedAt()
+	return _u
+}
+
+// AddActiveQuizzeIDs adds the "active_quizzes" edge to the ActiveQuiz entity by IDs.
+func (_u *QuizQuestionUpdateOne) AddActiveQuizzeIDs(ids ...string) *QuizQuestionUpdateOne {
+	_u.mutation.AddActiveQuizzeIDs(ids...)
+	return _u
+}
+
+// AddActiveQuizzes adds the "active_quizzes" edges to the ActiveQuiz entity.
+func (_u *QuizQuestionUpdateOne) AddActiveQuizzes(v ...*ActiveQuiz) *QuizQuestionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAnswerIDs(ids...)
-}
-
-// AddUserAnswerIDs adds the "user_answers" edge to the QuizUserAnswer entity by IDs.
-func (_u *QuizQuestionUpdateOne) AddUserAnswerIDs(ids ...string) *QuizQuestionUpdateOne {
-	_u.mutation.AddUserAnswerIDs(ids...)
-	return _u
-}
-
-// AddUserAnswers adds the "user_answers" edges to the QuizUserAnswer entity.
-func (_u *QuizQuestionUpdateOne) AddUserAnswers(v ...*QuizUserAnswer) *QuizQuestionUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddUserAnswerIDs(ids...)
+	return _u.AddActiveQuizzeIDs(ids...)
 }
 
 // Mutation returns the QuizQuestionMutation object of the builder.
@@ -412,52 +574,25 @@ func (_u *QuizQuestionUpdateOne) Mutation() *QuizQuestionMutation {
 	return _u.mutation
 }
 
-// ClearQuiz clears the "quiz" edge to the Quiz entity.
-func (_u *QuizQuestionUpdateOne) ClearQuiz() *QuizQuestionUpdateOne {
-	_u.mutation.ClearQuiz()
+// ClearActiveQuizzes clears all "active_quizzes" edges to the ActiveQuiz entity.
+func (_u *QuizQuestionUpdateOne) ClearActiveQuizzes() *QuizQuestionUpdateOne {
+	_u.mutation.ClearActiveQuizzes()
 	return _u
 }
 
-// ClearAnswers clears all "answers" edges to the QuizAnswer entity.
-func (_u *QuizQuestionUpdateOne) ClearAnswers() *QuizQuestionUpdateOne {
-	_u.mutation.ClearAnswers()
+// RemoveActiveQuizzeIDs removes the "active_quizzes" edge to ActiveQuiz entities by IDs.
+func (_u *QuizQuestionUpdateOne) RemoveActiveQuizzeIDs(ids ...string) *QuizQuestionUpdateOne {
+	_u.mutation.RemoveActiveQuizzeIDs(ids...)
 	return _u
 }
 
-// RemoveAnswerIDs removes the "answers" edge to QuizAnswer entities by IDs.
-func (_u *QuizQuestionUpdateOne) RemoveAnswerIDs(ids ...string) *QuizQuestionUpdateOne {
-	_u.mutation.RemoveAnswerIDs(ids...)
-	return _u
-}
-
-// RemoveAnswers removes "answers" edges to QuizAnswer entities.
-func (_u *QuizQuestionUpdateOne) RemoveAnswers(v ...*QuizAnswer) *QuizQuestionUpdateOne {
+// RemoveActiveQuizzes removes "active_quizzes" edges to ActiveQuiz entities.
+func (_u *QuizQuestionUpdateOne) RemoveActiveQuizzes(v ...*ActiveQuiz) *QuizQuestionUpdateOne {
 	ids := make([]string, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAnswerIDs(ids...)
-}
-
-// ClearUserAnswers clears all "user_answers" edges to the QuizUserAnswer entity.
-func (_u *QuizQuestionUpdateOne) ClearUserAnswers() *QuizQuestionUpdateOne {
-	_u.mutation.ClearUserAnswers()
-	return _u
-}
-
-// RemoveUserAnswerIDs removes the "user_answers" edge to QuizUserAnswer entities by IDs.
-func (_u *QuizQuestionUpdateOne) RemoveUserAnswerIDs(ids ...string) *QuizQuestionUpdateOne {
-	_u.mutation.RemoveUserAnswerIDs(ids...)
-	return _u
-}
-
-// RemoveUserAnswers removes "user_answers" edges to QuizUserAnswer entities.
-func (_u *QuizQuestionUpdateOne) RemoveUserAnswers(v ...*QuizUserAnswer) *QuizQuestionUpdateOne {
-	ids := make([]string, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveUserAnswerIDs(ids...)
+	return _u.RemoveActiveQuizzeIDs(ids...)
 }
 
 // Where appends a list predicates to the QuizQuestionUpdate builder.
@@ -475,7 +610,6 @@ func (_u *QuizQuestionUpdateOne) Select(field string, fields ...string) *QuizQue
 
 // Save executes the query and returns the updated QuizQuestion entity.
 func (_u *QuizQuestionUpdateOne) Save(ctx context.Context) (*QuizQuestion, error) {
-	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -501,18 +635,42 @@ func (_u *QuizQuestionUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_u *QuizQuestionUpdateOne) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := quizquestion.UpdateDefaultUpdatedAt()
-		_u.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_u *QuizQuestionUpdateOne) check() error {
-	if _u.mutation.QuizCleared() && len(_u.mutation.QuizIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "QuizQuestion.quiz"`)
+	if v, ok := _u.mutation.Question(); ok {
+		if err := quizquestion.QuestionValidator(v); err != nil {
+			return &ValidationError{Name: "question", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.question": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.GoodAnswer(); ok {
+		if err := quizquestion.GoodAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "good_answer", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.good_answer": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer1(); ok {
+		if err := quizquestion.BadAnswer1Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_1", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_1": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer2(); ok {
+		if err := quizquestion.BadAnswer2Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_2", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_2": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BadAnswer3(); ok {
+		if err := quizquestion.BadAnswer3Validator(v); err != nil {
+			return &ValidationError{Name: "bad_answer_3", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.bad_answer_3": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Category(); ok {
+		if err := quizquestion.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.category": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Difficulty(); ok {
+		if err := quizquestion.DifficultyValidator(v); err != nil {
+			return &ValidationError{Name: "difficulty", err: fmt.Errorf(`ent: validator failed for field "QuizQuestion.difficulty": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -546,108 +704,64 @@ func (_u *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQuesti
 			}
 		}
 	}
-	if value, ok := _u.mutation.QuestionText(); ok {
-		_spec.SetField(quizquestion.FieldQuestionText, field.TypeString, value)
+	if value, ok := _u.mutation.Question(); ok {
+		_spec.SetField(quizquestion.FieldQuestion, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(quizquestion.FieldUpdatedAt, field.TypeTime, value)
+	if value, ok := _u.mutation.GoodAnswer(); ok {
+		_spec.SetField(quizquestion.FieldGoodAnswer, field.TypeString, value)
 	}
-	if _u.mutation.QuizCleared() {
+	if value, ok := _u.mutation.BadAnswer1(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer1, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BadAnswer2(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer2, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BadAnswer3(); ok {
+		_spec.SetField(quizquestion.FieldBadAnswer3, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Category(); ok {
+		_spec.SetField(quizquestion.FieldCategory, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Difficulty(); ok {
+		_spec.SetField(quizquestion.FieldDifficulty, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AuthorID(); ok {
+		_spec.SetField(quizquestion.FieldAuthorID, field.TypeString, value)
+	}
+	if _u.mutation.AuthorIDCleared() {
+		_spec.ClearField(quizquestion.FieldAuthorID, field.TypeString)
+	}
+	if value, ok := _u.mutation.GuildID(); ok {
+		_spec.SetField(quizquestion.FieldGuildID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LastUsedAt(); ok {
+		_spec.SetField(quizquestion.FieldLastUsedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastUsedAtCleared() {
+		_spec.ClearField(quizquestion.FieldLastUsedAt, field.TypeTime)
+	}
+	if _u.mutation.ActiveQuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizquestion.QuizTable,
-			Columns: []string{quizquestion.QuizColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.QuizIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   quizquestion.QuizTable,
-			Columns: []string{quizquestion.QuizColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quiz.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AnswersCleared() {
+	if nodes := _u.mutation.RemovedActiveQuizzesIDs(); len(nodes) > 0 && !_u.mutation.ActiveQuizzesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAnswersIDs(); len(nodes) > 0 && !_u.mutation.AnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AnswersIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.AnswersTable,
-			Columns: []string{quizquestion.AnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizanswer.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.UserAnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedUserAnswersIDs(); len(nodes) > 0 && !_u.mutation.UserAnswersCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -655,15 +769,15 @@ func (_u *QuizQuestionUpdateOne) sqlSave(ctx context.Context) (_node *QuizQuesti
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.UserAnswersIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ActiveQuizzesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   quizquestion.UserAnswersTable,
-			Columns: []string{quizquestion.UserAnswersColumn},
+			Table:   quizquestion.ActiveQuizzesTable,
+			Columns: []string{quizquestion.ActiveQuizzesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(quizuseranswer.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(activequiz.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

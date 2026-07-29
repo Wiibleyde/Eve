@@ -11,13 +11,20 @@ import (
 
 	"Eve/internal/database/ent/migrate"
 
+	"Eve/internal/database/ent/activemotus"
+	"Eve/internal/database/ent/activequiz"
 	"Eve/internal/database/ent/birthday"
 	"Eve/internal/database/ent/guildconfig"
-	"Eve/internal/database/ent/quiz"
-	"Eve/internal/database/ent/quizanswer"
+	"Eve/internal/database/ent/lotogame"
+	"Eve/internal/database/ent/lotoplayer"
+	"Eve/internal/database/ent/lotoprize"
+	"Eve/internal/database/ent/lototicket"
+	"Eve/internal/database/ent/mpthread"
 	"Eve/internal/database/ent/quizquestion"
+	"Eve/internal/database/ent/quizstat"
 	"Eve/internal/database/ent/quizuseranswer"
 	"Eve/internal/database/ent/quote"
+	"Eve/internal/database/ent/stream"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -30,20 +37,34 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// ActiveMotus is the client for interacting with the ActiveMotus builders.
+	ActiveMotus *ActiveMotusClient
+	// ActiveQuiz is the client for interacting with the ActiveQuiz builders.
+	ActiveQuiz *ActiveQuizClient
 	// Birthday is the client for interacting with the Birthday builders.
 	Birthday *BirthdayClient
 	// GuildConfig is the client for interacting with the GuildConfig builders.
 	GuildConfig *GuildConfigClient
-	// Quiz is the client for interacting with the Quiz builders.
-	Quiz *QuizClient
-	// QuizAnswer is the client for interacting with the QuizAnswer builders.
-	QuizAnswer *QuizAnswerClient
+	// LotoGame is the client for interacting with the LotoGame builders.
+	LotoGame *LotoGameClient
+	// LotoPlayer is the client for interacting with the LotoPlayer builders.
+	LotoPlayer *LotoPlayerClient
+	// LotoPrize is the client for interacting with the LotoPrize builders.
+	LotoPrize *LotoPrizeClient
+	// LotoTicket is the client for interacting with the LotoTicket builders.
+	LotoTicket *LotoTicketClient
+	// MPThread is the client for interacting with the MPThread builders.
+	MPThread *MPThreadClient
 	// QuizQuestion is the client for interacting with the QuizQuestion builders.
 	QuizQuestion *QuizQuestionClient
+	// QuizStat is the client for interacting with the QuizStat builders.
+	QuizStat *QuizStatClient
 	// QuizUserAnswer is the client for interacting with the QuizUserAnswer builders.
 	QuizUserAnswer *QuizUserAnswerClient
 	// Quote is the client for interacting with the Quote builders.
 	Quote *QuoteClient
+	// Stream is the client for interacting with the Stream builders.
+	Stream *StreamClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -55,13 +76,20 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.ActiveMotus = NewActiveMotusClient(c.config)
+	c.ActiveQuiz = NewActiveQuizClient(c.config)
 	c.Birthday = NewBirthdayClient(c.config)
 	c.GuildConfig = NewGuildConfigClient(c.config)
-	c.Quiz = NewQuizClient(c.config)
-	c.QuizAnswer = NewQuizAnswerClient(c.config)
+	c.LotoGame = NewLotoGameClient(c.config)
+	c.LotoPlayer = NewLotoPlayerClient(c.config)
+	c.LotoPrize = NewLotoPrizeClient(c.config)
+	c.LotoTicket = NewLotoTicketClient(c.config)
+	c.MPThread = NewMPThreadClient(c.config)
 	c.QuizQuestion = NewQuizQuestionClient(c.config)
+	c.QuizStat = NewQuizStatClient(c.config)
 	c.QuizUserAnswer = NewQuizUserAnswerClient(c.config)
 	c.Quote = NewQuoteClient(c.config)
+	c.Stream = NewStreamClient(c.config)
 }
 
 type (
@@ -154,13 +182,20 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		ActiveMotus:    NewActiveMotusClient(cfg),
+		ActiveQuiz:     NewActiveQuizClient(cfg),
 		Birthday:       NewBirthdayClient(cfg),
 		GuildConfig:    NewGuildConfigClient(cfg),
-		Quiz:           NewQuizClient(cfg),
-		QuizAnswer:     NewQuizAnswerClient(cfg),
+		LotoGame:       NewLotoGameClient(cfg),
+		LotoPlayer:     NewLotoPlayerClient(cfg),
+		LotoPrize:      NewLotoPrizeClient(cfg),
+		LotoTicket:     NewLotoTicketClient(cfg),
+		MPThread:       NewMPThreadClient(cfg),
 		QuizQuestion:   NewQuizQuestionClient(cfg),
+		QuizStat:       NewQuizStatClient(cfg),
 		QuizUserAnswer: NewQuizUserAnswerClient(cfg),
 		Quote:          NewQuoteClient(cfg),
+		Stream:         NewStreamClient(cfg),
 	}, nil
 }
 
@@ -180,20 +215,27 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		ActiveMotus:    NewActiveMotusClient(cfg),
+		ActiveQuiz:     NewActiveQuizClient(cfg),
 		Birthday:       NewBirthdayClient(cfg),
 		GuildConfig:    NewGuildConfigClient(cfg),
-		Quiz:           NewQuizClient(cfg),
-		QuizAnswer:     NewQuizAnswerClient(cfg),
+		LotoGame:       NewLotoGameClient(cfg),
+		LotoPlayer:     NewLotoPlayerClient(cfg),
+		LotoPrize:      NewLotoPrizeClient(cfg),
+		LotoTicket:     NewLotoTicketClient(cfg),
+		MPThread:       NewMPThreadClient(cfg),
 		QuizQuestion:   NewQuizQuestionClient(cfg),
+		QuizStat:       NewQuizStatClient(cfg),
 		QuizUserAnswer: NewQuizUserAnswerClient(cfg),
 		Quote:          NewQuoteClient(cfg),
+		Stream:         NewStreamClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Birthday.
+//		ActiveMotus.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -216,8 +258,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Birthday, c.GuildConfig, c.Quiz, c.QuizAnswer, c.QuizQuestion,
-		c.QuizUserAnswer, c.Quote,
+		c.ActiveMotus, c.ActiveQuiz, c.Birthday, c.GuildConfig, c.LotoGame,
+		c.LotoPlayer, c.LotoPrize, c.LotoTicket, c.MPThread, c.QuizQuestion,
+		c.QuizStat, c.QuizUserAnswer, c.Quote, c.Stream,
 	} {
 		n.Use(hooks...)
 	}
@@ -227,8 +270,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Birthday, c.GuildConfig, c.Quiz, c.QuizAnswer, c.QuizQuestion,
-		c.QuizUserAnswer, c.Quote,
+		c.ActiveMotus, c.ActiveQuiz, c.Birthday, c.GuildConfig, c.LotoGame,
+		c.LotoPlayer, c.LotoPrize, c.LotoTicket, c.MPThread, c.QuizQuestion,
+		c.QuizStat, c.QuizUserAnswer, c.Quote, c.Stream,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -237,22 +281,334 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *ActiveMotusMutation:
+		return c.ActiveMotus.mutate(ctx, m)
+	case *ActiveQuizMutation:
+		return c.ActiveQuiz.mutate(ctx, m)
 	case *BirthdayMutation:
 		return c.Birthday.mutate(ctx, m)
 	case *GuildConfigMutation:
 		return c.GuildConfig.mutate(ctx, m)
-	case *QuizMutation:
-		return c.Quiz.mutate(ctx, m)
-	case *QuizAnswerMutation:
-		return c.QuizAnswer.mutate(ctx, m)
+	case *LotoGameMutation:
+		return c.LotoGame.mutate(ctx, m)
+	case *LotoPlayerMutation:
+		return c.LotoPlayer.mutate(ctx, m)
+	case *LotoPrizeMutation:
+		return c.LotoPrize.mutate(ctx, m)
+	case *LotoTicketMutation:
+		return c.LotoTicket.mutate(ctx, m)
+	case *MPThreadMutation:
+		return c.MPThread.mutate(ctx, m)
 	case *QuizQuestionMutation:
 		return c.QuizQuestion.mutate(ctx, m)
+	case *QuizStatMutation:
+		return c.QuizStat.mutate(ctx, m)
 	case *QuizUserAnswerMutation:
 		return c.QuizUserAnswer.mutate(ctx, m)
 	case *QuoteMutation:
 		return c.Quote.mutate(ctx, m)
+	case *StreamMutation:
+		return c.Stream.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// ActiveMotusClient is a client for the ActiveMotus schema.
+type ActiveMotusClient struct {
+	config
+}
+
+// NewActiveMotusClient returns a client for the ActiveMotus from the given config.
+func NewActiveMotusClient(c config) *ActiveMotusClient {
+	return &ActiveMotusClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `activemotus.Hooks(f(g(h())))`.
+func (c *ActiveMotusClient) Use(hooks ...Hook) {
+	c.hooks.ActiveMotus = append(c.hooks.ActiveMotus, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `activemotus.Intercept(f(g(h())))`.
+func (c *ActiveMotusClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ActiveMotus = append(c.inters.ActiveMotus, interceptors...)
+}
+
+// Create returns a builder for creating a ActiveMotus entity.
+func (c *ActiveMotusClient) Create() *ActiveMotusCreate {
+	mutation := newActiveMotusMutation(c.config, OpCreate)
+	return &ActiveMotusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ActiveMotus entities.
+func (c *ActiveMotusClient) CreateBulk(builders ...*ActiveMotusCreate) *ActiveMotusCreateBulk {
+	return &ActiveMotusCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ActiveMotusClient) MapCreateBulk(slice any, setFunc func(*ActiveMotusCreate, int)) *ActiveMotusCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ActiveMotusCreateBulk{err: fmt.Errorf("calling to ActiveMotusClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ActiveMotusCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ActiveMotusCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ActiveMotus.
+func (c *ActiveMotusClient) Update() *ActiveMotusUpdate {
+	mutation := newActiveMotusMutation(c.config, OpUpdate)
+	return &ActiveMotusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActiveMotusClient) UpdateOne(_m *ActiveMotus) *ActiveMotusUpdateOne {
+	mutation := newActiveMotusMutation(c.config, OpUpdateOne, withActiveMotus(_m))
+	return &ActiveMotusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActiveMotusClient) UpdateOneID(id string) *ActiveMotusUpdateOne {
+	mutation := newActiveMotusMutation(c.config, OpUpdateOne, withActiveMotusID(id))
+	return &ActiveMotusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ActiveMotus.
+func (c *ActiveMotusClient) Delete() *ActiveMotusDelete {
+	mutation := newActiveMotusMutation(c.config, OpDelete)
+	return &ActiveMotusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ActiveMotusClient) DeleteOne(_m *ActiveMotus) *ActiveMotusDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ActiveMotusClient) DeleteOneID(id string) *ActiveMotusDeleteOne {
+	builder := c.Delete().Where(activemotus.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ActiveMotusDeleteOne{builder}
+}
+
+// Query returns a query builder for ActiveMotus.
+func (c *ActiveMotusClient) Query() *ActiveMotusQuery {
+	return &ActiveMotusQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeActiveMotus},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ActiveMotus entity by its id.
+func (c *ActiveMotusClient) Get(ctx context.Context, id string) (*ActiveMotus, error) {
+	return c.Query().Where(activemotus.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActiveMotusClient) GetX(ctx context.Context, id string) *ActiveMotus {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ActiveMotusClient) Hooks() []Hook {
+	return c.hooks.ActiveMotus
+}
+
+// Interceptors returns the client interceptors.
+func (c *ActiveMotusClient) Interceptors() []Interceptor {
+	return c.inters.ActiveMotus
+}
+
+func (c *ActiveMotusClient) mutate(ctx context.Context, m *ActiveMotusMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ActiveMotusCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ActiveMotusUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ActiveMotusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ActiveMotusDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ActiveMotus mutation op: %q", m.Op())
+	}
+}
+
+// ActiveQuizClient is a client for the ActiveQuiz schema.
+type ActiveQuizClient struct {
+	config
+}
+
+// NewActiveQuizClient returns a client for the ActiveQuiz from the given config.
+func NewActiveQuizClient(c config) *ActiveQuizClient {
+	return &ActiveQuizClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `activequiz.Hooks(f(g(h())))`.
+func (c *ActiveQuizClient) Use(hooks ...Hook) {
+	c.hooks.ActiveQuiz = append(c.hooks.ActiveQuiz, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `activequiz.Intercept(f(g(h())))`.
+func (c *ActiveQuizClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ActiveQuiz = append(c.inters.ActiveQuiz, interceptors...)
+}
+
+// Create returns a builder for creating a ActiveQuiz entity.
+func (c *ActiveQuizClient) Create() *ActiveQuizCreate {
+	mutation := newActiveQuizMutation(c.config, OpCreate)
+	return &ActiveQuizCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ActiveQuiz entities.
+func (c *ActiveQuizClient) CreateBulk(builders ...*ActiveQuizCreate) *ActiveQuizCreateBulk {
+	return &ActiveQuizCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ActiveQuizClient) MapCreateBulk(slice any, setFunc func(*ActiveQuizCreate, int)) *ActiveQuizCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ActiveQuizCreateBulk{err: fmt.Errorf("calling to ActiveQuizClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ActiveQuizCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ActiveQuizCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ActiveQuiz.
+func (c *ActiveQuizClient) Update() *ActiveQuizUpdate {
+	mutation := newActiveQuizMutation(c.config, OpUpdate)
+	return &ActiveQuizUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActiveQuizClient) UpdateOne(_m *ActiveQuiz) *ActiveQuizUpdateOne {
+	mutation := newActiveQuizMutation(c.config, OpUpdateOne, withActiveQuiz(_m))
+	return &ActiveQuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActiveQuizClient) UpdateOneID(id string) *ActiveQuizUpdateOne {
+	mutation := newActiveQuizMutation(c.config, OpUpdateOne, withActiveQuizID(id))
+	return &ActiveQuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ActiveQuiz.
+func (c *ActiveQuizClient) Delete() *ActiveQuizDelete {
+	mutation := newActiveQuizMutation(c.config, OpDelete)
+	return &ActiveQuizDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ActiveQuizClient) DeleteOne(_m *ActiveQuiz) *ActiveQuizDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ActiveQuizClient) DeleteOneID(id string) *ActiveQuizDeleteOne {
+	builder := c.Delete().Where(activequiz.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ActiveQuizDeleteOne{builder}
+}
+
+// Query returns a query builder for ActiveQuiz.
+func (c *ActiveQuizClient) Query() *ActiveQuizQuery {
+	return &ActiveQuizQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeActiveQuiz},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ActiveQuiz entity by its id.
+func (c *ActiveQuizClient) Get(ctx context.Context, id string) (*ActiveQuiz, error) {
+	return c.Query().Where(activequiz.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActiveQuizClient) GetX(ctx context.Context, id string) *ActiveQuiz {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryQuestion queries the question edge of a ActiveQuiz.
+func (c *ActiveQuizClient) QueryQuestion(_m *ActiveQuiz) *QuizQuestionQuery {
+	query := (&QuizQuestionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activequiz.Table, activequiz.FieldID, id),
+			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, activequiz.QuestionTable, activequiz.QuestionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserAnswers queries the user_answers edge of a ActiveQuiz.
+func (c *ActiveQuizClient) QueryUserAnswers(_m *ActiveQuiz) *QuizUserAnswerQuery {
+	query := (&QuizUserAnswerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activequiz.Table, activequiz.FieldID, id),
+			sqlgraph.To(quizuseranswer.Table, quizuseranswer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, activequiz.UserAnswersTable, activequiz.UserAnswersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ActiveQuizClient) Hooks() []Hook {
+	return c.hooks.ActiveQuiz
+}
+
+// Interceptors returns the client interceptors.
+func (c *ActiveQuizClient) Interceptors() []Interceptor {
+	return c.inters.ActiveQuiz
+}
+
+func (c *ActiveQuizClient) mutate(ctx context.Context, m *ActiveQuizMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ActiveQuizCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ActiveQuizUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ActiveQuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ActiveQuizDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ActiveQuiz mutation op: %q", m.Op())
 	}
 }
 
@@ -522,107 +878,107 @@ func (c *GuildConfigClient) mutate(ctx context.Context, m *GuildConfigMutation) 
 	}
 }
 
-// QuizClient is a client for the Quiz schema.
-type QuizClient struct {
+// LotoGameClient is a client for the LotoGame schema.
+type LotoGameClient struct {
 	config
 }
 
-// NewQuizClient returns a client for the Quiz from the given config.
-func NewQuizClient(c config) *QuizClient {
-	return &QuizClient{config: c}
+// NewLotoGameClient returns a client for the LotoGame from the given config.
+func NewLotoGameClient(c config) *LotoGameClient {
+	return &LotoGameClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `quiz.Hooks(f(g(h())))`.
-func (c *QuizClient) Use(hooks ...Hook) {
-	c.hooks.Quiz = append(c.hooks.Quiz, hooks...)
+// A call to `Use(f, g, h)` equals to `lotogame.Hooks(f(g(h())))`.
+func (c *LotoGameClient) Use(hooks ...Hook) {
+	c.hooks.LotoGame = append(c.hooks.LotoGame, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `quiz.Intercept(f(g(h())))`.
-func (c *QuizClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Quiz = append(c.inters.Quiz, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `lotogame.Intercept(f(g(h())))`.
+func (c *LotoGameClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LotoGame = append(c.inters.LotoGame, interceptors...)
 }
 
-// Create returns a builder for creating a Quiz entity.
-func (c *QuizClient) Create() *QuizCreate {
-	mutation := newQuizMutation(c.config, OpCreate)
-	return &QuizCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a LotoGame entity.
+func (c *LotoGameClient) Create() *LotoGameCreate {
+	mutation := newLotoGameMutation(c.config, OpCreate)
+	return &LotoGameCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Quiz entities.
-func (c *QuizClient) CreateBulk(builders ...*QuizCreate) *QuizCreateBulk {
-	return &QuizCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of LotoGame entities.
+func (c *LotoGameClient) CreateBulk(builders ...*LotoGameCreate) *LotoGameCreateBulk {
+	return &LotoGameCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *QuizClient) MapCreateBulk(slice any, setFunc func(*QuizCreate, int)) *QuizCreateBulk {
+func (c *LotoGameClient) MapCreateBulk(slice any, setFunc func(*LotoGameCreate, int)) *LotoGameCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &QuizCreateBulk{err: fmt.Errorf("calling to QuizClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &LotoGameCreateBulk{err: fmt.Errorf("calling to LotoGameClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*QuizCreate, rv.Len())
+	builders := make([]*LotoGameCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &QuizCreateBulk{config: c.config, builders: builders}
+	return &LotoGameCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Quiz.
-func (c *QuizClient) Update() *QuizUpdate {
-	mutation := newQuizMutation(c.config, OpUpdate)
-	return &QuizUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for LotoGame.
+func (c *LotoGameClient) Update() *LotoGameUpdate {
+	mutation := newLotoGameMutation(c.config, OpUpdate)
+	return &LotoGameUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *QuizClient) UpdateOne(_m *Quiz) *QuizUpdateOne {
-	mutation := newQuizMutation(c.config, OpUpdateOne, withQuiz(_m))
-	return &QuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LotoGameClient) UpdateOne(_m *LotoGame) *LotoGameUpdateOne {
+	mutation := newLotoGameMutation(c.config, OpUpdateOne, withLotoGame(_m))
+	return &LotoGameUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuizClient) UpdateOneID(id string) *QuizUpdateOne {
-	mutation := newQuizMutation(c.config, OpUpdateOne, withQuizID(id))
-	return &QuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LotoGameClient) UpdateOneID(id string) *LotoGameUpdateOne {
+	mutation := newLotoGameMutation(c.config, OpUpdateOne, withLotoGameID(id))
+	return &LotoGameUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Quiz.
-func (c *QuizClient) Delete() *QuizDelete {
-	mutation := newQuizMutation(c.config, OpDelete)
-	return &QuizDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for LotoGame.
+func (c *LotoGameClient) Delete() *LotoGameDelete {
+	mutation := newLotoGameMutation(c.config, OpDelete)
+	return &LotoGameDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *QuizClient) DeleteOne(_m *Quiz) *QuizDeleteOne {
+func (c *LotoGameClient) DeleteOne(_m *LotoGame) *LotoGameDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *QuizClient) DeleteOneID(id string) *QuizDeleteOne {
-	builder := c.Delete().Where(quiz.ID(id))
+func (c *LotoGameClient) DeleteOneID(id string) *LotoGameDeleteOne {
+	builder := c.Delete().Where(lotogame.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &QuizDeleteOne{builder}
+	return &LotoGameDeleteOne{builder}
 }
 
-// Query returns a query builder for Quiz.
-func (c *QuizClient) Query() *QuizQuery {
-	return &QuizQuery{
+// Query returns a query builder for LotoGame.
+func (c *LotoGameClient) Query() *LotoGameQuery {
+	return &LotoGameQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeQuiz},
+		ctx:    &QueryContext{Type: TypeLotoGame},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Quiz entity by its id.
-func (c *QuizClient) Get(ctx context.Context, id string) (*Quiz, error) {
-	return c.Query().Where(quiz.ID(id)).Only(ctx)
+// Get returns a LotoGame entity by its id.
+func (c *LotoGameClient) Get(ctx context.Context, id string) (*LotoGame, error) {
+	return c.Query().Where(lotogame.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuizClient) GetX(ctx context.Context, id string) *Quiz {
+func (c *LotoGameClient) GetX(ctx context.Context, id string) *LotoGame {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -630,15 +986,47 @@ func (c *QuizClient) GetX(ctx context.Context, id string) *Quiz {
 	return obj
 }
 
-// QueryQuestions queries the questions edge of a Quiz.
-func (c *QuizClient) QueryQuestions(_m *Quiz) *QuizQuestionQuery {
-	query := (&QuizQuestionClient{config: c.config}).Query()
+// QueryPlayers queries the players edge of a LotoGame.
+func (c *LotoGameClient) QueryPlayers(_m *LotoGame) *LotoPlayerQuery {
+	query := (&LotoPlayerClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(quiz.Table, quiz.FieldID, id),
-			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, quiz.QuestionsTable, quiz.QuestionsColumn),
+			sqlgraph.From(lotogame.Table, lotogame.FieldID, id),
+			sqlgraph.To(lotoplayer.Table, lotoplayer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lotogame.PlayersTable, lotogame.PlayersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTickets queries the tickets edge of a LotoGame.
+func (c *LotoGameClient) QueryTickets(_m *LotoGame) *LotoTicketQuery {
+	query := (&LotoTicketClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lotogame.Table, lotogame.FieldID, id),
+			sqlgraph.To(lototicket.Table, lototicket.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lotogame.TicketsTable, lotogame.TicketsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrizes queries the prizes edge of a LotoGame.
+func (c *LotoGameClient) QueryPrizes(_m *LotoGame) *LotoPrizeQuery {
+	query := (&LotoPrizeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lotogame.Table, lotogame.FieldID, id),
+			sqlgraph.To(lotoprize.Table, lotoprize.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lotogame.PrizesTable, lotogame.PrizesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -647,131 +1035,131 @@ func (c *QuizClient) QueryQuestions(_m *Quiz) *QuizQuestionQuery {
 }
 
 // Hooks returns the client hooks.
-func (c *QuizClient) Hooks() []Hook {
-	return c.hooks.Quiz
+func (c *LotoGameClient) Hooks() []Hook {
+	return c.hooks.LotoGame
 }
 
 // Interceptors returns the client interceptors.
-func (c *QuizClient) Interceptors() []Interceptor {
-	return c.inters.Quiz
+func (c *LotoGameClient) Interceptors() []Interceptor {
+	return c.inters.LotoGame
 }
 
-func (c *QuizClient) mutate(ctx context.Context, m *QuizMutation) (Value, error) {
+func (c *LotoGameClient) mutate(ctx context.Context, m *LotoGameMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&QuizCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoGameCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&QuizUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoGameUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&QuizUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoGameUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&QuizDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&LotoGameDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Quiz mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown LotoGame mutation op: %q", m.Op())
 	}
 }
 
-// QuizAnswerClient is a client for the QuizAnswer schema.
-type QuizAnswerClient struct {
+// LotoPlayerClient is a client for the LotoPlayer schema.
+type LotoPlayerClient struct {
 	config
 }
 
-// NewQuizAnswerClient returns a client for the QuizAnswer from the given config.
-func NewQuizAnswerClient(c config) *QuizAnswerClient {
-	return &QuizAnswerClient{config: c}
+// NewLotoPlayerClient returns a client for the LotoPlayer from the given config.
+func NewLotoPlayerClient(c config) *LotoPlayerClient {
+	return &LotoPlayerClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `quizanswer.Hooks(f(g(h())))`.
-func (c *QuizAnswerClient) Use(hooks ...Hook) {
-	c.hooks.QuizAnswer = append(c.hooks.QuizAnswer, hooks...)
+// A call to `Use(f, g, h)` equals to `lotoplayer.Hooks(f(g(h())))`.
+func (c *LotoPlayerClient) Use(hooks ...Hook) {
+	c.hooks.LotoPlayer = append(c.hooks.LotoPlayer, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `quizanswer.Intercept(f(g(h())))`.
-func (c *QuizAnswerClient) Intercept(interceptors ...Interceptor) {
-	c.inters.QuizAnswer = append(c.inters.QuizAnswer, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `lotoplayer.Intercept(f(g(h())))`.
+func (c *LotoPlayerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LotoPlayer = append(c.inters.LotoPlayer, interceptors...)
 }
 
-// Create returns a builder for creating a QuizAnswer entity.
-func (c *QuizAnswerClient) Create() *QuizAnswerCreate {
-	mutation := newQuizAnswerMutation(c.config, OpCreate)
-	return &QuizAnswerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a LotoPlayer entity.
+func (c *LotoPlayerClient) Create() *LotoPlayerCreate {
+	mutation := newLotoPlayerMutation(c.config, OpCreate)
+	return &LotoPlayerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of QuizAnswer entities.
-func (c *QuizAnswerClient) CreateBulk(builders ...*QuizAnswerCreate) *QuizAnswerCreateBulk {
-	return &QuizAnswerCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of LotoPlayer entities.
+func (c *LotoPlayerClient) CreateBulk(builders ...*LotoPlayerCreate) *LotoPlayerCreateBulk {
+	return &LotoPlayerCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *QuizAnswerClient) MapCreateBulk(slice any, setFunc func(*QuizAnswerCreate, int)) *QuizAnswerCreateBulk {
+func (c *LotoPlayerClient) MapCreateBulk(slice any, setFunc func(*LotoPlayerCreate, int)) *LotoPlayerCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &QuizAnswerCreateBulk{err: fmt.Errorf("calling to QuizAnswerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &LotoPlayerCreateBulk{err: fmt.Errorf("calling to LotoPlayerClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*QuizAnswerCreate, rv.Len())
+	builders := make([]*LotoPlayerCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &QuizAnswerCreateBulk{config: c.config, builders: builders}
+	return &LotoPlayerCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for QuizAnswer.
-func (c *QuizAnswerClient) Update() *QuizAnswerUpdate {
-	mutation := newQuizAnswerMutation(c.config, OpUpdate)
-	return &QuizAnswerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for LotoPlayer.
+func (c *LotoPlayerClient) Update() *LotoPlayerUpdate {
+	mutation := newLotoPlayerMutation(c.config, OpUpdate)
+	return &LotoPlayerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *QuizAnswerClient) UpdateOne(_m *QuizAnswer) *QuizAnswerUpdateOne {
-	mutation := newQuizAnswerMutation(c.config, OpUpdateOne, withQuizAnswer(_m))
-	return &QuizAnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LotoPlayerClient) UpdateOne(_m *LotoPlayer) *LotoPlayerUpdateOne {
+	mutation := newLotoPlayerMutation(c.config, OpUpdateOne, withLotoPlayer(_m))
+	return &LotoPlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuizAnswerClient) UpdateOneID(id string) *QuizAnswerUpdateOne {
-	mutation := newQuizAnswerMutation(c.config, OpUpdateOne, withQuizAnswerID(id))
-	return &QuizAnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LotoPlayerClient) UpdateOneID(id string) *LotoPlayerUpdateOne {
+	mutation := newLotoPlayerMutation(c.config, OpUpdateOne, withLotoPlayerID(id))
+	return &LotoPlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for QuizAnswer.
-func (c *QuizAnswerClient) Delete() *QuizAnswerDelete {
-	mutation := newQuizAnswerMutation(c.config, OpDelete)
-	return &QuizAnswerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for LotoPlayer.
+func (c *LotoPlayerClient) Delete() *LotoPlayerDelete {
+	mutation := newLotoPlayerMutation(c.config, OpDelete)
+	return &LotoPlayerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *QuizAnswerClient) DeleteOne(_m *QuizAnswer) *QuizAnswerDeleteOne {
+func (c *LotoPlayerClient) DeleteOne(_m *LotoPlayer) *LotoPlayerDeleteOne {
 	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *QuizAnswerClient) DeleteOneID(id string) *QuizAnswerDeleteOne {
-	builder := c.Delete().Where(quizanswer.ID(id))
+func (c *LotoPlayerClient) DeleteOneID(id string) *LotoPlayerDeleteOne {
+	builder := c.Delete().Where(lotoplayer.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &QuizAnswerDeleteOne{builder}
+	return &LotoPlayerDeleteOne{builder}
 }
 
-// Query returns a query builder for QuizAnswer.
-func (c *QuizAnswerClient) Query() *QuizAnswerQuery {
-	return &QuizAnswerQuery{
+// Query returns a query builder for LotoPlayer.
+func (c *LotoPlayerClient) Query() *LotoPlayerQuery {
+	return &LotoPlayerQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeQuizAnswer},
+		ctx:    &QueryContext{Type: TypeLotoPlayer},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a QuizAnswer entity by its id.
-func (c *QuizAnswerClient) Get(ctx context.Context, id string) (*QuizAnswer, error) {
-	return c.Query().Where(quizanswer.ID(id)).Only(ctx)
+// Get returns a LotoPlayer entity by its id.
+func (c *LotoPlayerClient) Get(ctx context.Context, id string) (*LotoPlayer, error) {
+	return c.Query().Where(lotoplayer.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuizAnswerClient) GetX(ctx context.Context, id string) *QuizAnswer {
+func (c *LotoPlayerClient) GetX(ctx context.Context, id string) *LotoPlayer {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -779,15 +1167,15 @@ func (c *QuizAnswerClient) GetX(ctx context.Context, id string) *QuizAnswer {
 	return obj
 }
 
-// QueryQuestion queries the question edge of a QuizAnswer.
-func (c *QuizAnswerClient) QueryQuestion(_m *QuizAnswer) *QuizQuestionQuery {
-	query := (&QuizQuestionClient{config: c.config}).Query()
+// QueryGame queries the game edge of a LotoPlayer.
+func (c *LotoPlayerClient) QueryGame(_m *LotoPlayer) *LotoGameQuery {
+	query := (&LotoGameClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(quizanswer.Table, quizanswer.FieldID, id),
-			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizanswer.QuestionTable, quizanswer.QuestionColumn),
+			sqlgraph.From(lotoplayer.Table, lotoplayer.FieldID, id),
+			sqlgraph.To(lotogame.Table, lotogame.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lotoplayer.GameTable, lotoplayer.GameColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -795,15 +1183,31 @@ func (c *QuizAnswerClient) QueryQuestion(_m *QuizAnswer) *QuizQuestionQuery {
 	return query
 }
 
-// QueryUserAnswers queries the user_answers edge of a QuizAnswer.
-func (c *QuizAnswerClient) QueryUserAnswers(_m *QuizAnswer) *QuizUserAnswerQuery {
-	query := (&QuizUserAnswerClient{config: c.config}).Query()
+// QueryTickets queries the tickets edge of a LotoPlayer.
+func (c *LotoPlayerClient) QueryTickets(_m *LotoPlayer) *LotoTicketQuery {
+	query := (&LotoTicketClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(quizanswer.Table, quizanswer.FieldID, id),
-			sqlgraph.To(quizuseranswer.Table, quizuseranswer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, quizanswer.UserAnswersTable, quizanswer.UserAnswersColumn),
+			sqlgraph.From(lotoplayer.Table, lotoplayer.FieldID, id),
+			sqlgraph.To(lototicket.Table, lototicket.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lotoplayer.TicketsTable, lotoplayer.TicketsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWonPrizes queries the won_prizes edge of a LotoPlayer.
+func (c *LotoPlayerClient) QueryWonPrizes(_m *LotoPlayer) *LotoPrizeQuery {
+	query := (&LotoPrizeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lotoplayer.Table, lotoplayer.FieldID, id),
+			sqlgraph.To(lotoprize.Table, lotoprize.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lotoplayer.WonPrizesTable, lotoplayer.WonPrizesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -812,27 +1216,490 @@ func (c *QuizAnswerClient) QueryUserAnswers(_m *QuizAnswer) *QuizUserAnswerQuery
 }
 
 // Hooks returns the client hooks.
-func (c *QuizAnswerClient) Hooks() []Hook {
-	return c.hooks.QuizAnswer
+func (c *LotoPlayerClient) Hooks() []Hook {
+	return c.hooks.LotoPlayer
 }
 
 // Interceptors returns the client interceptors.
-func (c *QuizAnswerClient) Interceptors() []Interceptor {
-	return c.inters.QuizAnswer
+func (c *LotoPlayerClient) Interceptors() []Interceptor {
+	return c.inters.LotoPlayer
 }
 
-func (c *QuizAnswerClient) mutate(ctx context.Context, m *QuizAnswerMutation) (Value, error) {
+func (c *LotoPlayerClient) mutate(ctx context.Context, m *LotoPlayerMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&QuizAnswerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoPlayerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&QuizAnswerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoPlayerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&QuizAnswerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&LotoPlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&QuizAnswerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&LotoPlayerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown QuizAnswer mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown LotoPlayer mutation op: %q", m.Op())
+	}
+}
+
+// LotoPrizeClient is a client for the LotoPrize schema.
+type LotoPrizeClient struct {
+	config
+}
+
+// NewLotoPrizeClient returns a client for the LotoPrize from the given config.
+func NewLotoPrizeClient(c config) *LotoPrizeClient {
+	return &LotoPrizeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lotoprize.Hooks(f(g(h())))`.
+func (c *LotoPrizeClient) Use(hooks ...Hook) {
+	c.hooks.LotoPrize = append(c.hooks.LotoPrize, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lotoprize.Intercept(f(g(h())))`.
+func (c *LotoPrizeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LotoPrize = append(c.inters.LotoPrize, interceptors...)
+}
+
+// Create returns a builder for creating a LotoPrize entity.
+func (c *LotoPrizeClient) Create() *LotoPrizeCreate {
+	mutation := newLotoPrizeMutation(c.config, OpCreate)
+	return &LotoPrizeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LotoPrize entities.
+func (c *LotoPrizeClient) CreateBulk(builders ...*LotoPrizeCreate) *LotoPrizeCreateBulk {
+	return &LotoPrizeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LotoPrizeClient) MapCreateBulk(slice any, setFunc func(*LotoPrizeCreate, int)) *LotoPrizeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LotoPrizeCreateBulk{err: fmt.Errorf("calling to LotoPrizeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LotoPrizeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LotoPrizeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LotoPrize.
+func (c *LotoPrizeClient) Update() *LotoPrizeUpdate {
+	mutation := newLotoPrizeMutation(c.config, OpUpdate)
+	return &LotoPrizeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LotoPrizeClient) UpdateOne(_m *LotoPrize) *LotoPrizeUpdateOne {
+	mutation := newLotoPrizeMutation(c.config, OpUpdateOne, withLotoPrize(_m))
+	return &LotoPrizeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LotoPrizeClient) UpdateOneID(id string) *LotoPrizeUpdateOne {
+	mutation := newLotoPrizeMutation(c.config, OpUpdateOne, withLotoPrizeID(id))
+	return &LotoPrizeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LotoPrize.
+func (c *LotoPrizeClient) Delete() *LotoPrizeDelete {
+	mutation := newLotoPrizeMutation(c.config, OpDelete)
+	return &LotoPrizeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LotoPrizeClient) DeleteOne(_m *LotoPrize) *LotoPrizeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LotoPrizeClient) DeleteOneID(id string) *LotoPrizeDeleteOne {
+	builder := c.Delete().Where(lotoprize.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LotoPrizeDeleteOne{builder}
+}
+
+// Query returns a query builder for LotoPrize.
+func (c *LotoPrizeClient) Query() *LotoPrizeQuery {
+	return &LotoPrizeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLotoPrize},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LotoPrize entity by its id.
+func (c *LotoPrizeClient) Get(ctx context.Context, id string) (*LotoPrize, error) {
+	return c.Query().Where(lotoprize.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LotoPrizeClient) GetX(ctx context.Context, id string) *LotoPrize {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGame queries the game edge of a LotoPrize.
+func (c *LotoPrizeClient) QueryGame(_m *LotoPrize) *LotoGameQuery {
+	query := (&LotoGameClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lotoprize.Table, lotoprize.FieldID, id),
+			sqlgraph.To(lotogame.Table, lotogame.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lotoprize.GameTable, lotoprize.GameColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWinner queries the winner edge of a LotoPrize.
+func (c *LotoPrizeClient) QueryWinner(_m *LotoPrize) *LotoPlayerQuery {
+	query := (&LotoPlayerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lotoprize.Table, lotoprize.FieldID, id),
+			sqlgraph.To(lotoplayer.Table, lotoplayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lotoprize.WinnerTable, lotoprize.WinnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LotoPrizeClient) Hooks() []Hook {
+	return c.hooks.LotoPrize
+}
+
+// Interceptors returns the client interceptors.
+func (c *LotoPrizeClient) Interceptors() []Interceptor {
+	return c.inters.LotoPrize
+}
+
+func (c *LotoPrizeClient) mutate(ctx context.Context, m *LotoPrizeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LotoPrizeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LotoPrizeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LotoPrizeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LotoPrizeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LotoPrize mutation op: %q", m.Op())
+	}
+}
+
+// LotoTicketClient is a client for the LotoTicket schema.
+type LotoTicketClient struct {
+	config
+}
+
+// NewLotoTicketClient returns a client for the LotoTicket from the given config.
+func NewLotoTicketClient(c config) *LotoTicketClient {
+	return &LotoTicketClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lototicket.Hooks(f(g(h())))`.
+func (c *LotoTicketClient) Use(hooks ...Hook) {
+	c.hooks.LotoTicket = append(c.hooks.LotoTicket, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lototicket.Intercept(f(g(h())))`.
+func (c *LotoTicketClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LotoTicket = append(c.inters.LotoTicket, interceptors...)
+}
+
+// Create returns a builder for creating a LotoTicket entity.
+func (c *LotoTicketClient) Create() *LotoTicketCreate {
+	mutation := newLotoTicketMutation(c.config, OpCreate)
+	return &LotoTicketCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LotoTicket entities.
+func (c *LotoTicketClient) CreateBulk(builders ...*LotoTicketCreate) *LotoTicketCreateBulk {
+	return &LotoTicketCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LotoTicketClient) MapCreateBulk(slice any, setFunc func(*LotoTicketCreate, int)) *LotoTicketCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LotoTicketCreateBulk{err: fmt.Errorf("calling to LotoTicketClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LotoTicketCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LotoTicketCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LotoTicket.
+func (c *LotoTicketClient) Update() *LotoTicketUpdate {
+	mutation := newLotoTicketMutation(c.config, OpUpdate)
+	return &LotoTicketUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LotoTicketClient) UpdateOne(_m *LotoTicket) *LotoTicketUpdateOne {
+	mutation := newLotoTicketMutation(c.config, OpUpdateOne, withLotoTicket(_m))
+	return &LotoTicketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LotoTicketClient) UpdateOneID(id string) *LotoTicketUpdateOne {
+	mutation := newLotoTicketMutation(c.config, OpUpdateOne, withLotoTicketID(id))
+	return &LotoTicketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LotoTicket.
+func (c *LotoTicketClient) Delete() *LotoTicketDelete {
+	mutation := newLotoTicketMutation(c.config, OpDelete)
+	return &LotoTicketDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LotoTicketClient) DeleteOne(_m *LotoTicket) *LotoTicketDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LotoTicketClient) DeleteOneID(id string) *LotoTicketDeleteOne {
+	builder := c.Delete().Where(lototicket.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LotoTicketDeleteOne{builder}
+}
+
+// Query returns a query builder for LotoTicket.
+func (c *LotoTicketClient) Query() *LotoTicketQuery {
+	return &LotoTicketQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLotoTicket},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LotoTicket entity by its id.
+func (c *LotoTicketClient) Get(ctx context.Context, id string) (*LotoTicket, error) {
+	return c.Query().Where(lototicket.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LotoTicketClient) GetX(ctx context.Context, id string) *LotoTicket {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGame queries the game edge of a LotoTicket.
+func (c *LotoTicketClient) QueryGame(_m *LotoTicket) *LotoGameQuery {
+	query := (&LotoGameClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lototicket.Table, lototicket.FieldID, id),
+			sqlgraph.To(lotogame.Table, lotogame.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lototicket.GameTable, lototicket.GameColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPlayer queries the player edge of a LotoTicket.
+func (c *LotoTicketClient) QueryPlayer(_m *LotoTicket) *LotoPlayerQuery {
+	query := (&LotoPlayerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lototicket.Table, lototicket.FieldID, id),
+			sqlgraph.To(lotoplayer.Table, lotoplayer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lototicket.PlayerTable, lototicket.PlayerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LotoTicketClient) Hooks() []Hook {
+	return c.hooks.LotoTicket
+}
+
+// Interceptors returns the client interceptors.
+func (c *LotoTicketClient) Interceptors() []Interceptor {
+	return c.inters.LotoTicket
+}
+
+func (c *LotoTicketClient) mutate(ctx context.Context, m *LotoTicketMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LotoTicketCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LotoTicketUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LotoTicketUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LotoTicketDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LotoTicket mutation op: %q", m.Op())
+	}
+}
+
+// MPThreadClient is a client for the MPThread schema.
+type MPThreadClient struct {
+	config
+}
+
+// NewMPThreadClient returns a client for the MPThread from the given config.
+func NewMPThreadClient(c config) *MPThreadClient {
+	return &MPThreadClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mpthread.Hooks(f(g(h())))`.
+func (c *MPThreadClient) Use(hooks ...Hook) {
+	c.hooks.MPThread = append(c.hooks.MPThread, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mpthread.Intercept(f(g(h())))`.
+func (c *MPThreadClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MPThread = append(c.inters.MPThread, interceptors...)
+}
+
+// Create returns a builder for creating a MPThread entity.
+func (c *MPThreadClient) Create() *MPThreadCreate {
+	mutation := newMPThreadMutation(c.config, OpCreate)
+	return &MPThreadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MPThread entities.
+func (c *MPThreadClient) CreateBulk(builders ...*MPThreadCreate) *MPThreadCreateBulk {
+	return &MPThreadCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MPThreadClient) MapCreateBulk(slice any, setFunc func(*MPThreadCreate, int)) *MPThreadCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MPThreadCreateBulk{err: fmt.Errorf("calling to MPThreadClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MPThreadCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MPThreadCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MPThread.
+func (c *MPThreadClient) Update() *MPThreadUpdate {
+	mutation := newMPThreadMutation(c.config, OpUpdate)
+	return &MPThreadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MPThreadClient) UpdateOne(_m *MPThread) *MPThreadUpdateOne {
+	mutation := newMPThreadMutation(c.config, OpUpdateOne, withMPThread(_m))
+	return &MPThreadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MPThreadClient) UpdateOneID(id int) *MPThreadUpdateOne {
+	mutation := newMPThreadMutation(c.config, OpUpdateOne, withMPThreadID(id))
+	return &MPThreadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MPThread.
+func (c *MPThreadClient) Delete() *MPThreadDelete {
+	mutation := newMPThreadMutation(c.config, OpDelete)
+	return &MPThreadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MPThreadClient) DeleteOne(_m *MPThread) *MPThreadDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MPThreadClient) DeleteOneID(id int) *MPThreadDeleteOne {
+	builder := c.Delete().Where(mpthread.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MPThreadDeleteOne{builder}
+}
+
+// Query returns a query builder for MPThread.
+func (c *MPThreadClient) Query() *MPThreadQuery {
+	return &MPThreadQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMPThread},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MPThread entity by its id.
+func (c *MPThreadClient) Get(ctx context.Context, id int) (*MPThread, error) {
+	return c.Query().Where(mpthread.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MPThreadClient) GetX(ctx context.Context, id int) *MPThread {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MPThreadClient) Hooks() []Hook {
+	return c.hooks.MPThread
+}
+
+// Interceptors returns the client interceptors.
+func (c *MPThreadClient) Interceptors() []Interceptor {
+	return c.inters.MPThread
+}
+
+func (c *MPThreadClient) mutate(ctx context.Context, m *MPThreadMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MPThreadCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MPThreadUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MPThreadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MPThreadDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MPThread mutation op: %q", m.Op())
 	}
 }
 
@@ -944,47 +1811,15 @@ func (c *QuizQuestionClient) GetX(ctx context.Context, id string) *QuizQuestion 
 	return obj
 }
 
-// QueryQuiz queries the quiz edge of a QuizQuestion.
-func (c *QuizQuestionClient) QueryQuiz(_m *QuizQuestion) *QuizQuery {
-	query := (&QuizClient{config: c.config}).Query()
+// QueryActiveQuizzes queries the active_quizzes edge of a QuizQuestion.
+func (c *QuizQuestionClient) QueryActiveQuizzes(_m *QuizQuestion) *ActiveQuizQuery {
+	query := (&ActiveQuizClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(quizquestion.Table, quizquestion.FieldID, id),
-			sqlgraph.To(quiz.Table, quiz.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizquestion.QuizTable, quizquestion.QuizColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAnswers queries the answers edge of a QuizQuestion.
-func (c *QuizQuestionClient) QueryAnswers(_m *QuizQuestion) *QuizAnswerQuery {
-	query := (&QuizAnswerClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(quizquestion.Table, quizquestion.FieldID, id),
-			sqlgraph.To(quizanswer.Table, quizanswer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, quizquestion.AnswersTable, quizquestion.AnswersColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryUserAnswers queries the user_answers edge of a QuizQuestion.
-func (c *QuizQuestionClient) QueryUserAnswers(_m *QuizQuestion) *QuizUserAnswerQuery {
-	query := (&QuizUserAnswerClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(quizquestion.Table, quizquestion.FieldID, id),
-			sqlgraph.To(quizuseranswer.Table, quizuseranswer.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, quizquestion.UserAnswersTable, quizquestion.UserAnswersColumn),
+			sqlgraph.To(activequiz.Table, activequiz.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, quizquestion.ActiveQuizzesTable, quizquestion.ActiveQuizzesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1014,6 +1849,139 @@ func (c *QuizQuestionClient) mutate(ctx context.Context, m *QuizQuestionMutation
 		return (&QuizQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown QuizQuestion mutation op: %q", m.Op())
+	}
+}
+
+// QuizStatClient is a client for the QuizStat schema.
+type QuizStatClient struct {
+	config
+}
+
+// NewQuizStatClient returns a client for the QuizStat from the given config.
+func NewQuizStatClient(c config) *QuizStatClient {
+	return &QuizStatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `quizstat.Hooks(f(g(h())))`.
+func (c *QuizStatClient) Use(hooks ...Hook) {
+	c.hooks.QuizStat = append(c.hooks.QuizStat, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `quizstat.Intercept(f(g(h())))`.
+func (c *QuizStatClient) Intercept(interceptors ...Interceptor) {
+	c.inters.QuizStat = append(c.inters.QuizStat, interceptors...)
+}
+
+// Create returns a builder for creating a QuizStat entity.
+func (c *QuizStatClient) Create() *QuizStatCreate {
+	mutation := newQuizStatMutation(c.config, OpCreate)
+	return &QuizStatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of QuizStat entities.
+func (c *QuizStatClient) CreateBulk(builders ...*QuizStatCreate) *QuizStatCreateBulk {
+	return &QuizStatCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *QuizStatClient) MapCreateBulk(slice any, setFunc func(*QuizStatCreate, int)) *QuizStatCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &QuizStatCreateBulk{err: fmt.Errorf("calling to QuizStatClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*QuizStatCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &QuizStatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for QuizStat.
+func (c *QuizStatClient) Update() *QuizStatUpdate {
+	mutation := newQuizStatMutation(c.config, OpUpdate)
+	return &QuizStatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuizStatClient) UpdateOne(_m *QuizStat) *QuizStatUpdateOne {
+	mutation := newQuizStatMutation(c.config, OpUpdateOne, withQuizStat(_m))
+	return &QuizStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuizStatClient) UpdateOneID(id string) *QuizStatUpdateOne {
+	mutation := newQuizStatMutation(c.config, OpUpdateOne, withQuizStatID(id))
+	return &QuizStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for QuizStat.
+func (c *QuizStatClient) Delete() *QuizStatDelete {
+	mutation := newQuizStatMutation(c.config, OpDelete)
+	return &QuizStatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QuizStatClient) DeleteOne(_m *QuizStat) *QuizStatDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QuizStatClient) DeleteOneID(id string) *QuizStatDeleteOne {
+	builder := c.Delete().Where(quizstat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuizStatDeleteOne{builder}
+}
+
+// Query returns a query builder for QuizStat.
+func (c *QuizStatClient) Query() *QuizStatQuery {
+	return &QuizStatQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQuizStat},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a QuizStat entity by its id.
+func (c *QuizStatClient) Get(ctx context.Context, id string) (*QuizStat, error) {
+	return c.Query().Where(quizstat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuizStatClient) GetX(ctx context.Context, id string) *QuizStat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *QuizStatClient) Hooks() []Hook {
+	return c.hooks.QuizStat
+}
+
+// Interceptors returns the client interceptors.
+func (c *QuizStatClient) Interceptors() []Interceptor {
+	return c.inters.QuizStat
+}
+
+func (c *QuizStatClient) mutate(ctx context.Context, m *QuizStatMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QuizStatCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QuizStatUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QuizStatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QuizStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown QuizStat mutation op: %q", m.Op())
 	}
 }
 
@@ -1125,31 +2093,15 @@ func (c *QuizUserAnswerClient) GetX(ctx context.Context, id string) *QuizUserAns
 	return obj
 }
 
-// QueryQuestion queries the question edge of a QuizUserAnswer.
-func (c *QuizUserAnswerClient) QueryQuestion(_m *QuizUserAnswer) *QuizQuestionQuery {
-	query := (&QuizQuestionClient{config: c.config}).Query()
+// QueryActiveQuiz queries the active_quiz edge of a QuizUserAnswer.
+func (c *QuizUserAnswerClient) QueryActiveQuiz(_m *QuizUserAnswer) *ActiveQuizQuery {
+	query := (&ActiveQuizClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(quizuseranswer.Table, quizuseranswer.FieldID, id),
-			sqlgraph.To(quizquestion.Table, quizquestion.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.QuestionTable, quizuseranswer.QuestionColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAnswer queries the answer edge of a QuizUserAnswer.
-func (c *QuizUserAnswerClient) QueryAnswer(_m *QuizUserAnswer) *QuizAnswerQuery {
-	query := (&QuizAnswerClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(quizuseranswer.Table, quizuseranswer.FieldID, id),
-			sqlgraph.To(quizanswer.Table, quizanswer.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.AnswerTable, quizuseranswer.AnswerColumn),
+			sqlgraph.To(activequiz.Table, activequiz.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, quizuseranswer.ActiveQuizTable, quizuseranswer.ActiveQuizColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1315,14 +2267,149 @@ func (c *QuoteClient) mutate(ctx context.Context, m *QuoteMutation) (Value, erro
 	}
 }
 
+// StreamClient is a client for the Stream schema.
+type StreamClient struct {
+	config
+}
+
+// NewStreamClient returns a client for the Stream from the given config.
+func NewStreamClient(c config) *StreamClient {
+	return &StreamClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `stream.Hooks(f(g(h())))`.
+func (c *StreamClient) Use(hooks ...Hook) {
+	c.hooks.Stream = append(c.hooks.Stream, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `stream.Intercept(f(g(h())))`.
+func (c *StreamClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Stream = append(c.inters.Stream, interceptors...)
+}
+
+// Create returns a builder for creating a Stream entity.
+func (c *StreamClient) Create() *StreamCreate {
+	mutation := newStreamMutation(c.config, OpCreate)
+	return &StreamCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Stream entities.
+func (c *StreamClient) CreateBulk(builders ...*StreamCreate) *StreamCreateBulk {
+	return &StreamCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StreamClient) MapCreateBulk(slice any, setFunc func(*StreamCreate, int)) *StreamCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StreamCreateBulk{err: fmt.Errorf("calling to StreamClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StreamCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StreamCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Stream.
+func (c *StreamClient) Update() *StreamUpdate {
+	mutation := newStreamMutation(c.config, OpUpdate)
+	return &StreamUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StreamClient) UpdateOne(_m *Stream) *StreamUpdateOne {
+	mutation := newStreamMutation(c.config, OpUpdateOne, withStream(_m))
+	return &StreamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StreamClient) UpdateOneID(id int) *StreamUpdateOne {
+	mutation := newStreamMutation(c.config, OpUpdateOne, withStreamID(id))
+	return &StreamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Stream.
+func (c *StreamClient) Delete() *StreamDelete {
+	mutation := newStreamMutation(c.config, OpDelete)
+	return &StreamDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StreamClient) DeleteOne(_m *Stream) *StreamDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StreamClient) DeleteOneID(id int) *StreamDeleteOne {
+	builder := c.Delete().Where(stream.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StreamDeleteOne{builder}
+}
+
+// Query returns a query builder for Stream.
+func (c *StreamClient) Query() *StreamQuery {
+	return &StreamQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStream},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Stream entity by its id.
+func (c *StreamClient) Get(ctx context.Context, id int) (*Stream, error) {
+	return c.Query().Where(stream.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StreamClient) GetX(ctx context.Context, id int) *Stream {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *StreamClient) Hooks() []Hook {
+	return c.hooks.Stream
+}
+
+// Interceptors returns the client interceptors.
+func (c *StreamClient) Interceptors() []Interceptor {
+	return c.inters.Stream
+}
+
+func (c *StreamClient) mutate(ctx context.Context, m *StreamMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StreamCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StreamUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StreamUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StreamDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Stream mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Birthday, GuildConfig, Quiz, QuizAnswer, QuizQuestion, QuizUserAnswer,
-		Quote []ent.Hook
+		ActiveMotus, ActiveQuiz, Birthday, GuildConfig, LotoGame, LotoPlayer, LotoPrize,
+		LotoTicket, MPThread, QuizQuestion, QuizStat, QuizUserAnswer, Quote,
+		Stream []ent.Hook
 	}
 	inters struct {
-		Birthday, GuildConfig, Quiz, QuizAnswer, QuizQuestion, QuizUserAnswer,
-		Quote []ent.Interceptor
+		ActiveMotus, ActiveQuiz, Birthday, GuildConfig, LotoGame, LotoPlayer, LotoPrize,
+		LotoTicket, MPThread, QuizQuestion, QuizStat, QuizUserAnswer, Quote,
+		Stream []ent.Interceptor
 	}
 )

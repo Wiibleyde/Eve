@@ -6,17 +6,11 @@ type Config struct {
 	DiscordToken string
 	DatabaseURL  string
 	APIPort      string
+	// Empty when unset — owner-only features disable themselves in that case.
+	BotOwnerID string
 }
 
 func Load() *Config {
-	guildIDsStr := os.Getenv("GUILD_IDS")
-	var guildIDs []string
-	for _, id := range splitCSV(guildIDsStr) {
-		if id != "" {
-			guildIDs = append(guildIDs, id)
-		}
-	}
-
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
 		apiPort = "3000"
@@ -26,20 +20,6 @@ func Load() *Config {
 		DiscordToken: os.Getenv("DISCORD_TOKEN"),
 		DatabaseURL:  os.Getenv("DATABASE_URL"),
 		APIPort:      apiPort,
+		BotOwnerID:   os.Getenv("BOT_OWNER_ID"),
 	}
-}
-
-func splitCSV(s string) []string {
-	var result []string
-	current := ""
-	for _, c := range s {
-		if c == ',' {
-			result = append(result, current)
-			current = ""
-		} else {
-			current += string(c)
-		}
-	}
-	result = append(result, current)
-	return result
 }
