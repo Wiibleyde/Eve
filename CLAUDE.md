@@ -42,10 +42,35 @@ MOTUS_API_URL=...                # optional, overrides the word API
 MOTUS_WORDS_FILE=...             # optional, overrides the bundled word list
 ```
 
-Start the database:
+Start the database (dev — bot itself runs on the host with `go run .`):
 ```bash
 docker compose up -d
 ```
+
+### Production
+
+`Dockerfile` (multi-stage, `CGO_ENABLED=0`, distroless-ish alpine runtime, non-root uid 10001) + `docker-compose.prod.yml` (bot + postgres, restart policy, healthchecks, log rotation). Dev stays host-native: `docker-compose.yml` is untouched and still only starts postgres.
+
+```bash
+cp .env.prod.example .env.prod                                          # then fill in secrets
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f eve
+docker compose -f docker-compose.prod.yml --env-file .env.prod down
+```
+
+`--env-file` drives compose interpolation, `env_file:` injects the same file into the container — both read `.env.prod`, so the flag is required.
+
+`DATABASE_URL` is derived from `POSTGRES_*` and points at the `postgres` service; set it explicitly in `.env.prod` to use an external database. `TZ` (default `Europe/Paris`) matters — the birthday scheduler wakes at local midnight. Assets are copied to `/app/assets` and the workdir is `/app`, so the relative asset paths in `quote` and `motus` resolve. Version is stamped via `-ldflags -X Eve/internal/version.Version=${VERSION}`.
+
+`IMAGE`/`VERSION` in `.env.prod` select the image; the default `ghcr.io/wiibleyde/eve:latest` is what CI publishes. Drop `--build` and run `pull` + `up -d` to deploy a published image instead of building on the host.
+
+### CI/CD
+
+`.github/workflows/ci.yml` (push to main, PRs, manual) runs five parallel jobs: **style** (gofmt, `go vet`, `.github/scripts/check-no-comments.sh`), **lint** (golangci-lint v2, config in `.golangci.yml`), **test** (`go build ./...`, `go test -race -shuffle=on ./...`), **ent-codegen** (regenerates and fails on drift), **docker** (multi-arch build, no push).
+
+`.github/workflows/publish-image.yml` (push to main, `v*` tags, manual) builds `linux/amd64,linux/arm64` and pushes to `ghcr.io/wiibleyde/eve` with SBOM and provenance attestation. **It never deploys** — the job summary prints the pull/restart commands to run on the host.
+
+The no-comments rule is enforced in CI by a grep over `*.go` that exempts `//go:build|generate|embed` and `internal/database/ent/`.
 
 ## Architecture
 

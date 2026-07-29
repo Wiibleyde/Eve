@@ -59,7 +59,7 @@ func inboundPayload(msg discord.Message) (string, []relayAttachment) {
 	attachments, skipped := collectAttachments(msg.Attachments)
 
 	var body strings.Builder
-	body.WriteString(fmt.Sprintf(msgThreadFmt, msg.Author.EffectiveName()))
+	fmt.Fprintf(&body, msgThreadFmt, msg.Author.EffectiveName())
 	if content := strings.TrimSpace(msg.Content); content != "" {
 		body.WriteString("\n")
 		body.WriteString(content)

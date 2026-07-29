@@ -188,7 +188,7 @@ func addTickets(ctx context.Context, gameID string, player *ent.LotoPlayer, name
 		return rollback(tx, err)
 	}
 
-	next := 1
+	var next int
 	last, err := tx.LotoTicket.Query().
 		Where(lototicket.GameID(gameID)).
 		Order(ent.Desc(lototicket.FieldNumber)).

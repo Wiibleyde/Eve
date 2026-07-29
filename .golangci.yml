@@ -1,0 +1,28 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.ReadCloser).Close
+        - (*os.File).Close
+        - (*encoding/json.Encoder).Encode
+        - fmt.Fprintf
+        - github.com/joho/godotenv.Load
+  exclusions:
+    generated: lax
+    paths:
+      - internal/database/ent
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - internal/database/ent

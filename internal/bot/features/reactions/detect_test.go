@@ -159,7 +159,7 @@ func TestDetectDoesNotPanicOnOddInput(t *testing.T) {
 		"\x00\x01�",
 		"quoi\n\n",
 		"🐨🐨🐨",
-		"quoi​",
+		"quoi\u200b",
 	}
 	for _, in := range inputs {
 		if _, _ = Detect(in); false {
