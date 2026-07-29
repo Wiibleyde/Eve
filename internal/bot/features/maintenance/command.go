@@ -1,5 +1,3 @@
-// Package maintenance provides the owner-only /maintenance command that flips
-// the global maintenance switch held by Eve/internal/bot/maintenance.
 package maintenance
 
 import (
@@ -19,9 +17,6 @@ var command = discord.SlashCommandCreate{
 	Description: "Activer ou désactiver le mode maintenance du bot",
 }
 
-// Commands is a function, not a package var, because it depends on BOT_OWNER_ID
-// which is only present once godotenv has run. When no owner is configured the
-// command is not registered at all: nobody would be allowed to use it.
 func Commands() []discord.ApplicationCommandCreate {
 	if !helpers.OwnerConfigured() {
 		return nil

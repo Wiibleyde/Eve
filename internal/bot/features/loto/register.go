@@ -2,9 +2,6 @@ package loto
 
 import "Eve/internal/bot/router"
 
-// Custom ID prefixes, "<feature>:<action>" per the router scheme. The single
-// data segment is the game UUID, keeping every ID well under Discord's 100
-// character cap (longest is "loto:editplayermodal:" + 36 = 57).
 const (
 	buttonBuy         = "loto:buy"
 	buttonRemove      = "loto:remove"
@@ -17,7 +14,6 @@ const (
 	modalEditPlayer = "loto:editplayermodal"
 )
 
-// Modal text input custom IDs.
 const (
 	inputPlayerName  = "playerName"
 	inputTicketCount = "count"

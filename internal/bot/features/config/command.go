@@ -1,8 +1,3 @@
-// Package config exposes the /config command: one generated setter subcommand
-// per registry entry (see keys.go) plus the shared get/reset/list subcommands.
-//
-// Adding a configuration key is a single entry in Keys — the slash command
-// options, the get/reset choices and the list output all follow.
 package config
 
 import (
@@ -18,20 +13,17 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// Discord limits, applied when building the command from the registry.
 const (
 	maxDescriptionLength = 100
 	maxChoiceNameLength  = 100
 	maxStringValueLength = 500
 )
 
-// Option names shared by the generated subcommands.
 const (
 	optionValue = "valeur"
 	optionKey   = "cle"
 )
 
-// User-facing strings (French, per project conventions).
 const (
 	msgNoPermission = "Vous n'avez pas la permission d'utiliser cette commande."
 	msgGuildOnly    = "Cette commande doit être utilisée dans un serveur."
@@ -116,7 +108,6 @@ func valueOption(k Key) discord.ApplicationCommandOption {
 	}
 }
 
-// keyOption builds the key choice option shared by get and reset.
 func keyOption(description string) discord.ApplicationCommandOption {
 	choices := make([]discord.ApplicationCommandOptionChoiceString, 0, len(Keys))
 	for _, k := range Keys {
@@ -180,8 +171,6 @@ func handleSet(e *events.ApplicationCommandInteractionCreate, guildID string, ke
 	))
 }
 
-// readValue extracts the option value for a key and normalises it to the string
-// stored in guild_configs.
 func readValue(e *events.ApplicationCommandInteractionCreate, key Key) (string, bool) {
 	data := e.SlashCommandInteractionData()
 	switch key.Kind {
@@ -291,9 +280,6 @@ func handleList(e *events.ApplicationCommandInteractionCreate, guildID string) {
 	helpers.RespondEphemeralEmbed(e, embed)
 }
 
-// requireAdmin allows administrators, and otherwise requires Manage Guild.
-// Discord grants every permission bit to administrators, so the second check
-// alone would suffice — it is kept explicit so the intent stays readable.
 func requireAdmin(e *events.ApplicationCommandInteractionCreate) bool {
 	if member := e.Member(); member != nil && member.Permissions.Has(discord.PermissionAdministrator) {
 		return true

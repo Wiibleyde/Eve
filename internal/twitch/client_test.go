@@ -51,14 +51,11 @@ func TestStreamIsLive(t *testing.T) {
 	if !(Stream{Type: "live"}).IsLive() {
 		t.Fatal("type live should be live")
 	}
-	// Twitch uses an empty type for its own error state; it is not live.
 	if (Stream{Type: ""}).IsLive() {
 		t.Fatal("empty type must not count as live")
 	}
 }
 
-// newTestClient points a Client at a test server for both the token endpoint
-// and the Helix root.
 func newTestClient(t *testing.T, handler http.Handler) (*Client, *httptest.Server) {
 	t.Helper()
 	srv := httptest.NewServer(handler)
@@ -69,7 +66,6 @@ func newTestClient(t *testing.T, handler http.Handler) (*Client, *httptest.Serve
 	return c, srv
 }
 
-// roundTripTo rewrites every outgoing request onto the test server.
 type roundTripTo struct {
 	base string
 	rt   http.RoundTripper
@@ -144,7 +140,6 @@ func TestGetRetriesOnceOn401(t *testing.T) {
 		})
 	})
 	mux.HandleFunc("/helix/users", func(w http.ResponseWriter, r *http.Request) {
-		// The first token is rejected, the second one works.
 		if userCalls.Add(1) == 1 {
 			w.WriteHeader(http.StatusUnauthorized)
 			return

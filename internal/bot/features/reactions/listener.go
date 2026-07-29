@@ -20,34 +20,25 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// lookupTimeout caps the opt-out lookup: a joke is never worth holding a
-// database connection for.
 const lookupTimeout = 3 * time.Second
 
-// Attach registers the MessageCreate listener. It must be called before
-// OpenGateway, and requires the IntentGuildMessages and IntentMessageContent
-// gateway intents — without the (privileged) message content intent, message
-// contents arrive empty and nothing ever matches.
 func Attach(client *bot.Client) {
 	client.AddEventListeners(bot.NewListenerFunc(onMessageCreate))
 }
 
-// onMessageCreate runs the cheap, synchronous guards (the gateway dispatches
-// listeners inline, so nothing slow belongs here) and hands the database
-// lookup plus the REST call to a goroutine.
 func onMessageCreate(e *events.MessageCreate) {
 	if e.GuildID == nil {
-		return // guild messages only, DMs belong to the MP bridge
+		return
 	}
 	msg := e.Message
 	if msg.Author.Bot || msg.Author.System || msg.WebhookID != nil {
-		return // never answer bots, and never answer ourselves
+		return
 	}
 	if maintenance.Enabled() {
-		return // silent skip, a joke is not worth breaking a maintenance window
+		return
 	}
 	if mentionsSelf(e) {
-		return // mentions belong to the AI/talk path
+		return
 	}
 
 	reply, ok := Detect(msg.Content)
@@ -78,9 +69,6 @@ func onMessageCreate(e *events.MessageCreate) {
 	}()
 }
 
-// mentionsSelf reports whether the bot itself is mentioned. Replies to a bot
-// message count as a mention, which conveniently also breaks joke-on-joke
-// loops.
 func mentionsSelf(e *events.MessageCreate) bool {
 	selfID := e.Client().ID()
 	for _, user := range e.Message.Mentions {
@@ -91,9 +79,6 @@ func mentionsSelf(e *events.MessageCreate) bool {
 	return false
 }
 
-// jokesDisabled reads the per-guild opt-out from guild_configs
-// ("jokes.disabled"). It fails closed: when the database is unreachable the
-// guild stays silent rather than risking replies in a guild that opted out.
 func jokesDisabled(ctx context.Context, guildID snowflake.ID) bool {
 	if database.Default == nil {
 		logger.Warn("Reactions: database unavailable, staying silent")
@@ -108,7 +93,7 @@ func jokesDisabled(ctx context.Context, guildID snowflake.ID) bool {
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return false // unset means enabled
+			return false
 		}
 		logger.Error("Error reading jokes.disabled", "guild", guildID.String(), "error", err)
 		return true
@@ -116,8 +101,6 @@ func jokesDisabled(ctx context.Context, guildID snowflake.ID) bool {
 	return parseBool(cfg.Value)
 }
 
-// parseBool is tolerant on purpose: the value is written by /config, but a
-// human editing the table by hand should not silently break the opt-out.
 func parseBool(raw string) bool {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
 	case "true", "1", "oui", "yes", "on":
@@ -127,9 +110,6 @@ func parseBool(raw string) bool {
 	}
 }
 
-// send posts the joke as a plain message in the channel. AllowedMentions is
-// explicitly empty so a reply can never ping anyone, whatever a future joke
-// contains.
 func send(client *bot.Client, channelID snowflake.ID, authorID snowflake.ID, reply string) {
 	if _, err := client.Rest.CreateMessage(channelID, discord.MessageCreate{
 		Content:         reply,
@@ -145,9 +125,6 @@ func send(client *bot.Client, channelID snowflake.ID, authorID snowflake.ID, rep
 	)
 }
 
-// recoverPanic keeps a broken joke from taking the whole process down: a panic
-// in a bare goroutine is fatal, unlike one in an interaction handler (the
-// router already recovers those).
 func recoverPanic(what string) {
 	rec := recover()
 	if rec == nil {

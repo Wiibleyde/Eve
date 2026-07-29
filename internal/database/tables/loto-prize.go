@@ -9,10 +9,6 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// LotoPrize is one ranked prize of a loto game.
-//
-// position is 0-based and unique per game; the winner columns stay NULL until
-// the (one-shot, irreversible) draw fills them in.
 type LotoPrize struct {
 	ent.Schema
 }
@@ -39,8 +35,6 @@ func (LotoPrize) Indexes() []ent.Index {
 
 func (LotoPrize) Edges() []ent.Edge {
 	return []ent.Edge{
-		// The delete actions live on LotoGame.prizes / LotoPlayer.won_prizes:
-		// ent only reads entsql.OnDelete from the assoc (edge.To) side.
 		edge.From("game", LotoGame.Type).
 			Ref("prizes").
 			Unique().

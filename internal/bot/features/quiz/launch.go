@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Duration is how long a launched quiz accepts answers.
 const Duration = 8 * time.Hour
 
 func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
@@ -40,9 +39,6 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Mark the question as used right away: two launches in the same second
-	// should not pick the same question. A failure here only degrades the LRU
-	// rotation, so it is logged and the launch continues.
 	if err := db.QuizQuestion.UpdateOneID(question.ID).SetLastUsedAt(time.Now()).Exec(ctx); err != nil {
 		logger.Error("Error updating quiz question last_used_at", "error", err, "question", question.ID)
 	}
@@ -71,7 +67,6 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 		SetExpiresAt(expiresAt).
 		Exec(ctx)
 	if err != nil {
-		// Without its row the message would only hold dead buttons: remove it.
 		logger.Error("Error saving active quiz", "error", err)
 		if delErr := e.Client().Rest.DeleteMessage(msg.ChannelID, msg.ID); delErr != nil {
 			logger.Error("Error deleting orphaned quiz message", "error", delErr)
@@ -84,11 +79,6 @@ func handleLaunch(e *events.ApplicationCommandInteractionCreate) {
 	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed("Quiz lancé ! Les réponses sont acceptées pendant 8 heures."))
 }
 
-// pickQuestion returns the least recently used question, ties broken at random.
-//
-// The TS version picked uniformly at random, which repeated questions on small
-// pools. Ordering by last_used_at with NULLs first plays every unseen question
-// before recycling the oldest one. It returns (nil, nil) on an empty pool.
 func pickQuestion(ctx context.Context) (*ent.QuizQuestion, error) {
 	questions, err := database.Default.Ent().QuizQuestion.Query().
 		Order(

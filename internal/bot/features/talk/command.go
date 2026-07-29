@@ -1,16 +1,3 @@
-// Package talk implements the owner-only /talk command, which makes the bot
-// send a message either in the current channel or as a DM to a user.
-//
-// # Restrictions
-//
-// Unlike the TypeScript version, which let anyone puppet the bot, /talk is
-// gated on BOT_OWNER_ID (helpers.IsOwner): letting arbitrary members speak as
-// the bot is an impersonation and spam vector. When no owner is configured the
-// command is not registered at all — nobody would be allowed to use it.
-//
-// Every message this package sends carries an AllowedMentions restricted to
-// "users", so @everyone, @here and role mentions are inert even when the owner
-// types them, in either mode.
 package talk
 
 import (
@@ -24,16 +11,13 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// CommandName is the slash command name, also used as the router key.
 const CommandName = "talk"
 
-// Option names, shared with the handler so the two never drift.
 const (
 	OptionMessage = "message"
 	OptionUser    = "mp"
 )
 
-// User-facing strings (French, per project conventions).
 const (
 	msgNotOwner       = "Cette commande est réservée au propriétaire du bot."
 	msgEmpty          = "Le message ne peut pas être vide."
@@ -43,8 +27,6 @@ const (
 	msgUserUnresolved = "Impossible de déterminer le destinataire du message privé."
 )
 
-// messageMaxLength mirrors Discord's message content limit, so an over-long
-// message is rejected client-side instead of failing at send time.
 var messageMaxLength = 2000
 
 var command = discord.SlashCommandCreate{
@@ -65,18 +47,8 @@ var command = discord.SlashCommandCreate{
 	},
 }
 
-// DMSentHook, when non-nil, is called after /talk successfully delivered a DM.
-// It is the integration point for the DM ↔ thread bridge (mp-threads), which
-// mirrors outgoing DMs into the target's thread. It is called after the
-// interaction has been answered, so a slow hook can never blow the 3-second
-// interaction deadline. Left nil, DMs are simply not mirrored.
 var DMSentHook func(target discord.User, content string)
 
-// Commands returns the command set to register on Discord.
-//
-// It is a function, not a package var (same idiom as the maintenance feature),
-// because it depends on BOT_OWNER_ID, which is only present once godotenv has
-// populated the environment — a package-level var would be evaluated too early.
 func Commands() []discord.ApplicationCommandCreate {
 	if !helpers.OwnerConfigured() {
 		return nil
@@ -84,9 +56,6 @@ func Commands() []discord.ApplicationCommandCreate {
 	return []discord.ApplicationCommandCreate{command}
 }
 
-// allowedMentions returns the hardened mention policy: user mentions resolve,
-// @everyone, @here and role mentions never ping. A fresh value is built per
-// call so no caller can mutate a shared one.
 func allowedMentions() *discord.AllowedMentions {
 	return &discord.AllowedMentions{
 		Parse: []discord.AllowedMentionType{discord.AllowedMentionTypeUsers},
@@ -120,8 +89,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	sendToChannel(e, message)
 }
 
-// sendToChannel posts the message as a plain bot message in the interaction
-// channel and confirms ephemerally, so the command itself stays invisible.
 func sendToChannel(e *events.ApplicationCommandInteractionCreate, message string) {
 	channelID := e.Channel().ID()
 
@@ -141,13 +108,6 @@ func sendToChannel(e *events.ApplicationCommandInteractionCreate, message string
 	helpers.RespondEphemeralEmbed(e, embeds.SuccessEmbed(msgSent))
 }
 
-// sendDM opens (or reuses) the DM channel with the target and sends there.
-// A user with closed DMs makes either call fail; both map to the same French
-// ephemeral error.
-//
-// The two REST round trips (open channel, then send) can together outlast
-// the 3-second interaction ACK deadline, so the interaction is deferred
-// first and answered via a followup.
 func sendDM(e *events.ApplicationCommandInteractionCreate, target discord.User, message string) {
 	if err := e.DeferCreateMessage(true); err != nil {
 		logger.Error("Error deferring /talk DM interaction", "error", err)

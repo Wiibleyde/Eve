@@ -73,8 +73,6 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 	helpers.RespondEphemeralEmbed(e, embed)
 }
 
-// validateQuestion enforces what the database columns and the Discord button
-// labels require, and returns the French message to show when it fails.
 func validateQuestion(question, good string, bad [3]string, category, difficulty string) (string, bool) {
 	if question == "" || good == "" || category == "" {
 		return "La question, la bonne réponse et la catégorie ne peuvent pas être vides.", false
@@ -98,8 +96,6 @@ func validateQuestion(question, good string, bad [3]string, category, difficulty
 		}
 	}
 
-	// Duplicate answers would make two buttons indistinguishable, and one of
-	// them would be scored wrong for the same text.
 	seen := make(map[string]struct{}, len(answers))
 	for _, a := range answers {
 		key := strings.ToLower(a)

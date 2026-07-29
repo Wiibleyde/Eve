@@ -1,11 +1,3 @@
-// Package loto implements the RP lottery ("SABS loto").
-//
-// A game is created with /loto create and then managed entirely from the public
-// message it posts: buying tickets, removing them, fixing a mistyped RP name and
-// running the (irreversible, confirmation-gated) draw are all buttons.
-//
-// Ticket sales are keyed on a case-sensitive RP character name, not on a Discord
-// account, so the same member can sell tickets for many characters.
 package loto
 
 import (
@@ -22,25 +14,18 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// Length limits are compared in bytes, because that is what the ent MaxLen
-// validators behind these columns do (they call len(), not utf8.RuneCount).
-// Discord's own MaxLength counts characters, so a 50-character accented name
-// sails through the modal/option limit and would otherwise die on a raw ent
-// error instead of a readable French message.
 const (
 	maxGameNameLength   = 50
 	maxPlayerNameLength = 50
 	maxPrizeLabelLen    = 255
 	maxPrizeCount       = 10
 	defaultTicketPrice  = 500
-	// Discord caps cooldown-ish integer options; a week is plenty.
-	maxCooldownMinutes = 10080
-	maxTicketsPerBuy   = 1000
+	maxCooldownMinutes  = 10080
+	maxTicketsPerBuy    = 1000
 )
 
 const msgNoPermission = "Vous n'avez pas la permission de gérer les messages, action refusée."
 
-// msgTooLong explains why a name Discord accepted can still be refused.
 const msgTooLong = "%s est trop long (%d caractères maximum, les accents et emojis comptant pour plusieurs)."
 
 var Commands = []discord.ApplicationCommandCreate{
@@ -58,8 +43,6 @@ var Commands = []discord.ApplicationCommandCreate{
 	},
 }
 
-// createOptions builds the /loto create option list. Discord requires every
-// required option before the optional ones, hence prize1 sitting next to name.
 func createOptions() []discord.ApplicationCommandOption {
 	opts := []discord.ApplicationCommandOption{
 		discord.ApplicationCommandOptionString{
@@ -202,8 +185,6 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 
 	snap, err := createGame(ctx, guildID, name, ticketPrice, cooldown, maxTickets, prizes)
 	if err != nil {
-		// Two simultaneous /loto create can both pass the activeGame pre-check;
-		// the partial unique index on loto_games catches the loser here.
 		if ent.IsConstraintError(err) {
 			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(
 				"Un loto est déjà en cours sur ce serveur. Terminez-le avant d'en créer un nouveau."))
@@ -220,9 +201,6 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 		Components: buildComponents(snap.game.ID),
 	})
 	if err != nil {
-		// The public message is the only management surface: an active game
-		// without one can never be bought into nor drawn, and would block
-		// /loto create forever. Undo the creation instead.
 		logger.Error("loto: posting public message", "error", err)
 		if delErr := deleteGame(ctx, snap.game.ID); delErr != nil {
 			logger.Error("loto: rolling back game creation", "game", snap.game.ID, "error", delErr)
@@ -232,8 +210,6 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Remember where the public message lives: later edits happen from
-	// interactions that may not carry it.
 	msg, err := e.Client().Rest.GetInteractionResponse(e.ApplicationID(), e.Token())
 	if err != nil {
 		logger.Warn("loto: could not resolve public message", "game", snap.game.ID, "error", err)
@@ -246,9 +222,6 @@ func handleCreate(e *events.ApplicationCommandInteractionCreate) {
 	}
 }
 
-// warnMessageUnlinked tells the creator the game lost track of its public
-// message: the embed will no longer refresh and the draw result will not be
-// announced publicly.
 func warnMessageUnlinked(e *events.ApplicationCommandInteractionCreate) {
 	helpers.RespondFollowupEphemeral(e.Client(), e.ApplicationID(), e.Token(),
 		"⚠️ Le loto a bien été créé, mais son message public n'a pas pu être mémorisé : "+

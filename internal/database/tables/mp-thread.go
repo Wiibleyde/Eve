@@ -7,10 +7,6 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// MPThread maps a Discord user to the staff thread mirroring their DMs with the
-// bot. Both sides are unique: one user has at most one thread, one thread
-// belongs to exactly one user. Rows are dropped when the thread is deleted on
-// Discord, and recreated on the user's next DM.
 type MPThread struct {
 	ent.Schema
 }

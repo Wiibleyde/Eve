@@ -10,9 +10,7 @@ func TestNormalize(t *testing.T) {
 		{"cœur", "COEUR"},
 		{"Noël", "NOEL"},
 		{"ça", "CA"},
-		// Decomposed input: "e" + U+0301 combining acute accent.
 		{"épée", "EPEE"},
-		// Non-letters are kept so validation can reject them explicitly.
 		{"mot us", "MOT US"},
 	}
 	for _, c := range cases {
@@ -69,10 +67,7 @@ func TestScore(t *testing.T) {
 		{"MAISON", "BATEAU", ".F...."},
 		{"CAMION", "MAISON", ".FMMFF"},
 		{"SALADE", "MALADE", ".FFFFF"},
-		// Duplicated letters must never be over-reported: every E of the answer
-		// is already claimed by an exact match, so the extra E stay absent.
 		{"EPEEEE", "EPEISE", "FFF..F"},
-		// Misplaced duplicates are consumed exactly once each.
 		{"AAAABB", "BBAAAA", "MMFFMM"},
 		{"ELEVES", "SEVREE", "M.MMFM"},
 	}
@@ -105,7 +100,6 @@ func TestIsWinning(t *testing.T) {
 	}
 }
 
-// A guess typed with accents must be able to win against the normalized answer.
 func TestAccentedGuessWins(t *testing.T) {
 	answer := Normalize("épée")
 	guess := Normalize("Épée")

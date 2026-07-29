@@ -1,6 +1,5 @@
 package motus
 
-// User-facing strings (French, per project conventions).
 const (
 	MsgGuildOnly    = "Cette commande doit être utilisée dans un serveur."
 	MsgNoWord       = "Impossible de trouver un mot pour le moment. Réessayez plus tard."

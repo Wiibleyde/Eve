@@ -11,14 +11,10 @@ import (
 )
 
 const (
-	embedTitle = "📅 Calendrier"
-	// maxOngoing / maxUpcoming keep the embed readable and inside the 1024
-	// character budget of a single embed field.
-	maxOngoing  = 5
-	maxUpcoming = 5
-	// maxFieldLength is the Discord limit for an embed field value.
-	maxFieldLength = 1024
-	// maxSummaryLength keeps one line from swallowing the whole field.
+	embedTitle        = "📅 Calendrier"
+	maxOngoing        = 5
+	maxUpcoming       = 5
+	maxFieldLength    = 1024
 	maxSummaryLength  = 100
 	maxLocationLength = 60
 
@@ -29,17 +25,11 @@ const (
 	footerLastUpdate = "Dernière actualisation"
 )
 
-// buildEmbed renders the persistent calendar message.
-//
-// now is passed in rather than read from the clock so the embed and the
-// scheduled-event pass of a single tick agree on what "now" means.
 func buildEmbed(events []Event, now time.Time) discord.Embed {
 	ongoing, upcoming := splitEvents(events, now)
 
 	embed := embeds.BaseEmbed()
 	embed.Title = embedTitle
-	// The footer icon comes from BaseEmbed; only the text changes so the
-	// message reads as "last refreshed <timestamp>".
 	if embed.Footer != nil {
 		embed.Footer.Text = footerLastUpdate
 	}
@@ -66,9 +56,6 @@ func buildEmbed(events []Event, now time.Time) discord.Embed {
 	return embed
 }
 
-// splitEvents partitions events into the ones running right now (start ≤ now ≤
-// end, both bounds inclusive per the spec) and the next ones to start. Input is
-// expected sorted by start time (fetchEvents does it).
 func splitEvents(events []Event, now time.Time) (ongoing []Event, upcoming []Event) {
 	for _, event := range events {
 		switch {
@@ -88,8 +75,6 @@ func splitEvents(events []Event, now time.Time) (ongoing []Event, upcoming []Eve
 	return ongoing, upcoming
 }
 
-// renderLines formats event lines, stopping before the field length limit
-// instead of letting Discord reject the whole message.
 func renderLines(events []Event) string {
 	var builder strings.Builder
 	for _, event := range events {
@@ -119,13 +104,11 @@ func renderLine(event Event) string {
 	return line
 }
 
-// inline flattens a possibly multi-line ICS value into one embed line.
 func inline(value string, limit int) string {
 	flattened := strings.Join(strings.Fields(strings.ReplaceAll(value, "\n", " ")), " ")
 	return truncate(flattened, limit)
 }
 
-// truncate cuts on rune boundaries and marks the cut with an ellipsis.
 func truncate(value string, limit int) string {
 	if limit <= 0 {
 		return ""

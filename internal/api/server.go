@@ -20,9 +20,6 @@ func Start(port string, db *database.Client) {
 
 	app.Use(middleware.RequestLogger())
 
-	// The API is public and strictly read-only: any origin may read it, only
-	// GET is advertised (the TS version allowed POST/PUT/DELETE without owning
-	// a single write route) and credentials are never accepted.
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{fiber.MethodGet},

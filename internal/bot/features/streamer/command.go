@@ -18,9 +18,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// commandTimeout bounds a whole command handler (one Helix call + one or two
-// queries). Discord gives us 3 seconds to answer an interaction, so nothing
-// here may hang.
 const commandTimeout = 2500 * time.Millisecond
 
 const (
@@ -32,9 +29,6 @@ const (
 	msgNotConfigured = "La fonctionnalité Twitch n'est pas configurée sur ce bot."
 )
 
-// embedDescriptionLimit is Discord's hard cap on an embed description. An
-// oversized embed is rejected outright, which would leave the user with no
-// answer at all.
 const embedDescriptionLimit = 4096
 
 var loginPattern = regexp.MustCompile(`^[a-z0-9_]{3,25}$`)
@@ -86,11 +80,6 @@ var command = discord.SlashCommandCreate{
 	},
 }
 
-// Commands returns the command set to register on Discord.
-//
-// It is a function, not a package var, because it depends on environment
-// variables that only exist once godotenv has run. Without Twitch credentials
-// nothing is registered at all: the command could not do anything useful.
 func Commands() []discord.ApplicationCommandCreate {
 	if !Enabled() {
 		warnDisabled()
@@ -188,8 +177,6 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 			helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgDBError))
 			return
 		}
-		// A concurrent /streamer add won the (guild_id, twitch_user_id) unique
-		// index; reload its row and treat this call as an update.
 		existing, err = findTracked(ctx, db, guildID, user.ID)
 		if err != nil || existing == nil {
 			logger.Error("Reloading tracked stream after conflict", "guild", guildID, "twitch_user", user.ID, "error", err)
@@ -223,8 +210,6 @@ func handleAdd(e *events.ApplicationCommandInteractionCreate) {
 	logger.Info("Twitch channel tracking updated", "guild", guildID, "login", user.Login, "channel", channelID)
 }
 
-// findTracked returns the tracked row for a Twitch user, or nil when the guild
-// does not follow it.
 func findTracked(ctx context.Context, db *ent.Client, guildID, twitchUserID string) (*ent.Stream, error) {
 	row, err := db.Stream.Query().
 		Where(stream.GuildID(guildID), stream.TwitchUserID(twitchUserID)).
@@ -257,7 +242,6 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 
-	// The cached login covers the common case without burning a Helix call.
 	rows, err := db.Stream.Query().
 		Where(stream.GuildID(guildID), stream.TwitchLogin(login)).
 		All(ctx)
@@ -267,8 +251,6 @@ func handleRemove(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Nothing matched: the channel may have been renamed since it was added, so
-	// resolve the login to its stable ID and retry on that.
 	if len(rows) == 0 {
 		user, found, err := helixClient().GetUserByLogin(ctx, login)
 		if err != nil {
@@ -360,9 +342,6 @@ func handleList(e *events.ApplicationCommandInteractionCreate) {
 	helpers.RespondEphemeralEmbed(e, embed)
 }
 
-// joinCapped joins the lines into an embed description that stays under
-// Discord's limit, replacing the overflow with a count. Length is measured in
-// bytes, which only ever over-estimates the characters Discord counts.
 func joinCapped(lines []string) string {
 	var b strings.Builder
 	for i, line := range lines {
@@ -379,8 +358,6 @@ func joinCapped(lines []string) string {
 	return b.String()
 }
 
-// requireGuildAndPermission enforces "guild only" + Manage Channels and returns
-// the guild ID when both hold.
 func requireGuildAndPermission(e *events.ApplicationCommandInteractionCreate) (string, bool) {
 	if e.GuildID() == nil {
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
@@ -392,8 +369,6 @@ func requireGuildAndPermission(e *events.ApplicationCommandInteractionCreate) (s
 	return e.GuildID().String(), true
 }
 
-// normalizeLogin turns anything a user is likely to paste — a bare login, an
-// "@login", a twitch.tv URL — into a canonical lowercase login.
 func normalizeLogin(raw string) (string, bool) {
 	s := strings.ToLower(strings.TrimSpace(raw))
 	s = strings.TrimPrefix(s, "https://")

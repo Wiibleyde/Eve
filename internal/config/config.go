@@ -6,8 +6,7 @@ type Config struct {
 	DiscordToken string
 	DatabaseURL  string
 	APIPort      string
-	// Empty when unset — owner-only features disable themselves in that case.
-	BotOwnerID string
+	BotOwnerID   string
 }
 
 func Load() *Config {

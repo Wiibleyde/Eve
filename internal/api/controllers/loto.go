@@ -16,16 +16,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// LotoController exposes read-only views of the loto feature.
-//
-// It reads through the shared ent client (database.Default) rather than the
-// api.DB variable: controllers is imported by package api, so importing it back
-// would be a cycle. Both point at the same *database.Client.
 type LotoController struct{}
 
 const lotoMaxWinnersLimit = 500
 
-// LotoGameStats is the per-game summary returned by GET /loto/stats.
 type LotoGameStats struct {
 	ID           string    `json:"id"`
 	GuildID      string    `json:"guildId"`
@@ -39,7 +33,6 @@ type LotoGameStats struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
-// LotoStatsTotals aggregates every game included in the response.
 type LotoStatsTotals struct {
 	Games       int `json:"games"`
 	TicketsSold int `json:"ticketsSold"`
@@ -52,7 +45,6 @@ type LotoStatsResponse struct {
 	Totals LotoStatsTotals `json:"totals"`
 }
 
-// LotoWinner is one drawn prize.
 type LotoWinner struct {
 	GameID              string     `json:"gameId"`
 	GameName            string     `json:"gameName"`
@@ -72,9 +64,6 @@ type lotoAPIError struct {
 	Error string `json:"error"`
 }
 
-// GetStats returns the summary of the running loto games (name, tickets sold,
-// pot, players). Optional filters: ?guild=<id>, ?game=<id>, ?all=true to include
-// finished games as well.
 func (LotoController) GetStats(c fiber.Ctx) error {
 	db, err := lotoEntClient()
 	if err != nil {
@@ -149,9 +138,6 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// GetWinners returns every drawn prize with its winner and ticket number, most
-// recent draw first. Optional filters: ?guild=<id>, ?game=<id>, ?limit=<n>
-// (clamped to lotoMaxWinnersLimit, which is also the default).
 func (LotoController) GetWinners(c fiber.Ctx) error {
 	db, err := lotoEntClient()
 	if err != nil {
@@ -256,8 +242,6 @@ func (LotoController) GetWinners(c fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// lotoEntClient returns the shared ent client, or an error when the bot booted
-// without a database (the API must answer 503 instead of panicking).
 func lotoEntClient() (*ent.Client, error) {
 	if database.Default == nil {
 		return nil, errLotoNoDatabase

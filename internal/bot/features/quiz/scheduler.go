@@ -14,15 +14,9 @@ import (
 
 const (
 	cleanupInterval = 24 * time.Hour
-	// cleanupAfter is how long a quiz row is kept after being launched. It is
-	// well past the 8h answer window, so history stays available for a while.
-	cleanupAfter = 7 * 24 * time.Hour
+	cleanupAfter    = 7 * 24 * time.Hour
 )
 
-// StartScheduler launches the daily cleanup of finished quizzes.
-//
-// Expiry itself is checked lazily by the answer handler, so this only reclaims
-// rows; the client is unused but kept for a uniform scheduler signature.
 func StartScheduler(_ *bot.Client) {
 	go func() {
 		ticker := time.NewTicker(cleanupInterval)

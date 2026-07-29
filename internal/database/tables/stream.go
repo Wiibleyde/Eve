@@ -8,16 +8,6 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// Stream is a Twitch channel tracked by a guild.
-//
-// twitch_user_id is the tracking key, never the login: Twitch logins can be
-// renamed and the old one is then handed to somebody else. twitch_login is kept
-// only as a display/lookup cache and is refreshed on every /streamer add.
-//
-// message_id holds the live notification currently posted for this row. Empty
-// means "no live notification on screen": the poller uses it as the started /
-// ended state flag, which is what makes a restart mid-stream resume the
-// existing message instead of posting a duplicate.
 type Stream struct {
 	ent.Schema
 }

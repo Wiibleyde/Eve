@@ -15,18 +15,14 @@ import (
 
 var errDisabled = errors.New("mpthreads: feature disabled")
 
-// recovery is what to do after a post into a thread failed.
 type recovery int
 
 const (
-	recoveryReport recovery = iota // unknown cause, surface the error
-	recoveryRetry                  // thread fixed, posting again is worth it
-	recoveryStop                   // deliberate state, stop without noise
+	recoveryReport recovery = iota
+	recoveryRetry
+	recoveryStop
 )
 
-// ensureThread returns the thread mirroring a user's DMs, creating one when the
-// user has none. Callers must hold the user's lock (see lockUser) so concurrent
-// DMs cannot spawn duplicate threads.
 func ensureThread(ctx context.Context, client *bot.Client, user discord.User) (snowflake.ID, error) {
 	if threadID, ok := threadForUser(user.ID); ok {
 		return threadID, nil
@@ -46,9 +42,6 @@ func ensureThread(ctx context.Context, client *bot.Client, user discord.User) (s
 	return threadID, nil
 }
 
-// recoverThread reacts to a failed post instead of probing the thread state
-// before every single DM: a deleted thread is forgotten so the next attempt
-// recreates one, an archived thread is reopened.
 func recoverThread(ctx context.Context, client *bot.Client, threadID snowflake.ID, cause error) recovery {
 	switch {
 	case isMissingChannel(cause):
@@ -57,8 +50,6 @@ func recoverThread(ctx context.Context, client *bot.Client, threadID snowflake.I
 		return recoveryRetry
 
 	case isArchivedThread(cause):
-		// Only Archived is cleared. Locking a thread is a moderation decision the
-		// bridge must not undo, so Discord rejecting this update ends the relay.
 		if _, err := client.Rest.UpdateChannel(threadID, discord.GuildThreadUpdate{Archived: ptr(false)}); err != nil {
 			logger.Warn("MP threads: reopening archived thread failed, message not relayed",
 				"thread", threadID.String(), "error", err)
@@ -75,8 +66,6 @@ func recoverThread(ctx context.Context, client *bot.Client, threadID snowflake.I
 	}
 }
 
-// createThread posts the parent message in the MP channel and opens the public
-// thread that will mirror the user's DMs.
 func createThread(client *bot.Client, channelID snowflake.ID, user discord.User) (snowflake.ID, error) {
 	parent, err := client.Rest.CreateMessage(channelID, discord.MessageCreate{
 		Content:         fmt.Sprintf("Messages privés avec %s", user.Mention()),
@@ -96,10 +85,6 @@ func createThread(client *bot.Client, channelID snowflake.ID, user discord.User)
 	return thread.ID(), nil
 }
 
-// isMissingChannel reports whether an error means the channel/thread no longer
-// exists. Permission errors are deliberately excluded: they are transient
-// configuration problems, and treating them as "deleted" would make the bot
-// create a new thread on every DM.
 func isMissingChannel(err error) bool {
 	return rest.IsJSONErrorCode(err, rest.JSONErrorCodeUnknownChannel)
 }
@@ -112,8 +97,6 @@ func isLockedThread(err error) bool {
 	return rest.IsJSONErrorCode(err, rest.JSONErrorCodeThreadLocked)
 }
 
-// isPayloadTooLarge reports whether Discord refused the upload itself, which
-// means the guild's real limit is below maxUploadBytes.
 func isPayloadTooLarge(err error) bool {
 	return rest.IsJSONErrorCode(err, rest.JSONErrorCodeRequestEntityTooLarge)
 }

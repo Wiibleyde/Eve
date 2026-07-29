@@ -13,14 +13,11 @@ import (
 )
 
 const (
-	// Discord hard limits.
 	maxEmbedDescription = 4096
 	maxFieldValue       = 1024
-	// Only the busiest players are listed to keep the embed readable.
-	maxListedPlayers = 50
+	maxListedPlayers    = 50
 )
 
-// tally is a player with its ticket count, used for the leaderboard.
 type tally struct {
 	name  string
 	count int
@@ -34,7 +31,6 @@ func (s *snapshot) playerNames() map[string]string {
 	return names
 }
 
-// leaderboard sorts players by ticket count desc, then name asc.
 func (s *snapshot) leaderboard() []tally {
 	names := s.playerNames()
 	counts := make(map[string]int, len(s.players))
@@ -64,8 +60,6 @@ func (s *snapshot) pot() int {
 	return len(s.tickets) * s.game.TicketPrice
 }
 
-// buildEmbed renders the public loto embed: sales summary, player leaderboard
-// and the ranked prize list (with winners once the draw happened).
 func buildEmbed(s *snapshot) discord.Embed {
 	game := s.game
 	embed := embeds.BaseEmbed()
@@ -138,7 +132,6 @@ func buildEmbed(s *snapshot) discord.Embed {
 	return embed
 }
 
-// prizeLines renders one line per prize, in position order.
 func prizeLines(s *snapshot) []string {
 	names := s.playerNames()
 	lines := make([]string, 0, len(s.prizes))
@@ -164,7 +157,6 @@ func prizeLines(s *snapshot) []string {
 	return lines
 }
 
-// sellerSummary lists how much each seller collected, for the closing embed.
 func sellerSummary(tickets []*ent.LotoTicket, ticketPrice int) string {
 	if len(tickets) == 0 {
 		return "Aucune vente enregistrée."
@@ -192,8 +184,6 @@ func sellerSummary(tickets []*ent.LotoTicket, ticketPrice int) string {
 	return truncate(strings.Join(lines, "\n"), maxFieldValue)
 }
 
-// buildComponents returns the management button row of an active game.
-// A finished game has no components at all.
 func buildComponents(gameID string) []discord.LayoutComponent {
 	return []discord.LayoutComponent{
 		discord.NewActionRow(
@@ -209,8 +199,6 @@ func buildComponents(gameID string) []discord.LayoutComponent {
 	}
 }
 
-// chunkLines packs lines into chunks of at most maxLength bytes — Discord's
-// field limit is in characters, so byte-counting is the conservative side.
 func chunkLines(lines []string, maxLength int) []string {
 	chunks := make([]string, 0, 1)
 	current := ""
@@ -238,8 +226,6 @@ func chunkLines(lines []string, maxLength int) []string {
 	return chunks
 }
 
-// truncate cuts a string down to max bytes (ellipsis included) without ever
-// splitting a UTF-8 rune, which Discord rejects.
 func truncate(s string, max int) string {
 	if len(s) <= max {
 		return s
@@ -259,7 +245,6 @@ func truncate(s string, max int) string {
 	return s[:cut] + ellipsis
 }
 
-// utf8Start reports whether b starts a UTF-8 rune.
 func utf8Start(b byte) bool { return b&0xC0 != 0x80 }
 
 func pluralize(n int, singular, plural string) string {

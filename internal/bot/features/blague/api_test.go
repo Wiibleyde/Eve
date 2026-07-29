@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-// withToken forces a token for the duration of a test, bypassing the lazy
-// sync.Once so tests never depend on the ambient environment.
 func withToken(t *testing.T, value string) {
 	t.Helper()
 	tokenOnce.Do(func() {})

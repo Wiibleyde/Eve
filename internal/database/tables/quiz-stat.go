@@ -7,11 +7,6 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// QuizStat is the per-user quiz scoreboard row.
-//
-// The TS version stored these counters on a god-object `GlobalUserData`; a
-// dedicated table keeps the quiz feature self-contained and makes the
-// leaderboard a single indexed scan.
 type QuizStat struct {
 	ent.Schema
 }

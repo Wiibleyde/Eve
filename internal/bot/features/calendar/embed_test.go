@@ -133,7 +133,6 @@ func TestScheduledEventExists(t *testing.T) {
 
 	existing := []discord.GuildScheduledEvent{
 		{Name: "Autre", ScheduledStartTime: start},
-		// Discord echoes the timestamp back with sub-minute noise stripped.
 		{Name: "Réunion", ScheduledStartTime: start.Add(20 * time.Second).In(time.FixedZone("CEST", 2*3600))},
 	}
 	if !scheduledEventExists(existing, event) {

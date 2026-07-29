@@ -1,23 +1,3 @@
-// Package twitch is a minimal Twitch Helix REST client.
-//
-// It only covers what the bot needs: resolving channel logins to stable user
-// IDs and polling the live state of a set of users.
-//
-// # Authentication
-//
-// The client uses the OAuth2 client-credentials ("app access token") flow: no
-// user consent, no refresh token. The token is fetched lazily on the first
-// call, cached in memory until shortly before its expiry, and renewed
-// automatically. A 401 from Helix invalidates the cached token and the request
-// is retried once with a fresh one — that covers tokens revoked server-side
-// before their announced expiry.
-//
-// # Batching
-//
-// Helix accepts a repeated query parameter up to 100 times per request
-// (id/login/user_id). Every method here takes a slice, de-duplicates it and
-// splits it into 100-value chunks transparently, so callers never have to
-// think about the cap.
 package twitch
 
 import (
@@ -36,32 +16,20 @@ import (
 )
 
 const (
-	// HelixBaseURL is the Twitch Helix API root.
 	HelixBaseURL = "https://api.twitch.tv/helix"
-	// TokenURL is the OAuth2 endpoint used by the client-credentials flow.
-	TokenURL = "https://id.twitch.tv/oauth2/token"
+	TokenURL     = "https://id.twitch.tv/oauth2/token"
 
-	// MaxIDsPerRequest is the Helix cap on repeated id/login/user_id params.
 	MaxIDsPerRequest = 100
 
-	// tokenRefreshMargin renews the app token before it actually expires, so a
-	// request never races the expiry.
 	tokenRefreshMargin = 5 * time.Minute
 
-	// defaultTimeout bounds a single HTTP call. The poller also passes a
-	// context deadline; whichever fires first wins.
 	defaultTimeout = 15 * time.Second
 
-	// maxBodySize caps how much of a response we read — Helix answers are tiny
-	// and an unbounded read on a misbehaving endpoint is a memory hazard.
 	maxBodySize = 4 << 20
 )
 
-// ErrNoToken is returned when Twitch answers the token endpoint with a body
-// that carries no access token.
 var ErrNoToken = errors.New("twitch: token response carried no access_token")
 
-// Client is a Helix API client. It is safe for concurrent use.
 type Client struct {
 	clientID     string
 	clientSecret string
@@ -72,8 +40,6 @@ type Client struct {
 	expiresAt time.Time
 }
 
-// New builds a client for the given application credentials. No network call
-// is made here: the app token is fetched on first use.
 func New(clientID, clientSecret string) *Client {
 	return &Client{
 		clientID:     clientID,
@@ -82,7 +48,6 @@ func New(clientID, clientSecret string) *Client {
 	}
 }
 
-// APIError is a non-2xx answer from Twitch.
 type APIError struct {
 	StatusCode int
 	Endpoint   string
@@ -96,7 +61,6 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("twitch: %s returned HTTP %d: %s", e.Endpoint, e.StatusCode, e.Message)
 }
 
-// response is the Helix envelope shared by every list endpoint.
 type response[T any] struct {
 	Data []T `json:"data"`
 }
@@ -107,8 +71,6 @@ type tokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-// accessToken returns a valid app access token, fetching a new one when the
-// cached one is missing or about to expire.
 func (c *Client) accessToken(ctx context.Context) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -119,8 +81,6 @@ func (c *Client) accessToken(ctx context.Context) (string, error) {
 	return c.refreshLocked(ctx)
 }
 
-// invalidate drops the cached token, but only if it is still the one the caller
-// just failed with — otherwise a concurrent refresh would be thrown away.
 func (c *Client) invalidate(used string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -131,8 +91,6 @@ func (c *Client) invalidate(used string) {
 	}
 }
 
-// refreshLocked performs the client-credentials exchange. The mutex is held
-// across the HTTP call on purpose: it collapses concurrent refreshes into one.
 func (c *Client) refreshLocked(ctx context.Context) (string, error) {
 	form := url.Values{}
 	form.Set("client_id", c.clientID)
@@ -184,8 +142,6 @@ func (c *Client) refreshLocked(ctx context.Context) (string, error) {
 	return c.token, nil
 }
 
-// get calls a Helix endpoint and decodes its JSON body into out. A 401 is
-// retried once with a freshly minted token.
 func (c *Client) get(ctx context.Context, endpoint string, query url.Values, out any) error {
 	token, err := c.accessToken(ctx)
 	if err != nil {
@@ -244,7 +200,6 @@ func (c *Client) doGet(ctx context.Context, endpoint string, query url.Values, t
 	return resp.StatusCode, body, nil
 }
 
-// shortBody trims an error body so it stays readable in a log line.
 func shortBody(body []byte) string {
 	s := strings.TrimSpace(string(body))
 	if len(s) > 200 {
@@ -265,7 +220,6 @@ func chunk(values []string, size int) [][]string {
 	return out
 }
 
-// dedupe removes empty and duplicate values while preserving order.
 func dedupe(values []string) []string {
 	seen := make(map[string]struct{}, len(values))
 	out := make([]string, 0, len(values))

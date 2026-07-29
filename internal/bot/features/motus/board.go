@@ -15,9 +15,6 @@ const (
 	colorLost = 0xE74C3C
 )
 
-// boardEmbed renders the public game board: the masked answer, one emoji row
-// plus one letter row per attempt with its author, and the reveal once the game
-// is over.
 func boardEmbed(word string, attempts []tables.MotusAttempt, state string) discord.Embed {
 	embed := embeds.BaseEmbed()
 	embed.Title = "Motus"
@@ -54,8 +51,6 @@ func boardEmbed(word string, attempts []tables.MotusAttempt, state string) disco
 	return embed
 }
 
-// boardComponents builds the action row holding the «Essayer» button. The
-// button is disabled once the game is over so the board stops being clickable.
 func boardComponents(disabled bool) []discord.LayoutComponent {
 	button := discord.NewPrimaryButton("Essayer", CustomIDTry).
 		WithEmoji(discord.NewComponentEmoji("✏️"))
@@ -81,8 +76,6 @@ func boardUpdate(word string, attempts []tables.MotusAttempt, state string) disc
 	}
 }
 
-// attemptFeedback is the ephemeral answer sent to a player whose guess was
-// accepted while the game keeps running.
 func attemptFeedback(word string, attempts []tables.MotusAttempt) discord.Embed {
 	embed := embeds.BaseEmbed()
 	embed.Title = "Motus"

@@ -13,16 +13,12 @@ import (
 )
 
 const (
-	// twitchColor is the Twitch brand purple.
 	twitchColor = 0x9146FF
-	// endedColor greys out a finished stream so it reads as "over" at a glance.
-	endedColor = 0x5C5C5C
+	endedColor  = 0x5C5C5C
 
-	// Preview size requested from Twitch. 1280x720 is what the site itself uses.
 	thumbnailWidth  = 1280
 	thumbnailHeight = 720
 
-	// embedTitleLimit is Discord's hard cap on an embed title.
 	embedTitleLimit = 256
 )
 
@@ -30,8 +26,6 @@ func channelURL(login string) string {
 	return "https://twitch.tv/" + login
 }
 
-// liveEmbed renders a running stream. user is optional: when Twitch could not
-// be asked for the channel profile, the avatar is simply omitted.
 func liveEmbed(s twitch.Stream, user twitch.User, hasUser bool) discord.Embed {
 	name := s.Name()
 	if hasUser && user.Name() != "" {
@@ -67,9 +61,6 @@ func liveEmbed(s twitch.Stream, user twitch.User, hasUser bool) discord.Embed {
 	return embed
 }
 
-// endedEmbed rewrites the notification once the stream is over. Everything it
-// shows comes from the last known state, because Helix stops returning the
-// stream the moment it ends.
 func endedEmbed(st *trackState, login string, user twitch.User, hasUser bool) discord.Embed {
 	name := login
 	if hasUser && user.Name() != "" {
@@ -99,8 +90,6 @@ func endedEmbed(st *trackState, login string, user twitch.User, hasUser bool) di
 	if st != nil && st.game != "" {
 		fields = append(fields, discord.EmbedField{Name: "Jeu", Value: st.game, Inline: &inline})
 	}
-	// Duration is only known when the start was observed; after a restart the
-	// in-memory state may have been seeded without it.
 	if st != nil && !st.startedAt.IsZero() {
 		fields = append(fields, discord.EmbedField{
 			Name:   "Durée",
@@ -116,9 +105,6 @@ func endedEmbed(st *trackState, login string, user twitch.User, hasUser bool) di
 	return embed
 }
 
-// cacheBust appends a timestamp to the Twitch preview URL. Without it Discord
-// keeps serving the proxy copy captured on the first edit and the preview looks
-// frozen for the whole stream.
 func cacheBust(url string) string {
 	if url == "" {
 		return ""
@@ -130,8 +116,6 @@ func cacheBust(url string) string {
 	return url + sep + "t=" + strconv.FormatInt(time.Now().Unix(), 10)
 }
 
-// relativeTimestamp renders a Discord relative timestamp, which each viewer
-// sees in their own locale and timezone.
 func relativeTimestamp(t time.Time) string {
 	if t.IsZero() {
 		return "à l'instant"
@@ -139,7 +123,6 @@ func relativeTimestamp(t time.Time) string {
 	return fmt.Sprintf("<t:%d:R>", t.Unix())
 }
 
-// formatDuration renders a stream length as "2h 13min" / "13min" / "45s".
 func formatDuration(d time.Duration) string {
 	if d < 0 {
 		d = 0

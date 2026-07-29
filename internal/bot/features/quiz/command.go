@@ -1,10 +1,3 @@
-// Package quiz implements the community quiz: users add questions, anyone
-// launches one publicly, members answer with four buttons and a leaderboard
-// ranks them.
-//
-// The question pool, the stats and the leaderboard are global, not per guild:
-// quiz_stat has no guild_id and a question is globally unique, so
-// quiz_question.guild_id only records where a question came from.
 package quiz
 
 import (
@@ -17,9 +10,6 @@ import (
 
 const CommandName = "quiz"
 
-// ButtonAnswerPrefix is the "<feature>:<action>" routing prefix of the four
-// answer buttons. Data segments are the *displayed* answer index (0-3), mapped
-// back to the stored answer through the quiz shuffle, then the question id.
 const ButtonAnswerPrefix = "quiz:answer"
 
 const (
@@ -40,9 +30,6 @@ const (
 	difficultyHard   = "difficile"
 )
 
-// Option length caps, in characters. They stay under the MaxRuneLen of the
-// matching columns, and answers stay within the 80 character Discord button
-// label limit.
 const (
 	maxQuestionInput = 1000
 	maxAnswerInput   = 80

@@ -16,8 +16,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// HandleBuyModal registers a ticket purchase: upsert the player, enforce the
-// per-player cooldown and the per-purchase limit, then mint sequential tickets.
 func HandleBuyModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -75,9 +73,6 @@ func HandleBuyModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	refreshPublicMessage(e.Client(), game.ID)
 }
 
-// HandleRemoveModal deletes the newest tickets of a player. Non-admins may only
-// take back the tickets they sold themselves; the player row is kept so the
-// purchase history stays visible.
 func HandleRemoveModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -125,7 +120,6 @@ func HandleRemoveModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	refreshPublicMessage(e.Client(), game.ID)
 }
 
-// HandleEditPlayerModal renames a participant (admin only), refusing collisions.
 func HandleEditPlayerModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -184,7 +178,6 @@ func parseCount(e *events.ModalSubmitInteractionCreate, raw string) (int, bool) 
 	return count, true
 }
 
-// formatRemaining renders a cooldown remainder like "2 heures et 5 minutes".
 func formatRemaining(d time.Duration) string {
 	total := int(math.Ceil(d.Minutes()))
 	if total <= 0 {

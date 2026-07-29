@@ -1,28 +1,3 @@
-// Package calendar keeps a per-guild ICS calendar in sync with Discord.
-//
-// A guild links a public ICS URL with /calendar set. Eve then:
-//
-//   - keeps one persistent embed (the "calendar message") up to date, listing
-//     the events currently running and the next ones to come;
-//   - creates a Discord Scheduled Event (external type) shortly before each
-//     event starts, so members get the native Discord reminder.
-//
-// Everything is stored in the existing guild_configs key/value table under the
-// calendar.url / calendar.channel / calendar.message keys — no bespoke table.
-//
-// # Known limitations
-//
-// Recurring events (RRULE / RDATE / EXDATE) are NOT expanded: a recurring
-// VEVENT is treated as the single occurrence described by its DTSTART. Only
-// that first occurrence can ever show up in the embed or produce a Discord
-// scheduled event. Expanding recurrence rules is explicitly out of scope for
-// this version (see specs/calendar.md).
-//
-// Timezones (TZID) and all-day events (VALUE=DATE) are handled: TZID is
-// resolved through the Go time database, and an all-day event without DTEND
-// spans a full day. TZIDs the Go database does not know — Outlook and Exchange
-// publish Windows names such as "Romance Standard Time" — fall back to the
-// offset the feed declares in its own VTIMEZONE block.
 package calendar
 
 import (
@@ -44,26 +19,17 @@ import (
 )
 
 const (
-	fetchTimeout = 15 * time.Second
-	// maxICSBytes caps how much of a remote ICS body is read. A calendar that
-	// exceeds it simply fails to parse instead of eating the whole heap.
-	maxICSBytes = 8 << 20 // 8 MiB
-	// maxURLLength keeps the stored value sane — guild_configs.value is text,
-	// but a multi-kilobyte "URL" is never legitimate.
-	maxURLLength = 500
-	// defaultTimedDuration is the assumed length of a timed event that carries
-	// neither DTEND nor DURATION. Discord scheduled events require an end.
+	fetchTimeout         = 15 * time.Second
+	maxICSBytes          = 8 << 20
+	maxURLLength         = 500
 	defaultTimedDuration = time.Hour
-	// defaultSummary replaces an empty SUMMARY so lines never render blank.
-	defaultSummary = "(sans titre)"
+	defaultSummary       = "(sans titre)"
 
 	userAgent = "Eve-Discord-Bot/2 (+ICS calendar)"
 )
 
-// httpClient is shared so connections are reused across ticks.
 var httpClient = &http.Client{Timeout: fetchTimeout}
 
-// Event is the normalized shape of a VEVENT, decoupled from the ICS library.
 type Event struct {
 	UID         string
 	Summary     string
@@ -71,15 +37,10 @@ type Event struct {
 	Location    string
 	Start       time.Time
 	End         time.Time
-	// AllDay reports a DTSTART with VALUE=DATE (no time component).
-	AllDay bool
-	// Recurring reports the presence of an RRULE. The occurrence carried by
-	// this Event is the DTSTART one only — see the package doc.
-	Recurring bool
+	AllDay      bool
+	Recurring   bool
 }
 
-// normalizeURL validates a user-supplied calendar URL and returns the form to
-// store. webcal:// is rewritten to https:// since it is plain HTTPS on the wire.
 func normalizeURL(raw string) (string, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
@@ -107,8 +68,6 @@ func normalizeURL(raw string) (string, error) {
 	return parsed.String(), nil
 }
 
-// fetchEvents downloads and parses an ICS document into normalized events,
-// sorted by start time. It doubles as the validation step of /calendar set.
 func fetchEvents(ctx context.Context, rawURL string) ([]Event, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
@@ -131,16 +90,12 @@ func fetchEvents(ctx context.Context, rawURL string) ([]Event, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing ICS: %w", err)
 	}
-	// An empty body parses into an empty Calendar without error, which would
-	// otherwise pass the /calendar set validation gate.
 	if len(cal.Components) == 0 && len(cal.CalendarProperties) == 0 {
 		return nil, errors.New("response is not an iCalendar document")
 	}
 	return eventsFromCalendar(cal), nil
 }
 
-// eventsFromCalendar converts every parsable VEVENT, dropping the ones without
-// a usable DTSTART rather than failing the whole calendar.
 func eventsFromCalendar(cal *ics.Calendar) []Event {
 	raw := cal.Events()
 	zones := declaredZones(cal)
@@ -164,8 +119,6 @@ func convertEvent(vEvent *ics.VEvent, zones map[string]*time.Location) (Event, b
 		logger.Warn("Calendar: VEVENT without DTSTART ignored", "uid", uid)
 		return Event{}, false
 	}
-	// GetStartAt resolves TZID and bare DATE values alike, but rejects any TZID
-	// missing from the Go timezone database — hence the VTIMEZONE fallback.
 	start, err := vEvent.GetStartAt()
 	if err != nil {
 		fallback, ok := timeFromProperty(startProp, zones)
@@ -196,8 +149,6 @@ func convertEvent(vEvent *ics.VEvent, zones map[string]*time.Location) (Event, b
 	return event, true
 }
 
-// resolveEnd picks DTEND, then DURATION, then a sensible default so every
-// event always has an end — Discord scheduled events require one.
 func resolveEnd(vEvent *ics.VEvent, zones map[string]*time.Location, start time.Time, allDay bool) time.Time {
 	if endProp := vEvent.GetProperty(ics.ComponentPropertyDtEnd); endProp != nil {
 		end, err := vEvent.GetEndAt()
@@ -217,17 +168,8 @@ func resolveEnd(vEvent *ics.VEvent, zones map[string]*time.Location, start time.
 	return start.Add(defaultTimedDuration)
 }
 
-// tzOffsetTo is the VTIMEZONE property holding the UTC offset in effect.
 const tzOffsetTo = ics.ComponentProperty(ics.PropertyTzoffsetto)
 
-// declaredZones maps the TZIDs a feed declares in its own VTIMEZONE blocks to a
-// fixed-offset location, but only for the ones time.LoadLocation cannot resolve:
-// Outlook and Exchange publish Windows names ("Romance Standard Time"), and
-// every event using them would otherwise be dropped.
-//
-// The STANDARD offset is applied year-round — honouring the daylight switch
-// would mean evaluating the VTIMEZONE recurrence rules — so an event inside a
-// DST period can be an hour off. That still beats not showing it at all.
 func declaredZones(cal *ics.Calendar) map[string]*time.Location {
 	var zones map[string]*time.Location
 	for _, timezone := range cal.Timezones() {
@@ -272,8 +214,6 @@ func declaredOffset(timezone *ics.VTimezone) (int, bool) {
 	return daylight, hasDaylight
 }
 
-// parseUTCOffset reads an RFC 5545 UTC-OFFSET value: "+0100", "-0530",
-// "+010000".
 func parseUTCOffset(prop *ics.IANAProperty) (int, bool) {
 	if prop == nil {
 		return 0, false
@@ -304,8 +244,6 @@ func parseUTCOffset(prop *ics.IANAProperty) (int, bool) {
 	return sign * (hours*3600 + minutes*60 + seconds), true
 }
 
-// timeFromProperty re-parses a DTSTART/DTEND the ICS library refused, using the
-// offset the feed declared for that TZID (see declaredZones).
 func timeFromProperty(prop *ics.IANAProperty, zones map[string]*time.Location) (time.Time, bool) {
 	if prop == nil || len(zones) == 0 {
 		return time.Time{}, false
@@ -336,7 +274,6 @@ func declaredZoneOf(prop *ics.IANAProperty, zones map[string]*time.Location) *ti
 	return nil
 }
 
-// propertyText returns an unescaped TEXT property value ("\," -> ",", ...).
 func propertyText(vEvent *ics.VEvent, property ics.ComponentProperty) string {
 	prop := vEvent.GetProperty(property)
 	if prop == nil {
@@ -345,8 +282,6 @@ func propertyText(vEvent *ics.VEvent, property ics.ComponentProperty) string {
 	return strings.TrimSpace(ics.FromText(prop.Value))
 }
 
-// isDateOnly reports an all-day DTSTART: either an explicit VALUE=DATE
-// parameter, or a bare 8-digit YYYYMMDD value.
 func isDateOnly(prop *ics.IANAProperty) bool {
 	for key, values := range prop.ICalParameters {
 		if !strings.EqualFold(key, "VALUE") {
@@ -366,7 +301,6 @@ func isDateOnly(prop *ics.IANAProperty) bool {
 	return err == nil
 }
 
-// durationPattern matches the ISO 8601 subset allowed by RFC 5545 DURATION.
 var durationPattern = regexp.MustCompile(`^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$`)
 
 func parseICSDuration(raw string) (time.Duration, bool) {

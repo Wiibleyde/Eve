@@ -1,13 +1,3 @@
-// Package debug exposes /debug, a self-service toggle of the managed
-// «Eve Debug» marker role.
-//
-// The role is a pure marker: it is created by the bot with zero permissions,
-// not hoisted and not mentionable, and its ID is stored in guild_configs under
-// the debug.role key. Anyone may toggle it on themselves — that is harmless as
-// long as the role stays permissionless, which is verified on every use.
-//
-// The role heals itself: a missing key, an unparsable stored ID or a role that
-// was deleted from the guild all lead to a fresh role being created and stored.
 package debug
 
 import (
@@ -27,14 +17,10 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// CommandName is the slash command name, and therefore also its routing key.
 const CommandName = "debug"
 
-// commandTimeout bounds the whole handler once the interaction is acknowledged:
-// one query, up to two REST calls and one upsert.
 const commandTimeout = 5 * time.Second
 
-// User-facing strings (French, per project conventions).
 const (
 	msgGuildOnly = "Cette commande doit être utilisée dans un serveur."
 	msgDBError   = "Erreur lors de l'accès à la base de données."
@@ -57,7 +43,6 @@ const (
 	msgRemoveFailed = "Impossible de vous retirer le rôle « " + RoleName + " »."
 )
 
-// Commands is the feature's slash command set, appended to allCommands in bot.go.
 var Commands = []discord.ApplicationCommandCreate{
 	discord.SlashCommandCreate{
 		Name:        CommandName,
@@ -66,11 +51,6 @@ var Commands = []discord.ApplicationCommandCreate{
 	},
 }
 
-// HandleCommand toggles the managed debug role on the invoking member.
-//
-// Access is deliberately open (the TS version behaved the same): the role is a
-// marker with no permissions, so self-assignment grants nothing. The safety net
-// is the escalation check below, not an access check.
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	guildID := e.GuildID()
 	member := e.Member()
@@ -79,16 +59,12 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Fail fast and explain when the bot cannot manage roles at all. When the
-	// permissions are unknown (nil), the REST calls below report it instead.
 	if perms := e.AppPermissions(); perms != nil && perms.Missing(discord.PermissionManageRoles) {
 		logger.Debug("Debug: missing Manage Roles", "guild", guildID.String())
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgMissingPerm))
 		return
 	}
 
-	// Resolving (and possibly creating) the role plus editing member roles is
-	// up to three REST calls — acknowledge first.
 	if err := e.DeferCreateMessage(true); err != nil {
 		logger.Error("Debug: deferring response failed", "error", err)
 		return
@@ -115,9 +91,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	hasRole := slices.Contains(member.RoleIDs, role.ID)
 
-	// A managed marker role must stay permissionless. If someone escalated it,
-	// never hand it out — but still let a member drop it, which can only reduce
-	// their privileges.
 	escalated := role.Permissions != discord.PermissionsNone
 	if escalated {
 		logger.Warn("Debug: managed role has permissions",
@@ -149,8 +122,6 @@ func addRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate,
 	editDeferred(e, embeds.SuccessEmbed(toggleMessage(ctx, e, guildID, msgEnabledFmt, msgEnabledFallback)))
 }
 
-// removeRole revokes the debug role from the invoking user. When the role had
-// been escalated, the reply also carries the warning.
 func removeRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID, roleID snowflake.ID, escalated bool) {
 	userID := e.User().ID
 	if err := e.Client().Rest.RemoveMemberRole(guildID, userID, roleID, rest.WithCtx(ctx)); err != nil {
@@ -167,8 +138,6 @@ func removeRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	editDeferred(e, embeds.SuccessEmbed(message))
 }
 
-// toggleMessage renders the toggle confirmation, naming the guild when its name
-// is known and falling back to a name-free wording otherwise.
 func toggleMessage(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID, format string, fallback string) string {
 	name, ok := guildName(ctx, e, guildID)
 	if !ok {
@@ -177,9 +146,6 @@ func toggleMessage(ctx context.Context, e *events.ApplicationCommandInteractionC
 	return fmt.Sprintf(format, name)
 }
 
-// toggleErrorMessage turns a role edit failure into a user-facing message: a
-// 403 always means either the missing permission or an unreachable role in the
-// hierarchy, both covered by msgMissingPerm.
 func toggleErrorMessage(err error, fallback string) string {
 	if isMissingPermissions(err) {
 		return msgMissingPerm
@@ -187,7 +153,6 @@ func toggleErrorMessage(err error, fallback string) string {
 	return fallback
 }
 
-// editDeferred replaces the deferred ephemeral response with an embed.
 func editDeferred(e *events.ApplicationCommandInteractionCreate, embed discord.Embed) {
 	embedList := []discord.Embed{embed}
 	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{

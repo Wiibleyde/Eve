@@ -14,7 +14,6 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// User-facing strings (French, per project conventions).
 const (
 	msgDMClosed  = "⚠️ Impossible d'envoyer ce message à %s : ses messages privés sont fermés."
 	msgDMError   = "⚠️ Impossible d'envoyer ce message à %s : Discord a refusé l'envoi."
@@ -22,16 +21,11 @@ const (
 	msgThreadFmt = "**%s** :"
 )
 
-// relayInbound mirrors a DM into the user's staff thread, recreating or
-// reopening the thread once if the post is refused. The caller holds the
-// conversation lock (see dispatch).
 func relayInbound(client *bot.Client, msg discord.Message) {
 	ctx := context.Background()
 
 	body, attachments := inboundPayload(msg)
 
-	// The owner gets pinged on every inbound DM; the allowlist is restricted to
-	// them so mentions inside the relayed content itself stay inert.
 	mentions := noMentions()
 	if ownerID, ok := helpers.OwnerID(); ok {
 		body = discord.UserMention(ownerID) + " " + body
@@ -61,9 +55,6 @@ func relayInbound(client *bot.Client, msg discord.Message) {
 	}
 }
 
-// inboundPayload renders a DM as it appears in the thread: author header,
-// content, sticker links, then the attachments that could be re-uploaded (the
-// others are appended as links).
 func inboundPayload(msg discord.Message) (string, []relayAttachment) {
 	attachments, skipped := collectAttachments(msg.Attachments)
 
@@ -79,9 +70,6 @@ func inboundPayload(msg discord.Message) (string, []relayAttachment) {
 	return body.String(), attachments
 }
 
-// relayOutbound sends a staff message from the thread to the user's DMs and
-// reports in the thread when the DM could not be fully delivered. The caller
-// holds the conversation lock (see dispatch).
 func relayOutbound(client *bot.Client, msg discord.Message, userID snowflake.ID) {
 	if strings.TrimSpace(msg.Content) == "" && len(msg.Attachments) == 0 && len(msg.StickerItems) == 0 {
 		return
@@ -109,9 +97,6 @@ func relayOutbound(client *bot.Client, msg discord.Message, userID snowflake.ID)
 	}
 }
 
-// deliveryWarning picks the wording matching the actual failure. Only a 50007
-// really means the user closed their DMs, and once part of a long message is
-// through, staff must not be told nothing arrived.
 func deliveryWarning(err error, delivered int) string {
 	switch {
 	case delivered > 0:
@@ -136,10 +121,6 @@ func warnInThread(client *bot.Client, msg discord.Message, userID snowflake.ID, 
 	}
 }
 
-// sendChunks posts a body (split to Discord's length limit) plus the
-// attachments on the last chunk, and reports how many messages actually
-// reached the channel so a caller can tell a total failure from a partial one.
-// A body with no content and no attachment sends nothing.
 func sendChunks(client *bot.Client, channelID snowflake.ID, body string, attachments []relayAttachment, mentions *discord.AllowedMentions) (int, error) {
 	chunks := splitContent(body)
 	if len(chunks) == 0 && len(attachments) == 0 {
@@ -165,8 +146,6 @@ func sendChunks(client *bot.Client, channelID snowflake.ID, body string, attachm
 			return delivered, err
 		}
 
-		// maxUploadBytes only estimates the guild's real limit: rather than lose
-		// the message, resend it with the attachments degraded to links.
 		var fallback strings.Builder
 		fallback.WriteString(chunk)
 		appendLines(&fallback, linksOf(attachments))

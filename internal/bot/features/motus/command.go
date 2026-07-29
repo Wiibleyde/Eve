@@ -21,8 +21,6 @@ var Commands = []discord.ApplicationCommandCreate{
 	},
 }
 
-// HandleCommand starts a game: it posts the public board with its «Essayer»
-// button and answers the launcher ephemerally.
 func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	guildID := e.GuildID()
 	if guildID == nil {
@@ -30,8 +28,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Picking a word hits the network, which can outlive the 3s interaction
-	// window: acknowledge first, then edit the deferred response.
 	if err := e.DeferCreateMessage(true); err != nil {
 		logger.Error("Motus: deferring the command response", "error", err)
 		return
@@ -48,7 +44,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 		editResponse(client, appID, token, embeds.ErrorEmbed(MsgNoWord))
 		return
 	}
-	// DEBUG only: the answer must never reach INFO and above.
 	logger.Debug("Motus game starting", "channel", channelID.String(), "word", word)
 
 	message, err := client.Rest.CreateMessage(channelID, boardMessage(word))
@@ -67,7 +62,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	)
 	if err != nil {
 		logger.Error("Motus: storing the game", "error", err)
-		// An unplayable board is worse than no board at all.
 		if delErr := client.Rest.DeleteMessage(message.ChannelID, message.ID); delErr != nil {
 			logger.Error("Motus: removing the orphan board", "error", delErr)
 		}
@@ -78,7 +72,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	editResponse(client, appID, token, embeds.SuccessEmbed(MsgGameStarted))
 }
 
-// editResponse replaces the deferred ephemeral response with an embed.
 func editResponse(client *bot.Client, appID snowflake.ID, token string, embed discord.Embed) {
 	embedList := []discord.Embed{embed}
 	if _, err := client.Rest.UpdateInteractionResponse(appID, token, discord.MessageUpdate{

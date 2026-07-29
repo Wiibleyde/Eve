@@ -9,12 +9,10 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// EphemeralResponder is satisfied by all disgo interaction event types.
 type EphemeralResponder interface {
 	CreateMessage(discord.MessageCreate, ...rest.RequestOpt) error
 }
 
-// RespondEphemeral sends an ephemeral message in response to an interaction.
 func RespondEphemeral(r EphemeralResponder, content string) {
 	if err := r.CreateMessage(discord.MessageCreate{
 		Content: content,
@@ -24,7 +22,6 @@ func RespondEphemeral(r EphemeralResponder, content string) {
 	}
 }
 
-// RespondEphemeralEmbed sends an ephemeral embed in response to an interaction.
 func RespondEphemeralEmbed(r EphemeralResponder, embed discord.Embed) {
 	if err := r.CreateMessage(discord.MessageCreate{
 		Embeds: []discord.Embed{embed},
@@ -34,7 +31,6 @@ func RespondEphemeralEmbed(r EphemeralResponder, embed discord.Embed) {
 	}
 }
 
-// RespondFollowupEphemeral sends an ephemeral follow-up message after a deferred interaction.
 func RespondFollowupEphemeral(client *bot.Client, appID snowflake.ID, token string, content string) {
 	if _, err := client.Rest.CreateFollowupMessage(appID, token, discord.MessageCreate{
 		Content: content,

@@ -10,11 +10,6 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// LotoGame is one RP lottery run inside a guild.
-//
-// Only one game per guild may be active at a time, enforced at the DB level by
-// a partial unique index on guild_id where active (Postgres-specific
-// entsql.IndexWhere).
 type LotoGame struct {
 	ent.Schema
 }
@@ -27,9 +22,7 @@ func (LotoGame) Fields() []ent.Field {
 		field.Bool("active").Default(true),
 		field.Int("ticket_price").Default(500),
 		field.Int("cooldown_minutes").Default(0),
-		// 0 / NULL means "no per-purchase limit".
 		field.Int("max_tickets_per_purchase").Optional(),
-		// Public message holding the embed + buttons, set right after creation.
 		field.String("message_id").Optional(),
 		field.String("channel_id").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
@@ -47,9 +40,6 @@ func (LotoGame) Indexes() []ent.Index {
 	}
 }
 
-// Edges owns the cascade annotations on purpose: ent resolves entsql.OnDelete
-// from the assoc (edge.To) side only — the same annotation on the inverse
-// edge.From side is silently ignored.
 func (LotoGame) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("players", LotoPlayer.Type).

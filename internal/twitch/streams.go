@@ -8,11 +8,8 @@ import (
 	"time"
 )
 
-// StreamTypeLive is the only Stream.Type value that means "actually live".
-// Twitch also returns "" for an error state, which must not be treated as live.
 const StreamTypeLive = "live"
 
-// Stream is a subset of the GET /helix/streams payload.
 type Stream struct {
 	ID           string    `json:"id"`
 	UserID       string    `json:"user_id"`
@@ -31,7 +28,6 @@ type Stream struct {
 
 func (s Stream) IsLive() bool { return s.Type == StreamTypeLive }
 
-// Name returns the display name, falling back to the login.
 func (s Stream) Name() string {
 	if s.UserName != "" {
 		return s.UserName
@@ -39,8 +35,6 @@ func (s Stream) Name() string {
 	return s.UserLogin
 }
 
-// Thumbnail fills the {width}/{height} placeholders Twitch leaves in the
-// preview URL. It returns "" when Twitch sent no thumbnail.
 func (s Stream) Thumbnail(width, height int) string {
 	if s.ThumbnailURL == "" {
 		return ""
@@ -49,12 +43,6 @@ func (s Stream) Thumbnail(width, height int) string {
 	return strings.ReplaceAll(u, "{height}", strconv.Itoa(height))
 }
 
-// GetStreamsByUserIDs returns the live streams among the given user IDs.
-// Offline users are simply absent from the result.
-//
-// Requests are batched at 100 IDs. "first" is pinned to the batch size because
-// Helix otherwise caps the page at 20 entries and would silently hide live
-// streams once more than 20 tracked channels are on air at the same time.
 func (c *Client) GetStreamsByUserIDs(ctx context.Context, userIDs []string) ([]Stream, error) {
 	userIDs = dedupe(userIDs)
 	if len(userIDs) == 0 {

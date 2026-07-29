@@ -21,15 +21,10 @@ const (
 	colorExpired = 0xFFA500
 )
 
-// No author icon URL is set on purpose: the TS version pointed at a signed
-// cdn.discordapp.com attachment which expires.
 const authorName = "Quiz"
 
-// buttonLabelLimit is the Discord hard limit for a button label, in characters.
 const buttonLabelLimit = 80
 
-// storedAnswers returns the answers of a question in storage order: index 0 is
-// always the good one.
 func storedAnswers(q *ent.QuizQuestion) [answerCount]string {
 	return [answerCount]string{q.GoodAnswer, q.BadAnswer1, q.BadAnswer2, q.BadAnswer3}
 }
@@ -51,9 +46,6 @@ func questionEmbed(q *ent.QuizQuestion, expiresAt time.Time) discord.Embed {
 	return embed
 }
 
-// The question id travels in the custom ID next to the displayed index so that
-// a click on a quiz whose active row is gone can still reveal the answer
-// without matching on the rendered question text, which is escaped.
 func answerButtons(answers [answerCount]string, questionID string) discord.ActionRowComponent {
 	components := make([]discord.InteractiveComponent, 0, answerCount)
 	for i, answer := range answers {
@@ -91,10 +83,6 @@ func expiredEmbed(goodAnswer string) discord.Embed {
 	return embed
 }
 
-// questionTextFromMessage reads the question back from the posted embed. It is
-// the last-resort fallback for buttons posted before the question id was
-// carried in the custom ID; it misses when the question contains a code fence,
-// since escapeCodeBlock rewrote it.
 func questionTextFromMessage(msg discord.Message) (string, bool) {
 	for _, embed := range msg.Embeds {
 		if text, ok := codeBlockContent(embed.Description); ok && text != "" {
@@ -118,8 +106,6 @@ func codeBlockContent(s string) (string, bool) {
 	return strings.TrimSpace(rest[:end]), true
 }
 
-// escapeCodeBlock neutralises fences so a crafted question cannot break out of
-// the code block it is rendered in.
 func escapeCodeBlock(s string) string {
 	return strings.ReplaceAll(s, "```", "'''")
 }
@@ -142,7 +128,6 @@ func fallbackText(s string) string {
 	return s
 }
 
-// truncate shortens a string to at most limit characters, ellipsis included.
 func truncate(s string, limit int) string {
 	if utf8.RuneCountInString(s) <= limit {
 		return s

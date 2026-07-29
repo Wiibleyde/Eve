@@ -16,7 +16,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Sentinel errors translated to French messages by the interaction handlers.
 var (
 	errPlayerNotFound  = errors.New("loto: player not found")
 	errNameTaken       = errors.New("loto: player name already used")
@@ -24,7 +23,6 @@ var (
 	errDrawAlreadyDone = errors.New("loto: draw already performed")
 )
 
-// snapshot is everything needed to render the public embed of a game.
 type snapshot struct {
 	game    *ent.LotoGame
 	players []*ent.LotoPlayer
@@ -36,7 +34,6 @@ func client() *ent.Client {
 	return database.Default.Ent()
 }
 
-// rollback wraps err with any rollback failure so neither is lost.
 func rollback(tx *ent.Tx, err error) error {
 	if rerr := tx.Rollback(); rerr != nil {
 		return fmt.Errorf("%w (rollback: %v)", err, rerr)
@@ -44,7 +41,6 @@ func rollback(tx *ent.Tx, err error) error {
 	return err
 }
 
-// activeGame returns the guild's active game, or nil when there is none.
 func activeGame(ctx context.Context, guildID string) (*ent.LotoGame, error) {
 	game, err := client().LotoGame.Query().
 		Where(lotogame.GuildID(guildID), lotogame.Active(true)).
@@ -59,7 +55,6 @@ func activeGame(ctx context.Context, guildID string) (*ent.LotoGame, error) {
 	return game, nil
 }
 
-// gameByID returns a game by its UUID, or nil when it no longer exists.
 func gameByID(ctx context.Context, id string) (*ent.LotoGame, error) {
 	game, err := client().LotoGame.Get(ctx, id)
 	if ent.IsNotFound(err) {
@@ -106,7 +101,6 @@ func loadSnapshot(ctx context.Context, gameID string) (*snapshot, error) {
 	return &snapshot{game: game, players: players, tickets: tickets, prizes: prizes}, nil
 }
 
-// createGame inserts a game and its prizes in one transaction.
 func createGame(ctx context.Context, guildID, name string, ticketPrice, cooldownMinutes, maxTickets int, prizeLabels []string) (*snapshot, error) {
 	tx, err := client().Tx(ctx)
 	if err != nil {
@@ -150,8 +144,6 @@ func createGame(ctx context.Context, guildID, name string, ticketPrice, cooldown
 	return &snapshot{game: game, prizes: prizes}, nil
 }
 
-// setGameMessage remembers where the public embed lives so later edits can find
-// it even when the interaction that triggers them has no message attached.
 func setGameMessage(ctx context.Context, gameID, channelID, messageID string) error {
 	return client().LotoGame.UpdateOneID(gameID).
 		SetChannelID(channelID).
@@ -159,8 +151,6 @@ func setGameMessage(ctx context.Context, gameID, channelID, messageID string) er
 		Exec(ctx)
 }
 
-// findPlayer looks a player up by its exact (case-sensitive) RP name.
-// A missing player is reported as (nil, nil).
 func findPlayer(ctx context.Context, gameID, name string) (*ent.LotoPlayer, error) {
 	player, err := client().LotoPlayer.Query().
 		Where(lotoplayer.GameID(gameID), lotoplayer.Name(name)).
@@ -174,8 +164,6 @@ func findPlayer(ctx context.Context, gameID, name string) (*ent.LotoPlayer, erro
 	return player, nil
 }
 
-// addTickets upserts the player, refreshes its cooldown anchor and inserts
-// `count` tickets numbered sequentially from the current maximum.
 func addTickets(ctx context.Context, gameID string, player *ent.LotoPlayer, name, sellerID string, count int) error {
 	now := time.Now()
 
@@ -231,9 +219,6 @@ func addTickets(ctx context.Context, gameID string, player *ent.LotoPlayer, name
 	return tx.Commit()
 }
 
-// removeTickets deletes the newest `count` tickets of a player. When
-// sellerFilter is non-empty only tickets sold by that member are eligible.
-// The player row itself is kept so the purchase history stays readable.
 func removeTickets(ctx context.Context, gameID, playerName string, count int, sellerFilter string) (int, error) {
 	player, err := findPlayer(ctx, gameID, playerName)
 	if err != nil {
@@ -268,7 +253,6 @@ func removeTickets(ctx context.Context, gameID, playerName string, count int, se
 	return client().LotoTicket.Delete().Where(lototicket.IDIn(ids...)).Exec(ctx)
 }
 
-// renamePlayer fixes a mistyped RP name, refusing to collide with an existing one.
 func renamePlayer(ctx context.Context, gameID, oldName, newName string) error {
 	player, err := findPlayer(ctx, gameID, oldName)
 	if err != nil {
@@ -293,7 +277,6 @@ func renamePlayer(ctx context.Context, gameID, oldName, newName string) error {
 	return err
 }
 
-// assignment is one prize handed to one winning ticket by the draw.
 type assignment struct {
 	prize      *ent.LotoPrize
 	playerID   string
@@ -301,12 +284,6 @@ type assignment struct {
 	ticket     *ent.LotoTicket
 }
 
-// applyDraw persists the draw result and closes the game, atomically.
-//
-// Closing the game is a compare-and-set done *before* the prize updates: the
-// draw is one-shot and final, so two overlapping confirmations must not both
-// write winners. The loser of the race takes the row lock, sees active already
-// false and rolls back without having touched a single prize.
 func applyDraw(ctx context.Context, gameID string, assignments []assignment) error {
 	now := time.Now()
 
@@ -340,7 +317,6 @@ func applyDraw(ctx context.Context, gameID string, assignments []assignment) err
 	return tx.Commit()
 }
 
-// deleteGame drops a game; players, tickets and prizes go with it by cascade.
 func deleteGame(ctx context.Context, gameID string) error {
 	return client().LotoGame.DeleteOneID(gameID).Exec(ctx)
 }

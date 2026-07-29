@@ -15,18 +15,14 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// RoleName is the name of the managed marker role created per guild.
 const RoleName = "Eve Debug"
 
-// Sentinel errors, used to map a failure to the right user-facing message.
 var (
 	errMissingPermissions = errors.New("debug: bot cannot manage roles")
 	errStorage            = errors.New("debug: guild config access failed")
 )
 
-// guildLocks serialises /debug per guild: two simultaneous invocations in a
-// guild without a stored role would otherwise create two «Eve Debug» roles.
-var guildLocks sync.Map // snowflake.ID -> *sync.Mutex
+var guildLocks sync.Map
 
 func lockGuild(guildID snowflake.ID) func() {
 	value, _ := guildLocks.LoadOrStore(guildID, &sync.Mutex{})
@@ -35,11 +31,6 @@ func lockGuild(guildID snowflake.ID) func() {
 	return mu.Unlock
 }
 
-// ensureRole returns the guild's managed debug role.
-//
-// It creates and stores a fresh role when guild_configs has no usable ID or
-// when the stored role no longer exists in the guild — which is what makes a
-// manual deletion self-healing.
 func ensureRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID) (discord.Role, error) {
 	unlock := lockGuild(guildID)
 	defer unlock()
@@ -53,8 +44,6 @@ func ensureRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	}
 
 	if found {
-		// Read the role from the API rather than the cache: the permission
-		// check below is a security check and must see the current state.
 		role, err := client.Rest.GetRole(guildID, stored, rest.WithCtx(ctx))
 		switch {
 		case err == nil:
@@ -75,9 +64,6 @@ func ensureRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	}
 
 	if err := saveRoleID(ctx, guildKey, role.ID); err != nil {
-		// The role exists but could not be remembered: deleting it again would
-		// be worse (the next call would recreate one anyway), so report the
-		// storage failure and leave the role in place for the retry to reuse.
 		logger.Error("Debug: storing role id failed", "guild", guildKey, "role", role.ID.String(), "error", err)
 		return discord.Role{}, fmt.Errorf("%w: %w", errStorage, err)
 	}
@@ -86,9 +72,6 @@ func ensureRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	return role, nil
 }
 
-// createRole creates the marker role: zero permissions, not hoisted, not
-// mentionable. Permissions are sent explicitly because Discord otherwise copies
-// the @everyone permissions onto the new role.
 func createRole(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID) (discord.Role, error) {
 	permissions := discord.PermissionsNone
 	role, err := e.Client().Rest.CreateRole(guildID, discord.RoleCreate{
@@ -106,9 +89,6 @@ func createRole(ctx context.Context, e *events.ApplicationCommandInteractionCrea
 	return *role, nil
 }
 
-// guildName resolves the guild name for the confirmation message, preferring
-// the cache and falling back to one REST call. The bool reports success: the
-// caller then uses a wording that does not name the guild.
 func guildName(ctx context.Context, e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID) (string, bool) {
 	if guild, ok := e.Guild(); ok && guild.Name != "" {
 		return guild.Name, true
@@ -129,15 +109,11 @@ func restStatus(err error) (int, bool) {
 	return restErr.Response.StatusCode, true
 }
 
-// isNotFound reports whether the API answered 404 (role deleted).
 func isNotFound(err error) bool {
 	status, ok := restStatus(err)
 	return ok && status == http.StatusNotFound
 }
 
-// isMissingPermissions reports whether the API answered 403, which covers both
-// the missing Manage Roles permission and a target role above the bot's
-// highest role.
 func isMissingPermissions(err error) bool {
 	status, ok := restStatus(err)
 	return ok && status == http.StatusForbidden

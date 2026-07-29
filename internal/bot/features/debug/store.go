@@ -14,11 +14,6 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// loadRoleID reads the debug.role key of a guild.
-//
-// The bool reports whether a usable role ID is stored: a missing row and a
-// corrupted value are both reported as "not stored", so the caller simply
-// creates a fresh role instead of erroring out.
 func loadRoleID(ctx context.Context, guildID string) (snowflake.ID, bool, error) {
 	row, err := database.Default.Ent().GuildConfig.Query().
 		Where(guildconfig.GuildID(guildID), guildconfig.Key(tables.DebugRole.String())).
@@ -39,9 +34,6 @@ func loadRoleID(ctx context.Context, guildID string) (snowflake.ID, bool, error)
 	return roleID, true, nil
 }
 
-// saveRoleID upserts the debug.role key, mirroring the pattern used by the
-// config feature (update first, insert when nothing was updated) since the
-// sql/upsert ent feature is off in this project.
 func saveRoleID(ctx context.Context, guildID string, roleID snowflake.ID) error {
 	name := tables.DebugRole.String()
 

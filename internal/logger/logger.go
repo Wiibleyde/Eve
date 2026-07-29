@@ -24,13 +24,10 @@ const (
 	colorBold    = "\033[1m"
 )
 
-// LevelEvent is a custom log level for incoming Discord interactions (commands, buttons).
 const LevelEvent = slog.Level(slog.LevelInfo + 1)
 
-// LevelHTTP is a custom log level for incoming HTTP requests.
 const LevelHTTP = slog.Level(slog.LevelInfo + 2)
 
-// LevelDB is a custom log level for database operations.
 const LevelDB = slog.Level(slog.LevelInfo + 3)
 
 type prettyHandler struct {

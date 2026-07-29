@@ -9,8 +9,6 @@ import (
 	"Eve/internal/database/tables"
 )
 
-// guildCalendar is the calendar-related slice of a guild's guild_configs rows.
-// Empty strings mean "not configured".
 type guildCalendar struct {
 	GuildID   string
 	URL       string
@@ -22,7 +20,6 @@ func (c guildCalendar) configured() bool { return c.URL != "" }
 
 func (c guildCalendar) hasMessage() bool { return c.ChannelID != "" && c.MessageID != "" }
 
-// loadGuildCalendar reads the three calendar keys of one guild in a single query.
 func loadGuildCalendar(ctx context.Context, guildID string) (guildCalendar, error) {
 	rows, err := database.Default.Ent().GuildConfig.Query().
 		Where(
@@ -52,7 +49,6 @@ func loadGuildCalendar(ctx context.Context, guildID string) (guildCalendar, erro
 	return cfg, nil
 }
 
-// calendarURLs returns every guild that has a calendar URL, keyed by guild ID.
 func calendarURLs(ctx context.Context) (map[string]string, error) {
 	rows, err := database.Default.Ent().GuildConfig.Query().
 		Where(guildconfig.Key(tables.CalendarURL.String())).
@@ -71,8 +67,6 @@ func calendarURLs(ctx context.Context) (map[string]string, error) {
 	return urls, nil
 }
 
-// saveConfig upserts one guild config key, mirroring the pattern used by the
-// config feature (update first, insert when nothing was updated).
 func saveConfig(ctx context.Context, guildID string, key tables.ConfigKey, value string) error {
 	name := key.String()
 
@@ -97,9 +91,6 @@ func saveConfig(ctx context.Context, guildID string, key tables.ConfigKey, value
 	return nil
 }
 
-// deleteMessageRefs removes calendar.channel / calendar.message only while they
-// still hold the values the caller read, so refs rewritten in the meantime by a
-// concurrent /calendar set or refresh survive.
 func deleteMessageRefs(ctx context.Context, cfg guildCalendar) error {
 	if !cfg.hasMessage() {
 		return nil
@@ -125,7 +116,6 @@ func deleteMessageRefs(ctx context.Context, cfg guildCalendar) error {
 	return nil
 }
 
-// deleteConfig removes the given keys for a guild. Missing keys are not an error.
 func deleteConfig(ctx context.Context, guildID string, keys ...tables.ConfigKey) error {
 	names := make([]string, 0, len(keys))
 	for _, key := range keys {

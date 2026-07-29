@@ -8,16 +8,12 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// TestMatchDetector covers the acceptance criterion "unit tests cover regex
-// set": every stem of every detector, letter repetition, trailing spaces and
-// "?", plus the messages that must stay silent.
 func TestMatchDetector(t *testing.T) {
 	tests := []struct {
 		name     string
 		content  string
-		detector string // "" means no match expected
+		detector string
 	}{
-		// quoi — plain forms
 		{"quoi", "quoi", "quoi"},
 		{"koa", "koa", "quoi"},
 		{"qoa", "qoa", "quoi"},
@@ -25,7 +21,6 @@ func TestMatchDetector(t *testing.T) {
 		{"kwa", "kwa", "quoi"},
 		{"kewa", "kewa", "quoi"},
 
-		// quoi — repetition, case, punctuation, sentences
 		{"repeated letters", "quoiiii", "quoi"},
 		{"repeated middle letters", "quuuoooiii", "quoi"},
 		{"spec example", "quoiiii ??", "quoi"},
@@ -40,7 +35,6 @@ func TestMatchDetector(t *testing.T) {
 		{"kewa repeated", "kkkeeewwwaaa ??", "quoi"},
 		{"kwa repeated", "kwaaa", "quoi"},
 
-		// comment
 		{"comment", "comment", "comment"},
 		{"comment repeated", "commenttt ?", "comment"},
 		{"komen", "komen", "comment"},
@@ -48,7 +42,6 @@ func TestMatchDetector(t *testing.T) {
 		{"comment in sentence", "mais tu fais comment ?", "comment"},
 		{"comment uppercase", "COMMENT ?", "comment"},
 
-		// silence
 		{"empty", "", ""},
 		{"blank", "   ", ""},
 		{"not at the end", "quoi de neuf docteur", ""},
@@ -78,8 +71,6 @@ func TestMatchDetector(t *testing.T) {
 	}
 }
 
-// TestDetectReturnsKnownReply checks that Detect only ever produces replies
-// from the matched detector's table.
 func TestDetectReturnsKnownReply(t *testing.T) {
 	for _, tt := range []struct {
 		content  string
@@ -106,8 +97,6 @@ func TestDetectReturnsKnownReply(t *testing.T) {
 	}
 }
 
-// TestDetectSilentOnNoMatch guards the "ok=false means empty reply" contract
-// the listener relies on.
 func TestDetectSilentOnNoMatch(t *testing.T) {
 	reply, ok := Detect("bonjour")
 	if ok || reply != "" {
@@ -115,8 +104,6 @@ func TestDetectSilentOnNoMatch(t *testing.T) {
 	}
 }
 
-// TestWeightsSumTo100 keeps the tables honest: the weights are documented as
-// percentages, so a typo in a future joke should fail here, not in production.
 func TestWeightsSumTo100(t *testing.T) {
 	for _, d := range detectors {
 		total := 0
@@ -135,9 +122,6 @@ func TestWeightsSumTo100(t *testing.T) {
 	}
 }
 
-// TestPickDistribution checks the weighted draw roughly follows the table.
-// 100k draws put the standard deviation of each share below 0.2 point, so the
-// ±3 point tolerance never flakes.
 func TestPickDistribution(t *testing.T) {
 	d := detectorByName(t, "quoi")
 	const draws = 100_000
@@ -156,8 +140,6 @@ func TestPickDistribution(t *testing.T) {
 	}
 }
 
-// TestPickFallback exercises the degenerate table: no usable weight must yield
-// the detector default rather than an empty message.
 func TestPickFallback(t *testing.T) {
 	d := &detector{name: "test", fallback: "Feur."}
 	if got := d.pick(); got != "Feur." {
@@ -170,8 +152,6 @@ func TestPickFallback(t *testing.T) {
 	}
 }
 
-// TestDetectDoesNotPanicOnOddInput feeds the matcher hostile content: it runs
-// on every guild message, so it must never take the bot down.
 func TestDetectDoesNotPanicOnOddInput(t *testing.T) {
 	inputs := []string{
 		strings.Repeat("quoi", 500),
@@ -199,9 +179,6 @@ func detectorByName(t *testing.T, name string) *detector {
 	return nil
 }
 
-// TestCooldown covers the per-channel rate limit: first reply allowed, repeats
-// within the window suppressed, allowed again once it elapsed, and channels
-// independent from each other.
 func TestCooldown(t *testing.T) {
 	const channelA = 1
 	const channelB = 2
@@ -226,7 +203,6 @@ func TestCooldown(t *testing.T) {
 	}
 }
 
-// TestCooldownPrune checks the map does not grow forever with stale channels.
 func TestCooldownPrune(t *testing.T) {
 	c := newCooldownMap(30 * time.Second)
 	now := time.Now()
@@ -238,7 +214,6 @@ func TestCooldownPrune(t *testing.T) {
 		t.Fatalf("len(last) = %d, want 100", len(c.last))
 	}
 
-	// One allowed reply long after the window prunes every stale entry.
 	c.allow(snowflake.ID(1000), now.Add(time.Hour))
 	if len(c.last) != 1 {
 		t.Errorf("len(last) = %d after prune, want 1", len(c.last))

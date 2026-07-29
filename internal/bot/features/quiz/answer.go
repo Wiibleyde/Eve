@@ -19,9 +19,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// HandleAnswer handles a click on "quiz:answer:<idx>:<questionID>", where idx
-// is the displayed button position. The question id segment is absent on
-// buttons posted before it was added, hence the two accepted shapes.
 func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	if len(args) == 0 || len(args) > 2 {
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed("Réponse invalide."))
@@ -40,8 +37,6 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	ctx := context.Background()
 	db := database.Default.Ent()
 
-	// The running quiz is resolved from the message it was posted on, never by
-	// parsing the embed text.
 	active, err := db.ActiveQuiz.Query().
 		Where(activequiz.MessageID(e.Message.ID.String())).
 		Only(ctx)
@@ -94,8 +89,6 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 
 	correct := perm[idx] == goodAnswerIndex
 
-	// The unique index on (active_quiz_id, user_id) is what actually enforces
-	// one answer per user: the check above only saves a round trip.
 	err = db.QuizUserAnswer.Create().
 		SetID(uuid.New().String()).
 		SetActiveQuizID(active.ID).
@@ -112,7 +105,6 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 		return
 	}
 
-	// The answer is already recorded: a stats failure must not hide the result.
 	if err := recordStat(ctx, userID, correct); err != nil {
 		logger.Error("Error updating quiz stats", "error", err, "user", userID)
 	}
@@ -120,10 +112,6 @@ func HandleAnswer(e *events.ComponentInteractionCreate, args []string) {
 	helpers.RespondEphemeralEmbed(e, resultEmbed(correct, question.GoodAnswer))
 }
 
-// purgedQuizGoodAnswer resolves the good answer of a quiz whose active row is
-// gone. Buttons carrying the question id resolve it exactly; older ones fall
-// back to a lookup on the question text read from the embed. Returns "" when
-// neither works.
 func purgedQuizGoodAnswer(ctx context.Context, questionID string, e *events.ComponentInteractionCreate) string {
 	if questionID != "" {
 		question, err := database.Default.Ent().QuizQuestion.Get(ctx, questionID)
@@ -152,11 +140,6 @@ func purgedQuizGoodAnswer(ctx context.Context, questionID string, e *events.Comp
 	return question.GoodAnswer
 }
 
-// recordStat increments the user counters, creating the row on first answer.
-//
-// ent is generated without the upsert feature here, so this is the same
-// update-then-create dance the other features use, with one retry to settle a
-// race between two first answers.
 func recordStat(ctx context.Context, userID string, correct bool) error {
 	db := database.Default.Ent()
 
@@ -178,7 +161,6 @@ func recordStat(ctx context.Context, userID string, correct bool) error {
 		if !ent.IsConstraintError(err) {
 			return err
 		}
-		// Someone else created the row in between: increment it instead.
 		_, err = increment(ctx, userID, correct)
 		return err
 	}

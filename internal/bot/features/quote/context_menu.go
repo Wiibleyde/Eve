@@ -11,12 +11,8 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-// MenuCreateQuote is the name of the message context menu entry, and therefore
-// also its routing key.
 const MenuCreateQuote = "Créer une citation"
 
-// HandleCreateQuoteMenu quotes the targeted message: its author is the quote
-// author, its content the quote, and there is no context to attach.
 func HandleCreateQuoteMenu(e *events.ApplicationCommandInteractionCreate) {
 	guild, ok := guildID(e)
 	if !ok {
@@ -26,7 +22,6 @@ func HandleCreateQuoteMenu(e *events.ApplicationCommandInteractionCreate) {
 	message := e.MessageCommandInteractionData().TargetMessage()
 	text := strings.TrimSpace(message.Content)
 	if text == "" {
-		// Embed-only, attachment-only or sticker-only message: nothing to quote.
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(MsgNoText))
 		return
 	}

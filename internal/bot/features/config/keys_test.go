@@ -6,8 +6,6 @@ import (
 	"github.com/disgoorg/disgo/discord"
 )
 
-// TestRegistryInvariants guards the registry against duplicates and against
-// clashing with the shared subcommands.
 func TestRegistryInvariants(t *testing.T) {
 	reserved := map[string]bool{"get": true, "reset": true, "list": true}
 	names := map[string]bool{}
@@ -31,8 +29,6 @@ func TestRegistryInvariants(t *testing.T) {
 	}
 }
 
-// TestInternalKeysNotExposed pins the spec decision: calendar.* and debug.role
-// are managed by their own features and must never appear in /config.
 func TestInternalKeysNotExposed(t *testing.T) {
 	for _, internal := range []string{"calendar.url", "calendar.channel", "calendar.message", "debug.role"} {
 		if _, ok := keyByName(internal); ok {
@@ -65,7 +61,6 @@ func TestBuildCommandLimits(t *testing.T) {
 	}
 }
 
-// TestFormatValue covers the per-kind rendering used by get and list.
 func TestFormatValue(t *testing.T) {
 	cases := []struct {
 		kind Kind

@@ -59,8 +59,6 @@ func Run(cfg *config.Config, db *database.Client) {
 		logger.Fatal("Error creating Discord client", "error", err)
 	}
 
-	// Must precede the Register calls: maintenance and talk consult
-	// helpers.OwnerConfigured() to decide whether to register at all.
 	helpers.SetOwner(cfg.BotOwnerID)
 
 	r := router.New()
@@ -101,10 +99,6 @@ func Run(cfg *config.Config, db *database.Client) {
 	allCommands = append(allCommands, talk.Commands()...)
 	allCommands = append(allCommands, userinfo.Commands...)
 
-	// Discord re-sends READY after every non-resumable reconnect, so this
-	// listener runs again on each fresh identify. The schedulers must only ever
-	// be started once: a second set would duplicate every announcement and make
-	// two presence rotators fight over the status.
 	var schedulersOnce sync.Once
 
 	client.AddEventListeners(bot.NewListenerFunc(func(e *events.Ready) {
@@ -139,9 +133,6 @@ func Run(cfg *config.Config, db *database.Client) {
 	logger.Info("Shutting down...")
 }
 
-// clearGuildCommands wipes per-guild command registrations left over from
-// earlier versions that registered commands guild by guild. Without this, every
-// command shows up twice in the picker (the stale guild copy + the global one).
 func clearGuildCommands(client *bot.Client, appID snowflake.ID, guilds []discord.UnavailableGuild) {
 	for _, g := range guilds {
 		if _, err := client.Rest.SetGuildCommands(appID, g.ID, []discord.ApplicationCommandCreate{}); err != nil {

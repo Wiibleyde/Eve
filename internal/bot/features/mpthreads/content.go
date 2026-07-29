@@ -19,10 +19,6 @@ const (
 	maxRelayedFiles  = 10
 	maxThreadName    = 100
 
-	// Discord's default upload limit is 10 MiB per message on a guild without
-	// boosts, and every re-uploaded attachment of a relayed message travels in a
-	// single CreateMessage. The budget stays under that limit — as a per-file cap
-	// and as a per-message total — so the request is not rejected outright.
 	maxUploadBytes = 9 << 20
 )
 
@@ -30,17 +26,12 @@ const downloadTimeout = 30 * time.Second
 
 var httpClient = &http.Client{Timeout: downloadTimeout}
 
-// Discord CDN links carry an expiring signature, so staff has to be told to
-// fetch them right away.
 const (
 	msgAttachmentTooBig  = "Pièce jointe « %s » trop lourde pour être ré-uploadée, lien temporaire (expire sous ~24 h) : %s"
 	msgAttachmentFailed  = "Pièce jointe « %s » indisponible au téléchargement, lien temporaire (expire sous ~24 h) : %s"
 	msgAttachmentRefused = "Pièce jointe « %s » refusée par Discord, lien temporaire (expire sous ~24 h) : %s"
 )
 
-// relayAttachment is a downloaded attachment kept in memory so the same bytes
-// can be re-sent across relay attempts, plus the source URL used as a fallback
-// when the upload itself is refused.
 type relayAttachment struct {
 	filename    string
 	description string
@@ -71,8 +62,6 @@ func linksOf(attachments []relayAttachment) []string {
 	return links
 }
 
-// noMentions neutralises every mention of a relayed message. User-authored
-// content must never be able to ping @everyone once mirrored into the guild.
 func noMentions() *discord.AllowedMentions {
 	return &discord.AllowedMentions{
 		Parse: []discord.AllowedMentionType{},
@@ -81,8 +70,6 @@ func noMentions() *discord.AllowedMentions {
 	}
 }
 
-// usersOnlyMentions is used for staff → user relays: user mentions stay
-// resolvable, @everyone and role pings never leave the guild.
 func usersOnlyMentions() *discord.AllowedMentions {
 	return &discord.AllowedMentions{
 		Parse: []discord.AllowedMentionType{discord.AllowedMentionTypeUsers},
@@ -111,9 +98,6 @@ func truncateRunes(s string, max int) string {
 	return string(runes[:max])
 }
 
-// stickerLinks renders the stickers of a message as links. Re-sending stickers
-// across guilds is unreliable (the bot must have access to the sticker), so
-// they are relayed as URLs instead.
 func stickerLinks(stickers []discord.MessageSticker) []string {
 	links := make([]string, 0, len(stickers))
 	for _, sticker := range stickers {
@@ -123,8 +107,6 @@ func stickerLinks(stickers []discord.MessageSticker) []string {
 	return links
 }
 
-// splitContent cuts content into chunks Discord accepts, preferring line
-// boundaries. An empty content yields no chunk at all.
 func splitContent(content string) []string {
 	content = strings.TrimRight(content, "\n")
 	if strings.TrimSpace(content) == "" {
@@ -152,8 +134,6 @@ func splitContent(content string) []string {
 	return chunks
 }
 
-// collectAttachments downloads what fits in the upload budget and returns the
-// attachments to re-upload plus the (expiring) links of everything skipped.
 func collectAttachments(attachments []discord.Attachment) (kept []relayAttachment, skipped []string) {
 	total := 0
 	for _, attachment := range attachments {
@@ -185,9 +165,6 @@ func collectAttachments(attachments []discord.Attachment) (kept []relayAttachmen
 	return kept, skipped
 }
 
-// fetchAttachment downloads an attachment into memory. The body is fully read
-// here because the REST client consumes the reader later, after the response
-// would already be closed.
 func fetchAttachment(url string) ([]byte, error) {
 	resp, err := httpClient.Get(url)
 	if err != nil {

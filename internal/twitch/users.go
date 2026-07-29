@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-// User is a subset of the GET /helix/users payload.
 type User struct {
 	ID              string `json:"id"`
 	Login           string `json:"login"`
@@ -16,8 +15,6 @@ type User struct {
 	OfflineImageURL string `json:"offline_image_url"`
 }
 
-// Name returns the display name, falling back to the login when Twitch has no
-// distinct display name (localized accounts sometimes leave it empty).
 func (u User) Name() string {
 	if u.DisplayName != "" {
 		return u.DisplayName
@@ -25,10 +22,6 @@ func (u User) Name() string {
 	return u.Login
 }
 
-// GetUsersByLogin resolves channel logins to users. Logins are case
-// insensitive on Twitch's side. Unknown logins are simply absent from the
-// result — the response is never padded, so always match on Login/ID rather
-// than on index.
 func (c *Client) GetUsersByLogin(ctx context.Context, logins []string) ([]User, error) {
 	normalized := make([]string, 0, len(logins))
 	for _, l := range logins {
@@ -41,8 +34,6 @@ func (c *Client) GetUsersByID(ctx context.Context, ids []string) ([]User, error)
 	return c.getUsers(ctx, "id", ids)
 }
 
-// GetUserByLogin resolves a single login. The bool reports whether the channel
-// exists; a missing channel is not an error.
 func (c *Client) GetUserByLogin(ctx context.Context, login string) (User, bool, error) {
 	users, err := c.GetUsersByLogin(ctx, []string{login})
 	if err != nil || len(users) == 0 {

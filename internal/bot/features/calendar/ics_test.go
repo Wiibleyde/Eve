@@ -146,8 +146,6 @@ func TestTextUnescaping(t *testing.T) {
 	}
 }
 
-// outlookICS mimics an Exchange feed: a Windows timezone name time.LoadLocation
-// cannot resolve, described by the calendar's own VTIMEZONE block.
 const outlookICS = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN

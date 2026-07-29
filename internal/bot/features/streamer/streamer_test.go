@@ -120,7 +120,6 @@ func TestRoleMentionRestrictsMentions(t *testing.T) {
 		t.Fatalf("no role means nothing mentionable: %+v", mentions)
 	}
 
-	// A corrupted row must not turn into a raw, unrestricted mention.
 	content, mentions = roleMention("not-a-snowflake")
 	if content != "" || len(mentions.Roles) != 0 {
 		t.Fatalf("invalid role must ping nothing, got %q %+v", content, mentions)
@@ -128,8 +127,6 @@ func TestRoleMentionRestrictsMentions(t *testing.T) {
 }
 
 func TestNoMentionsParsesNothing(t *testing.T) {
-	// A nil Parse marshals as JSON null, which Discord may read as "default
-	// parsing"; only an explicit empty array means "no mention type at all".
 	if parse := noMentions().Parse; parse == nil || len(parse) != 0 {
 		t.Fatalf("Parse must be an explicit empty slice, got %#v", parse)
 	}
@@ -227,7 +224,6 @@ func TestLiveEmbedNeverPingsThroughContent(t *testing.T) {
 }
 
 func TestEndedEmbedWithoutObservedStart(t *testing.T) {
-	// After a restart the duration is unknown; the embed must still render.
 	embed := endedEmbed(&trackState{}, "someone", twitch.User{}, false)
 	if embed.Title != "Stream terminé" {
 		t.Fatalf("title = %q", embed.Title)

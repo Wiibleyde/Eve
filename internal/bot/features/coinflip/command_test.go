@@ -2,10 +2,6 @@ package coinflip
 
 import "testing"
 
-// TestFlipOutcomes checks the acceptance criterion: only known outcomes, and a
-// roughly 50/50 Pile/Face split. The tolerance is wide enough (±2 points over
-// 200k tosses, where the standard deviation is ~0.11 point) that a passing
-// implementation never flakes.
 func TestFlipOutcomes(t *testing.T) {
 	const tosses = 200_000
 

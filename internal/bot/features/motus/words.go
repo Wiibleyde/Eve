@@ -18,15 +18,9 @@ import (
 )
 
 const (
-	// DefaultAPIURL is the external French word API used by the TS version.
-	// It answers with a JSON array of objects carrying a "name" field.
-	DefaultAPIURL = "https://trouve-mot.fr/api/random"
-	// EnvAPIURL optionally overrides DefaultAPIURL.
-	EnvAPIURL = "MOTUS_API_URL"
-	// EnvWordsFile optionally overrides the bundled fallback list path.
-	EnvWordsFile = "MOTUS_WORDS_FILE"
-	// DefaultWordsPath is the bundled fallback list, relative to the working
-	// directory (same convention as assets/img and assets/fonts).
+	DefaultAPIURL    = "https://trouve-mot.fr/api/random"
+	EnvAPIURL        = "MOTUS_API_URL"
+	EnvWordsFile     = "MOTUS_WORDS_FILE"
 	DefaultWordsPath = "assets/motus/words.txt"
 
 	apiTimeout     = 3 * time.Second
@@ -34,13 +28,10 @@ const (
 	apiMaxBodySize = 256 << 10
 )
 
-// apiWord is one entry of the trouve-mot.fr response.
 type apiWord struct {
 	Name string `json:"name"`
 }
 
-// emergencyWords keeps the feature alive even when both the API and the
-// bundled list are unreachable (bad working directory, missing asset...).
 var emergencyWords = []string{
 	"BATEAU", "MAISON", "JARDIN", "VOYAGE", "CAMION", "BUREAU", "CHEVAL",
 	"ORANGE", "BANANE", "SOLEIL", "MIROIR", "FENETRE", "CHAPEAU", "MANTEAU",
@@ -56,7 +47,6 @@ var (
 	fallbackWords []string
 )
 
-// FallbackWords returns the bundled word list, loading it on first use.
 func FallbackWords() []string {
 	fallbackOnce.Do(loadFallbackWords)
 	return fallbackWords
@@ -92,8 +82,6 @@ func loadFallbackWords() {
 	fallbackWords = emergencyWords
 }
 
-// ParseWordList normalizes a word list file and keeps only playable entries.
-// Blank lines and "#" comments are ignored.
 func ParseWordList(content string) []string {
 	lines := strings.Split(content, "\n")
 	words := make([]string, 0, len(lines))
@@ -116,12 +104,6 @@ func ParseWordList(content string) []string {
 	return words
 }
 
-// PickWord returns a playable answer: the external API first, the bundled list
-// as a fallback. It returns "" only if every source is empty, which cannot
-// happen while emergencyWords is non-empty.
-//
-// The chosen word is never returned through logs — callers must only ever log
-// it at DEBUG level.
 func PickWord(ctx context.Context) string {
 	for try := 1; try <= apiTries; try++ {
 		word, err := fetchWordFromAPI(ctx)
@@ -143,8 +125,6 @@ func PickWord(ctx context.Context) string {
 	return words[rand.IntN(len(words))]
 }
 
-// fetchWordFromAPI queries the external API once and returns the first playable
-// word of the response.
 func fetchWordFromAPI(ctx context.Context) (string, error) {
 	url := strings.TrimSpace(os.Getenv(EnvAPIURL))
 	if url == "" {
@@ -182,10 +162,6 @@ func fetchWordFromAPI(ctx context.Context) (string, error) {
 	return word, nil
 }
 
-// parseAPIResponse accepts both the documented array form and a bare object,
-// and returns the first entry that is a word once normalized. Unlike the
-// bundled list, the API is not length-bounded: the spec accepts "whatever the
-// source returns (typically 6-9)".
 func parseAPIResponse(body []byte) (string, error) {
 	var list []apiWord
 	if err := json.Unmarshal(body, &list); err != nil {

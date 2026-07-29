@@ -11,23 +11,16 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// The DB is the source of truth; these maps are the hot path used by the
-// MessageCreate listener so that every DM does not hit Postgres.
 var (
 	cacheMu      sync.RWMutex
 	threadToUser = make(map[snowflake.ID]snowflake.ID)
 	userToThread = make(map[snowflake.ID]snowflake.ID)
 )
 
-// The lock only has to serialise a conversation with itself, so a fixed pool of
-// mutexes shared between unrelated users is enough — and, unlike a per-user
-// mutex map, it does not grow with every user who ever DMs the bot.
 const userLockShards = 64
 
 var userLocks [userLockShards]sync.Mutex
 
-// Init loads every persisted mapping into memory. Rows with unparsable
-// snowflakes are dropped from the cache (never from the DB) and logged.
 func Init(ctx context.Context) error {
 	rows, err := database.Default.Ent().MPThread.Query().All(ctx)
 	if err != nil {
@@ -58,7 +51,6 @@ func Init(ctx context.Context) error {
 	return nil
 }
 
-// MappingCount returns how many user↔thread mappings are currently cached.
 func MappingCount() int {
 	cacheMu.RLock()
 	defer cacheMu.RUnlock()
@@ -79,9 +71,6 @@ func threadForUser(userID snowflake.ID) (snowflake.ID, bool) {
 	return threadID, ok
 }
 
-// rememberMapping persists a mapping and caches it. The cache is updated even
-// when the write fails, otherwise a broken DB would make the bot spawn a new
-// thread on every single DM.
 func rememberMapping(ctx context.Context, userID snowflake.ID, threadID snowflake.ID) {
 	cacheMu.Lock()
 	threadToUser[threadID] = userID
@@ -93,9 +82,6 @@ func rememberMapping(ctx context.Context, userID snowflake.ID, threadID snowflak
 	}
 }
 
-// upsertMapping updates first and inserts only when no row matched: the
-// sql/upsert ent feature is off project-wide and user_id carries a UNIQUE
-// index, so a bare Create would fail forever once a user's thread is recreated.
 func upsertMapping(ctx context.Context, userID snowflake.ID, threadID snowflake.ID) error {
 	client := database.Default.Ent().MPThread
 	updated, err := client.Update().
@@ -114,8 +100,6 @@ func upsertMapping(ctx context.Context, userID snowflake.ID, threadID snowflake.
 		Exec(ctx)
 }
 
-// forgetThread drops a mapping from both the cache and the DB. It is called
-// when the thread no longer exists on Discord so the next DM recreates one.
 func forgetThread(ctx context.Context, threadID snowflake.ID) {
 	cacheMu.Lock()
 	userID, known := threadToUser[threadID]
@@ -127,8 +111,6 @@ func forgetThread(ctx context.Context, threadID snowflake.ID) {
 	}
 	cacheMu.Unlock()
 
-	// user_id is UNIQUE too: clearing the user's row as well guarantees the
-	// mapping for the replacement thread cannot collide with a leftover.
 	stale := mpthread.ThreadID(threadID.String())
 	if known {
 		stale = mpthread.Or(stale, mpthread.UserID(userID.String()))
@@ -138,8 +120,6 @@ func forgetThread(ctx context.Context, threadID snowflake.ID) {
 	}
 }
 
-// lockUser returns the unlock func of the conversation lock. It guards both the
-// find-or-create path and the relay order; see dispatch for the contract.
 func lockUser(userID snowflake.ID) func() {
 	mu := &userLocks[uint64(userID)%userLockShards]
 	mu.Lock()

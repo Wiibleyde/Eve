@@ -16,7 +16,6 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// commandTimeout bounds the whole /calendar handling (HTTP fetch + DB + REST).
 const commandTimeout = 30 * time.Second
 
 const (
@@ -79,8 +78,6 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 	}
 }
 
-// guildContext enforces "guild only" + "Manage Channels" once for every
-// subcommand and returns the guild ID.
 func guildContext(e *events.ApplicationCommandInteractionCreate) (snowflake.ID, bool) {
 	if e.GuildID() == nil {
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(msgGuildOnly))
@@ -105,7 +102,6 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	// Fetching the ICS can take seconds — acknowledge first.
 	if err := e.DeferCreateMessage(true); err != nil {
 		logger.Error("Calendar: deferring set response failed", "error", err)
 		return
@@ -114,7 +110,6 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 
-	// Validate by fetching + parsing before anything is written.
 	parsed, err := fetchEvents(ctx, normalized)
 	if err != nil {
 		logger.Warn("Calendar: ICS validation failed", "guild", guildID.String(), "url", normalized, "error", err)
@@ -124,7 +119,6 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 
 	guildIDStr := guildID.String()
 
-	// A previous calendar message becomes orphaned — remove it best effort.
 	if previous, err := loadGuildCalendar(ctx, guildIDStr); err != nil {
 		logger.Warn("Calendar: could not read previous config", "guild", guildIDStr, "error", err)
 	} else {
@@ -140,8 +134,6 @@ func handleSet(e *events.ApplicationCommandInteractionCreate) {
 	channelID := e.Channel().ID()
 	if err := postCalendarMessage(ctx, e.Client(), guildIDStr, channelID, buildEmbed(parsed, time.Now())); err != nil {
 		logger.Error("Calendar: publishing calendar message failed", "guild", guildIDStr, "error", err)
-		// The failure is reported as "not published", so nothing may stay
-		// behind: an orphan calendar.url would still be polled by the scheduler.
 		if rollbackErr := deleteConfig(ctx, guildIDStr, tables.CalendarURL, tables.CalendarChannel, tables.CalendarMessage); rollbackErr != nil {
 			logger.Error("Calendar: rolling back config after a failed publish", "guild", guildIDStr, "error", rollbackErr)
 		}
@@ -229,8 +221,6 @@ func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
 	switch {
 	case err == nil:
 	case errors.Is(err, errCalendarMessageGone), errors.Is(err, errNoCalendarMessage):
-		// The message vanished (or was never published): republish it in the
-		// stored channel, falling back to the channel the command came from.
 		channelID := e.Channel().ID()
 		if cfg.ChannelID != "" {
 			if parsedID, parseErr := snowflake.Parse(cfg.ChannelID); parseErr == nil {
@@ -255,7 +245,6 @@ func handleRefresh(e *events.ApplicationCommandInteractionCreate) {
 	editDeferred(e, embeds.SuccessEmbed(message))
 }
 
-// editDeferred replaces the deferred ephemeral response with an embed.
 func editDeferred(e *events.ApplicationCommandInteractionCreate, embed discord.Embed) {
 	embedList := []discord.Embed{embed}
 	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{

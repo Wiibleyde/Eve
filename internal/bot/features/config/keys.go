@@ -8,9 +8,6 @@ import (
 	"Eve/internal/database/tables"
 )
 
-// Kind is the value type of a configuration key. It drives the option type of
-// the generated setter subcommand and how a stored value is rendered back to
-// the user.
 type Kind int
 
 const (
@@ -20,21 +17,13 @@ const (
 	KindString
 )
 
-// Key describes one user-settable guild configuration entry.
-//
-// Adding a key to Keys is enough: the setter subcommand, the get/reset choices
-// and the /config list output are all derived from this registry.
-//
-// Internal keys (calendar.*, debug.role) are deliberately absent — they are
-// managed by their own feature commands and must not be exposed here.
 type Key struct {
-	Name        string // guild_configs key, e.g. "birthday.channel"
-	Command     string // subcommand name, e.g. "birthday-channel"
-	Description string // human label, French, reused in list/get output
+	Name        string
+	Command     string
+	Description string
 	Kind        Kind
 }
 
-// Keys is the registry of user-visible configuration keys.
 var Keys = []Key{
 	{
 		Name:        tables.BirthdayChannel.String(),
@@ -74,7 +63,6 @@ func keyByName(name string) (Key, bool) {
 	return Key{}, false
 }
 
-// keyNames returns every user-visible key name, for bulk queries.
 func keyNames() []string {
 	names := make([]string, 0, len(Keys))
 	for _, k := range Keys {
@@ -99,7 +87,6 @@ func formatValue(k Key, raw string) string {
 	}
 }
 
-// parseBool is tolerant: values may have been written by other features.
 func parseBool(raw string) bool {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
 	case "true", "1", "oui", "yes", "on":
@@ -109,16 +96,12 @@ func parseBool(raw string) bool {
 	}
 }
 
-// FormatBool renders a bool the way this feature stores it, so other features
-// reading a Bool key can compare consistently.
 func FormatBool(v bool) string { return strconv.FormatBool(v) }
 
 func choiceLabel(k Key) string {
 	return truncate(fmt.Sprintf("%s (%s)", k.Description, k.Name), maxChoiceNameLength)
 }
 
-// truncate caps a string at n characters (runes), Discord limits are counted in
-// characters, not bytes.
 func truncate(s string, n int) string {
 	runes := []rune(s)
 	if len(runes) <= n {

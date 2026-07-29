@@ -20,8 +20,6 @@ import (
 
 const leaderboardSize = 10
 
-// minRatioAnswers is the floor of answered questions to appear in the ratio
-// leaderboard. Without it a single lucky answer tops the board at 100%.
 const minRatioAnswers = 10
 
 func handleLeaderboard(e *events.ApplicationCommandInteractionCreate) {
@@ -110,9 +108,6 @@ func worstScores(ctx context.Context) ([]*ent.QuizStat, error) {
 		All(ctx)
 }
 
-// bestRatios ranks by success rate among players with enough answers. The
-// filtering and sorting happen in Go: the table holds one row per player who
-// ever answered, and this keeps the ratio rule in one readable place.
 func bestRatios(ctx context.Context) ([]*ent.QuizStat, error) {
 	all, err := database.Default.Ent().QuizStat.Query().All(ctx)
 	if err != nil {
@@ -131,7 +126,6 @@ func bestRatios(ctx context.Context) ([]*ent.QuizStat, error) {
 		if ri != rj {
 			return ri > rj
 		}
-		// Same rate: the player with more good answers proved it more often.
 		return eligible[i].GoodAnswers > eligible[j].GoodAnswers
 	})
 

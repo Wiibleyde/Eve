@@ -19,8 +19,6 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// HandleBuyButton opens the ticket purchase modal. Selling is open to everyone:
-// the seller is recorded on each ticket so sales can be audited afterwards.
 func HandleBuyButton(e *events.ComponentInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -49,8 +47,6 @@ func HandleBuyButton(e *events.ComponentInteractionCreate, args []string) {
 	}
 }
 
-// HandleRemoveButton opens the ticket removal modal. Anyone may open it; the
-// modal handler restricts non-admins to the tickets they sold themselves.
 func HandleRemoveButton(e *events.ComponentInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -98,8 +94,6 @@ func HandleEditPlayerButton(e *events.ComponentInteractionCreate, args []string)
 	}
 }
 
-// HandleDrawButton runs the pre-flight checks and asks for confirmation. The
-// draw itself is irreversible, so it never happens on a single click.
 func HandleDrawButton(e *events.ComponentInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -155,9 +149,6 @@ func HandleDrawButton(e *events.ComponentInteractionCreate, args []string) {
 	}
 }
 
-// HandleDrawConfirmButton performs the one-shot draw: every prize, in position
-// order, gets a uniformly random ticket among those of players who have not won
-// yet — one prize per player, all tickets of a winner leave the pool.
 func HandleDrawConfirmButton(e *events.ComponentInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
 	if !ok {
@@ -223,7 +214,6 @@ func HandleDrawConfirmButton(e *events.ComponentInteractionCreate, args []string
 	updateResponse(e, summary)
 }
 
-// distinctTicketHolders counts players holding at least one ticket.
 func (s *snapshot) distinctTicketHolders() int {
 	holders := make(map[string]struct{}, len(s.players))
 	for _, t := range s.tickets {
@@ -232,8 +222,6 @@ func (s *snapshot) distinctTicketHolders() int {
 	return len(holders)
 }
 
-// requireEnoughPlayers refuses the draw when prizes outnumber the players able
-// to win one, since a player can win at most one prize.
 func requireEnoughPlayers(r helpers.EphemeralResponder, snap *snapshot) bool {
 	holders := snap.distinctTicketHolders()
 	if len(snap.prizes) <= holders {
@@ -246,8 +234,6 @@ func requireEnoughPlayers(r helpers.EphemeralResponder, snap *snapshot) bool {
 	return false
 }
 
-// drawAssignments picks the winning tickets without touching the database.
-// After a ticket wins, every ticket of the same player leaves the pool.
 func drawAssignments(snap *snapshot) []assignment {
 	names := snap.playerNames()
 	remaining := make([]*ent.LotoTicket, len(snap.tickets))
@@ -282,7 +268,6 @@ func drawAssignments(snap *snapshot) []assignment {
 	return assignments
 }
 
-// winnerLines renders "#rank prize → winner (ticket n°X)" for the announcement.
 func winnerLines(snap *snapshot) []string {
 	names := snap.playerNames()
 	lines := make([]string, 0, len(snap.prizes))
@@ -326,8 +311,6 @@ func announceDraw(client *bot.Client, snap *snapshot) {
 	}
 }
 
-// requireActiveGame resolves the game UUID carried by the custom ID and makes
-// sure it is still open. Failures answer the user ephemerally.
 func requireActiveGame(r helpers.EphemeralResponder, args []string) (*ent.LotoGame, bool) {
 	if len(args) == 0 || args[0] == "" {
 		helpers.RespondEphemeralEmbed(r, embeds.ErrorEmbed("Loto introuvable."))
@@ -351,7 +334,6 @@ func requireActiveGame(r helpers.EphemeralResponder, args []string) (*ent.LotoGa
 	return game, true
 }
 
-// isAdmin is the loto management check: Manage Messages in the current guild.
 func isAdmin(member *discord.ResolvedMember) bool {
 	return member != nil && member.Permissions.Has(discord.PermissionManageMessages)
 }
@@ -376,8 +358,6 @@ func refreshPublicMessage(client *bot.Client, gameID string) {
 	editPublicMessage(client, snap)
 }
 
-// editPublicMessage edits the stored public message in place. A finished game
-// loses its buttons and gains the per-seller sales breakdown.
 func editPublicMessage(client *bot.Client, snap *snapshot) {
 	game := snap.game
 	if game.ChannelID == "" || game.MessageID == "" {
@@ -424,7 +404,6 @@ func parseSnowflake(raw string, kind string) (snowflake.ID, bool) {
 	return id, true
 }
 
-// updateResponse edits a deferred ephemeral response with an embed.
 func updateResponse(e *events.ComponentInteractionCreate, embed discord.Embed) {
 	embedList := []discord.Embed{embed}
 	if _, err := e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{

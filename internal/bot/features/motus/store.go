@@ -13,10 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// gameLocks serializes the read-modify-write cycle of a board. Motus is
-// collaborative: two players can submit at the same instant and would otherwise
-// both append to the same attempts snapshot, losing one guess.
-var gameLocks sync.Map // messageID -> *sync.Mutex
+var gameLocks sync.Map
 
 func lockGame(messageID string) func() {
 	value, _ := gameLocks.LoadOrStore(messageID, &sync.Mutex{})
@@ -25,8 +22,6 @@ func lockGame(messageID string) func() {
 	return mu.Unlock
 }
 
-// forgetGameLock drops the mutex of a finished board. A late interaction that
-// recreates one is harmless: it will read a terminal state and bail out.
 func forgetGameLock(messageID string) {
 	gameLocks.Delete(messageID)
 }
@@ -58,7 +53,6 @@ func saveAttempt(ctx context.Context, id string, attempts []tables.MotusAttempt,
 		Exec(ctx)
 }
 
-// markState only updates the state, used when a game is closed by expiry.
 func markState(ctx context.Context, id, state string) error {
 	return database.Default.Ent().ActiveMotus.UpdateOneID(id).
 		SetState(state).
@@ -73,7 +67,6 @@ func isOver(game *ent.ActiveMotus) bool {
 	return game.State != tables.MotusStatePlaying
 }
 
-// alreadyTried reports whether the normalized guess was already submitted.
 func alreadyTried(attempts []tables.MotusAttempt, guess string) bool {
 	for _, attempt := range attempts {
 		if attempt.Word == guess {

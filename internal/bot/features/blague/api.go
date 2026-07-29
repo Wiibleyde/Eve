@@ -15,32 +15,18 @@ import (
 	"Eve/internal/logger"
 )
 
-// EnvToken is the environment variable holding the blagues-api.fr bearer token.
-// When it is empty the whole feature disables itself: the command is not even
-// registered on Discord (see Commands).
 const EnvToken = "BLAGUE_API_TOKEN"
 
-// RequestTimeout caps a single call to blagues-api.fr. It is deliberately
-// shorter than Discord's 15 minute followup window but long enough for a slow
-// upstream; the interaction is deferred before the call so the 3s ACK deadline
-// is never at risk.
 const RequestTimeout = 5 * time.Second
 
-// baseURL is a var (not a const) purely so tests can point it at a httptest
-// server. Nothing else rewrites it.
 var baseURL = "https://www.blagues-api.fr/api"
 
 var httpClient = &http.Client{Timeout: RequestTimeout}
 
-// ErrDisabled is returned when no API token is configured.
 var ErrDisabled = errors.New("blague: " + EnvToken + " is not configured")
 
-// ErrUnknownCategory is returned for a category outside the allowed set.
 var ErrUnknownCategory = errors.New("blague: unknown category")
 
-// Joke is the blagues-api.fr payload:
-//
-//	{"id":1,"type":"global","joke":"...","answer":"..."}
 type Joke struct {
 	ID     int    `json:"id"`
 	Type   string `json:"type"`
@@ -48,22 +34,17 @@ type Joke struct {
 	Answer string `json:"answer"`
 }
 
-// category maps an API category to its French slash command label.
 type category struct {
 	Value string
 	Label string
 }
 
-// categories intentionally excludes "dark", "limit" and "blondes" — same
-// editorial choice as the TypeScript version.
 var categories = []category{
 	{Value: "global", Label: "Générale"},
 	{Value: "dev", Label: "Développeur"},
 	{Value: "beauf", Label: "Beauf"},
 }
 
-// categoryLabel resolves an API category to its French label and doubles as the
-// allowlist guarding the URL path we build.
 func categoryLabel(value string) (string, bool) {
 	for _, c := range categories {
 		if c.Value == value {
@@ -78,8 +59,6 @@ var (
 	apiToken  string
 )
 
-// token reads EnvToken exactly once, lazily, so godotenv has already populated
-// the environment by the time it runs.
 func token() string {
 	tokenOnce.Do(func() {
 		apiToken = strings.TrimSpace(os.Getenv(EnvToken))

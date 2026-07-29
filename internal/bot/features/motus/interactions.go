@@ -17,7 +17,6 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-// HandleTryButton opens the guess modal for the board the button belongs to.
 func HandleTryButton(e *events.ComponentInteractionCreate, _ []string) {
 	messageID := e.Message.ID
 	ctx := context.Background()
@@ -37,10 +36,6 @@ func HandleTryButton(e *events.ComponentInteractionCreate, _ []string) {
 		return
 	}
 
-	// Max is the word length: accented input still fits since precomposed
-	// accents count one character. Min stays 1 because ligatures type shorter
-	// than they normalize («cœur» is 4 characters for 5 letters); the exact
-	// length is re-validated server side either way.
 	length := WordLen(game.Word)
 	input := discord.NewShortTextInput(InputGuess).
 		WithRequired(true).
@@ -59,8 +54,6 @@ func HandleTryButton(e *events.ComponentInteractionCreate, _ []string) {
 	}
 }
 
-// HandleSubmitModal validates a guess, updates the game and edits the board.
-// Invalid guesses never consume an attempt.
 func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	messageID := ""
 	if len(args) > 0 {
@@ -76,7 +69,6 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 
 	ctx := context.Background()
 
-	// Motus is collaborative: serialize the read-modify-write of one board.
 	unlock := lockGame(messageID)
 	defer unlock()
 
@@ -86,10 +78,6 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	}
 
 	if isOver(game) {
-		// The game ended through another path (win/lose/expiry) that already
-		// dropped its lock entry, but this call itself re-created one via
-		// lockGame above: drop it again so a late resubmission never pins a
-		// stale mutex in gameLocks forever.
 		forgetGameLock(messageID)
 		helpers.RespondEphemeralEmbed(e, embeds.ErrorEmbed(fmt.Sprintf(MsgGameOver, game.Word)))
 		return
@@ -144,7 +132,6 @@ func HandleSubmitModal(e *events.ModalSubmitInteractionCreate, args []string) {
 	}
 }
 
-// fetchGame loads a game and answers the interaction itself when it cannot.
 func fetchGame(ctx context.Context, responder helpers.EphemeralResponder, messageID string) (*ent.ActiveMotus, bool) {
 	game, err := loadGame(ctx, messageID)
 	if err == nil {
@@ -159,10 +146,6 @@ func fetchGame(ctx context.Context, responder helpers.EphemeralResponder, messag
 	return nil, false
 }
 
-// closeExpiredGame marks an outlived game as lost and reveals the answer on the
-// public board. Expiry is lazy: it only happens when someone touches the game.
-// Callers must have already checked isOver: closing a game that ended by play
-// (won/lost) would overwrite its board with a false "Perdu !".
 func closeExpiredGame(ctx context.Context, client *bot.Client, game *ent.ActiveMotus) {
 	if isOver(game) {
 		return
