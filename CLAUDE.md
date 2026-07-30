@@ -68,7 +68,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod down
 
 `.github/workflows/ci.yml` (push to main, PRs, manual) runs five parallel jobs: **style** (gofmt, `go vet`, `.github/scripts/check-no-comments.sh`), **lint** (golangci-lint v2, config in `.golangci.yml`), **test** (`go build ./...`, `go test -race -shuffle=on ./...`), **ent-codegen** (regenerates and fails on drift), **docker** (multi-arch build, no push).
 
-`.github/workflows/publish-image.yml` (push to main, `v*` tags, manual) builds `linux/amd64,linux/arm64` and pushes to `ghcr.io/wiibleyde/eve` with SBOM and provenance attestation. **It never deploys** — the job summary prints the pull/restart commands to run on the host.
+`.github/workflows/build-docker.yml` (push to main only) builds the image and pushes it to `ghcr.io/wiibleyde/eve` as `latest` and `<unix-timestamp>`. No git tags or releases are involved — a commit on main is the only thing that publishes an image. **It never deploys** — pull and restart on the host yourself. It passes no `VERSION` build-arg, so published images report the Dockerfile default (`dev`).
 
 The no-comments rule is enforced in CI by a grep over `*.go` that exempts `//go:build|generate|embed` and `internal/database/ent/`.
 
