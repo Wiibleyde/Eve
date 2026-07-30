@@ -22,52 +22,52 @@ const lotoMaxWinnersLimit = 500
 
 type LotoGameStats struct {
 	ID           string    `json:"id"`
-	GuildID      string    `json:"guildId"`
+	GuildID      string    `json:"guildId" description:"Discord guild snowflake ID." example:"1091918939407908944"`
 	Name         string    `json:"name"`
-	Active       bool      `json:"active"`
-	TicketPrice  int       `json:"ticketPrice"`
+	Active       bool      `json:"active" description:"Whether the game is still running."`
+	TicketPrice  int       `json:"ticketPrice" description:"Price of a single ticket."`
 	TicketsSold  int       `json:"ticketsSold"`
-	Pot          int       `json:"pot"`
+	Pot          int       `json:"pot" description:"ticketsSold multiplied by ticketPrice."`
 	PlayersCount int       `json:"playersCount"`
 	PrizesCount  int       `json:"prizesCount"`
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type LotoStatsTotals struct {
-	Games       int `json:"games"`
+	Games       int `json:"games" description:"Number of games in the games array."`
 	TicketsSold int `json:"ticketsSold"`
 	Pot         int `json:"pot"`
-	Players     int `json:"players"`
+	Players     int `json:"players" description:"Sum of per-game player counts. A player in two games counts twice."`
 }
 
 type LotoStatsResponse struct {
-	Games  []LotoGameStats `json:"games"`
+	Games  []LotoGameStats `json:"games" nullable:"false"`
 	Totals LotoStatsTotals `json:"totals"`
 }
 
 type LotoWinner struct {
 	GameID              string     `json:"gameId"`
-	GameName            string     `json:"gameName"`
-	GuildID             string     `json:"guildId"`
-	Position            int        `json:"position"`
+	GameName            string     `json:"gameName" description:"Empty when the parent game could not be resolved."`
+	GuildID             string     `json:"guildId" description:"Discord guild snowflake ID. Empty when the parent game could not be resolved." example:"1091918939407908944"`
+	Position            int        `json:"position" description:"Prize rank within the game."`
 	PrizeLabel          string     `json:"prizeLabel"`
-	WinnerName          string     `json:"winnerName"`
+	WinnerName          string     `json:"winnerName" description:"Inconnu when the player record could not be resolved."`
 	WinningTicketNumber int        `json:"winningTicketNumber"`
-	DrawnAt             *time.Time `json:"drawnAt"`
+	DrawnAt             *time.Time `json:"drawnAt" description:"Null when the prize has no recorded draw date."`
 }
 
 type LotoWinnersResponse struct {
-	Winners []LotoWinner `json:"winners"`
+	Winners []LotoWinner `json:"winners" nullable:"false"`
 }
 
-type lotoAPIError struct {
-	Error string `json:"error"`
+type APIError struct {
+	Error string `json:"error" description:"Human-readable error message." example:"internal server error"`
 }
 
 func (LotoController) GetStats(c fiber.Ctx) error {
 	db, err := lotoEntClient()
 	if err != nil {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(lotoAPIError{Error: "database unavailable"})
+		return c.Status(fiber.StatusServiceUnavailable).JSON(APIError{Error: "database unavailable"})
 	}
 
 	ctx := c.Context()
@@ -85,7 +85,7 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 	games, err := query.Order(ent.Desc(lotogame.FieldCreatedAt)).All(ctx)
 	if err != nil {
 		logger.Error("api: loading loto games", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 
 	response := LotoStatsResponse{Games: make([]LotoGameStats, 0, len(games))}
@@ -101,17 +101,17 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 	ticketsPerGame, err := lotoCountTicketsPerGame(ctx, db, ids)
 	if err != nil {
 		logger.Error("api: counting loto tickets", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 	playersPerGame, err := lotoCountPlayersPerGame(ctx, db, ids)
 	if err != nil {
 		logger.Error("api: counting loto players", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 	prizesPerGame, err := lotoCountPrizesPerGame(ctx, db, ids)
 	if err != nil {
 		logger.Error("api: counting loto prizes", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 
 	for _, g := range games {
@@ -141,14 +141,14 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 func (LotoController) GetWinners(c fiber.Ctx) error {
 	db, err := lotoEntClient()
 	if err != nil {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(lotoAPIError{Error: "database unavailable"})
+		return c.Status(fiber.StatusServiceUnavailable).JSON(APIError{Error: "database unavailable"})
 	}
 
 	limit := lotoMaxWinnersLimit
 	if raw := c.Query("limit"); raw != "" {
 		n, err := strconv.Atoi(raw)
 		if err != nil || n <= 0 {
-			return c.Status(fiber.StatusBadRequest).JSON(lotoAPIError{Error: "invalid limit"})
+			return c.Status(fiber.StatusBadRequest).JSON(APIError{Error: "invalid limit"})
 		}
 		limit = min(n, lotoMaxWinnersLimit)
 	}
@@ -169,7 +169,7 @@ func (LotoController) GetWinners(c fiber.Ctx) error {
 		All(ctx)
 	if err != nil {
 		logger.Error("api: loading loto winners", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 
 	response := LotoWinnersResponse{Winners: make([]LotoWinner, 0, len(prizes))}
@@ -198,7 +198,7 @@ func (LotoController) GetWinners(c fiber.Ctx) error {
 	games, err := db.LotoGame.Query().Where(lotogame.IDIn(gameIDs...)).All(ctx)
 	if err != nil {
 		logger.Error("api: loading loto games for winners", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 	lotoGamesByID := make(map[string]*ent.LotoGame, len(games))
 	for _, g := range games {
@@ -210,7 +210,7 @@ func (LotoController) GetWinners(c fiber.Ctx) error {
 		players, err := db.LotoPlayer.Query().Where(lotoplayer.IDIn(playerIDs...)).All(ctx)
 		if err != nil {
 			logger.Error("api: loading loto players for winners", "error", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(lotoAPIError{Error: "internal server error"})
+			return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 		}
 		for _, p := range players {
 			playerNames[p.ID] = p.Name

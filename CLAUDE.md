@@ -88,6 +88,23 @@ Components and modals use one custom ID scheme, built with `router.BuildCustomID
 
 The router matches on the `<feature>:<action>` prefix and passes the remaining segments to the handler as `args []string`. Data segments must not contain `:`; Discord caps custom IDs at 100 characters. Every dispatch passes through a maintenance gate (non-owners get an ephemeral warning while maintenance mode is on) and a panic recovery layer, so one broken handler cannot take the bot down.
 
+### REST API / OpenAPI
+
+`internal/api/server.go` mounts a Fiber v3 app on `API_PORT`. Swagger UI is served at `/docs`, the spec at `/openapi.yaml`. The API is GET-only (CORS enforces it).
+
+The `routes()` table in `server.go` is the single source of truth: it declares path, handler, tag, operation ID, summary, query shape and response codes. `Start` loops over it to register the Fiber routes **and** passes it to `buildSpec`, so a route and its documentation cannot drift apart. Adding an endpoint means adding one row.
+
+The spec is **not** a checked-in file and **not** generated from annotations — swaggo/swag needs comments, which CI rejects. `internal/api/openapi.go` builds it at startup with `swaggest/openapi-go`, reflecting the real structs:
+
+- Schemas come from the response types themselves (`models.*Response`, `controllers.Loto*Response`, `controllers.APIError`).
+- Field prose lives in struct tags: `description`, `example`, `format`, `nullable`, `enum`, `minimum`, `maximum`, `default`. `nullable:"false"` on a slice suppresses the null that reflection adds by default.
+- Query parameters are the `statsQuery` / `winnersQuery` structs (`query:"..."` tags). Handlers still read `c.Query(...)` directly, so these describe the surface rather than bind it — keep them in sync when a parameter changes.
+- Two reflector hooks: `unprefixedDefName` strips the package prefix from schema names (`ModelsHealthResponse` → `HealthResponse`), `requireResponseFields` marks response fields required without making query parameters required.
+
+`buildSpec` returns an error rather than panicking; `Start` logs it and skips mounting the UI, so a broken spec can never stop the API or the bot. `openapi_test.go` asserts every declared route reaches the spec.
+
+Swagger UI's JS/CSS load from the unpkg CDN, so the `/docs` page needs internet access in the browser. The spec itself is served from memory.
+
 ### Adding a feature
 
 1. Create `internal/bot/features/<name>/command.go` — define `Commands []discord.ApplicationCommandCreate` and `HandleCommand`.
