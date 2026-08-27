@@ -43,6 +43,12 @@ var Keys = []Key{
 		Description: "Réponses automatiques (blagues) désactivées",
 		Kind:        KindBool,
 	},
+	{
+		Name:        tables.AIDisabled.String(),
+		Command:     "ai-disabled",
+		Description: "Réponses de l'IA aux mentions désactivées",
+		Kind:        KindBool,
+	},
 }
 
 func keyByCommand(command string) (Key, bool) {
@@ -71,8 +77,8 @@ func keyNames() []string {
 	return names
 }
 
-func formatValue(k Key, raw string) string {
-	switch k.Kind {
+func formatValue(key Key, raw string) string {
+	switch key.Kind {
 	case KindChannel:
 		return "<#" + raw + ">"
 	case KindRole:
@@ -98,8 +104,8 @@ func parseBool(raw string) bool {
 
 func FormatBool(v bool) string { return strconv.FormatBool(v) }
 
-func choiceLabel(k Key) string {
-	return truncate(fmt.Sprintf("%s (%s)", k.Description, k.Name), maxChoiceNameLength)
+func choiceLabel(key Key) string {
+	return truncate(fmt.Sprintf("%s (%s)", key.Description, key.Name), maxChoiceNameLength)
 }
 
 func truncate(s string, n int) string {

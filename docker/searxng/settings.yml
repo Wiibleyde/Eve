@@ -1,0 +1,17 @@
+use_default_settings: true
+
+server:
+  secret_key: "eve-searxng-internal"
+  limiter: false
+  image_proxy: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "fr"
+  formats:
+    - json
+
+outgoing:
+  request_timeout: 5.0
+  max_request_timeout: 8.0

@@ -42,10 +42,12 @@ MOTUS_API_URL=...                # optional, overrides the word API
 MOTUS_WORDS_FILE=...             # optional, overrides the bundled word list
 ```
 
-Start the database (dev — bot itself runs on the host with `go run .`):
+Start the database and the local LLM (dev — bot itself runs on the host with `go run .`):
 ```bash
 docker compose up -d
 ```
+
+`docker compose up -d` starts postgres, ollama (published on `11434`), a one-shot `ollama-init` that pulls `OLLAMA_MODEL`, and searxng (published on `8080`). Set `OLLAMA_URL=http://localhost:11434` and `SEARXNG_URL=http://localhost:8080` in `.env` for the host-native bot to reach them.
 
 ### Production
 
@@ -146,6 +148,47 @@ Every message the bot sends uses Discord **Components V2** — no `discord.Embed
 Budget: 4000 characters of text and 40 components per message — truncate long lists (`ui.MaxText`).
 
 Reading text back out of a V2 message (e.g. to republish it) goes through `ui.Texts(msg.Components)`.
+
+### AI (Ollama)
+
+`internal/ollama` is a thin client over Ollama's `/api/chat`, `internal/bot/features/ai` is the Discord side. `OLLAMA_URL` gates the whole thing — unset means the listener is never attached.
+
+The model runs on CPU, so the client is deliberately restrictive: one generation at a time (`slot`), at most `MaxQueued` waiting (further calls get `ErrBusy` and a "trop de demandes" card), `num_predict` 180, `num_ctx` 2048, `num_thread` from `OLLAMA_NUM_THREADS`. `keep_alive: 24h` keeps the model resident between messages, and `Warmup` loads it at startup so the first real reply is not the one that pays for the load.
+
+`num_thread` must match the container's `cpus` limit. Ollama reads the host's core count, not the cgroup quota, so without it the model spawns more threads than it has CPU and thrashes. `OLLAMA_CPUS` (compose) and `OLLAMA_NUM_THREADS` (bot) both default to 3.
+
+`ai.Attach` replies when the bot is @-mentioned or when a user replies to one of its messages, never to `@everyone`, bots, webhooks, DMs (that is `mpthreads`), or while maintenance mode is on. Generation runs in a goroutine behind a panic recovery, with a typing indicator refreshed every 8s.
+
+Context is per channel and in memory only (`history`): last 12 messages, dropped after 30 minutes idle, gone on restart. User turns are stored as `<display name> (<@id>) : <text>` so the model can tell speakers apart and mention them back.
+
+`prompt.go` builds the system prompt per request, because it embeds runtime IDs: the bot's own ID (so Eve never mentions herself) and `BOT_OWNER_ID` (the creator sentence is dropped when no owner is configured). The persona is the WALL-E scout robot — direct, warm in social settings, French, 1024 characters max — plus the seven `<:eve*:>` emojis declared in `emojis.go`. A 1B model drifts, so `num_predict` and `cleanReply`'s 1024-character truncation are the real limits, not the prompt.
+
+**Eve's replies ping for real, and the model decides who.** That is the point (the prompt tells her to mention whoever she answers), so it is fenced in three layers rather than trusted:
+
+- `cleanReply` deletes self-mentions, role mentions (`<@&…>`) and half-written placeholders (`<@ID du compte>`, `@ID du compte`), and defangs `@everyone`/`@here`.
+- `AllowedMentions.Parse` is left empty and `Users` is set to an explicit ID list, so anything that survives step 1 still renders as inert text unless it is on that list.
+- The list is `pingable(content, allowedTargets(...))`: only IDs already in the conversation — channel participants, the current author, the owner — can be pinged. A user who talks Eve into mentioning a stranger gets text, not a notification.
+
+`RepliedUser` is only true when the reply contains no ping of its own, so the author is never notified twice.
+
+Per-guild opt-out is the `ai.disabled` config key (`/config set ai-disabled`). A database outage makes the bot stay silent rather than answer unfiltered.
+
+#### Web grounding
+
+The TypeScript bot ran on `gemini-2.5-flash` with `googleSearch` grounding, where the provider ran the search loop. Ollama has no equivalent, and llama3.2:1b is too small for reliable tool calling, so `internal/search` + `grounding.go` do it by hand: no model decision, one extra HTTP call, one generation.
+
+```
+mention → needsSearch(prompt) → SearXNG /search?format=json → top 3 snippets
+        → extra system message before the question → single Chat call
+```
+
+SearXNG is self-hosted (`docker/searxng/settings.yml`, a service in both compose files) because it is the only free web search left with no API key and no quota — Brave killed its free tier in February 2026. `SEARXNG_URL` gates it: unset means the AI still answers, just from weights alone. A failed or empty search degrades the same way, logged at WARN, never blocking the reply.
+
+The mounted `settings.yml` matters: SearXNG only serves `html` by default, so `search.formats` must list `json` or every query 403s. `limiter: false` because the caller is the bot, not a browser, and the bot detector would throttle it. The instance is unpublished in prod and only reachable over the compose network, which is why `secret_key` sits in a checked-in file — nothing signs a user session on it. Publishing that port means changing the key.
+
+`needsSearch` is a French keyword and year-pattern heuristic, deliberately conservative: it misses phrasings it does not know and fires on questions the model could have answered alone. It is the honest weak point of the design — the alternative, a classifier call, doubles latency on a CPU-bound model. Tune the list in `grounding.go`.
+
+Snippets cost context, which is why `numCtx` is 4096 rather than 2048. Results are capped at 3 × 240 characters and carry the domain, not the URL, so Eve cites `go.dev` instead of pasting a link that Discord would expand into an embed.
 
 ### Scheduler
 

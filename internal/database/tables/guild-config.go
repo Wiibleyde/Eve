@@ -22,6 +22,7 @@ const (
 	CalendarMessage
 	JokesDisabled
 	DebugRole
+	AIDisabled
 )
 
 var configKey = map[ConfigKey]string{
@@ -32,6 +33,7 @@ var configKey = map[ConfigKey]string{
 	CalendarMessage: "calendar.message",
 	JokesDisabled:   "jokes.disabled",
 	DebugRole:       "debug.role",
+	AIDisabled:      "ai.disabled",
 }
 
 func (k ConfigKey) String() string {

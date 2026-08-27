@@ -1,6 +1,7 @@
 package bot
 
 import (
+	aifeature "Eve/internal/bot/features/ai"
 	"Eve/internal/bot/features/birthday"
 	"Eve/internal/bot/features/blague"
 	"Eve/internal/bot/features/calendar"
@@ -78,6 +79,7 @@ func Run(cfg *config.Config, db *database.Client) {
 	userinfo.Register(r)
 	r.Attach(client)
 
+	aifeature.Attach(client)
 	reactions.Attach(client)
 	mpthreads.Attach(client)
 
