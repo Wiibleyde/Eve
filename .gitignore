@@ -34,3 +34,6 @@ go.work.sum
 Eve
 
 .DS_Store
+
+# MariaDB dump + generated data migration
+datas/
