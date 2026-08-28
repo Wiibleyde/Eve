@@ -65,8 +65,8 @@ func TestMentionedUsersDeduplicates(t *testing.T) {
 	}
 }
 
-func TestSystemMessageCarriesIdentityAndEmojis(t *testing.T) {
-	content := systemMessage(selfID, ownerID, true).Content
+func TestSystemInstructionCarriesIdentityAndEmojis(t *testing.T) {
+	content := systemInstruction(selfID, ownerID, true)
 
 	for _, want := range []string{mention(selfID), mention(ownerID), EmojiHappy, "1024 caractères"} {
 		if !strings.Contains(content, want) {
@@ -75,8 +75,8 @@ func TestSystemMessageCarriesIdentityAndEmojis(t *testing.T) {
 	}
 }
 
-func TestSystemMessageOmitsUnknownOwner(t *testing.T) {
-	content := systemMessage(selfID, 0, false).Content
+func TestSystemInstructionOmitsUnknownOwner(t *testing.T) {
+	content := systemInstruction(selfID, 0, false)
 
 	if strings.Contains(content, "créateur") {
 		t.Errorf("system prompt mentions a creator without a configured owner:\n%s", content)

@@ -10,56 +10,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    environment:
-      OLLAMA_NUM_PARALLEL: 1
-      OLLAMA_MAX_LOADED_MODELS: 1
-      OLLAMA_KEEP_ALIVE: 24h
-    volumes:
-      - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        limits:
-          cpus: "${OLLAMA_CPUS:-3}"
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-
-  ollama-init:
-    image: ollama/ollama:latest
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["/bin/sh", "-c", "ollama pull ${OLLAMA_MODEL:-llama3.2:1b}"]
-    restart: "no"
-
-  searxng:
-    image: searxng/searxng:latest
-    ports:
-      - "8080:8080"
-    environment:
-      SEARXNG_BASE_URL: http://localhost:8080/
-    volumes:
-      - ./docker/searxng:/etc/searxng
-    deploy:
-      resources:
-        limits:
-          cpus: "${SEARXNG_CPUS:-1}"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/healthz"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   lavalink-init:
     image: busybox:latest
     command: ["chown", "-R", "322:322", "/plugins"]
@@ -88,5 +38,4 @@ services:
 
 volumes:
   postgres_data:
-  ollama_data:
   lavalink_plugins:

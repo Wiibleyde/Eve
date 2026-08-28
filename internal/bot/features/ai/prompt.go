@@ -5,8 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"Eve/internal/ollama"
-
 	"github.com/disgoorg/snowflake/v2"
 )
 
@@ -42,7 +40,7 @@ var (
 	whitespaceRun   = regexp.MustCompile(`[^\S\n]+`)
 )
 
-func systemMessage(selfID snowflake.ID, ownerID snowflake.ID, ownerKnown bool) ollama.Message {
+func systemInstruction(selfID snowflake.ID, ownerID snowflake.ID, ownerKnown bool) string {
 	sections := []string{
 		persona,
 		fmt.Sprintf(mentionRules, mention(selfID)),
@@ -52,10 +50,7 @@ func systemMessage(selfID snowflake.ID, ownerID snowflake.ID, ownerKnown bool) o
 	}
 	sections = append(sections, formatRules, fmt.Sprintf(emojiRule, emojiList()))
 
-	return ollama.Message{
-		Role:    ollama.RoleSystem,
-		Content: strings.Join(sections, "\n\n"),
-	}
+	return strings.Join(sections, "\n\n")
 }
 
 func mention(id snowflake.ID) string { return "<@" + id.String() + ">" }

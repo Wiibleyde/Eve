@@ -2,11 +2,8 @@ package config
 
 import (
 	"os"
-	"strconv"
 	"strings"
 	"sync"
-
-	"Eve/internal/logger"
 )
 
 const (
@@ -21,10 +18,7 @@ const (
 	EnvBlagueAPIToken     = "BLAGUE_API_TOKEN"
 	EnvMotusAPIURL        = "MOTUS_API_URL"
 	EnvMotusWordsFile     = "MOTUS_WORDS_FILE"
-	EnvOllamaURL          = "OLLAMA_URL"
-	EnvOllamaModel        = "OLLAMA_MODEL"
-	EnvOllamaThreads      = "OLLAMA_NUM_THREADS"
-	EnvSearxngURL         = "SEARXNG_URL"
+	EnvGoogleAPIKey       = "GOOGLE_API_KEY"
 	EnvLavalinkAddress    = "LAVALINK_ADDRESS"
 	EnvLavalinkPassword   = "LAVALINK_PASSWORD"
 	EnvLavalinkSecure     = "LAVALINK_SECURE"
@@ -33,10 +27,8 @@ const (
 )
 
 const (
-	DefaultAPIPort       = "3000"
-	DefaultMotusAPIURL   = "https://trouve-mot.fr/api/random"
-	DefaultOllamaModel   = "llama3.2:1b"
-	DefaultOllamaThreads = 3
+	DefaultAPIPort     = "3000"
+	DefaultMotusAPIURL = "https://trouve-mot.fr/api/random"
 )
 
 type Config struct {
@@ -56,11 +48,7 @@ type Config struct {
 	MotusAPIURL    string
 	MotusWordsFile string
 
-	OllamaURL     string
-	OllamaModel   string
-	OllamaThreads int
-
-	SearxngURL string
+	GoogleAPIKey string
 
 	LavalinkAddress  string
 	LavalinkPassword string
@@ -93,10 +81,7 @@ func load() *Config {
 		BlagueAPIToken:     value(EnvBlagueAPIToken),
 		MotusAPIURL:        valueOr(EnvMotusAPIURL, DefaultMotusAPIURL),
 		MotusWordsFile:     value(EnvMotusWordsFile),
-		OllamaURL:          baseURL(EnvOllamaURL),
-		OllamaModel:        valueOr(EnvOllamaModel, DefaultOllamaModel),
-		OllamaThreads:      positiveInt(EnvOllamaThreads, DefaultOllamaThreads),
-		SearxngURL:         baseURL(EnvSearxngURL),
+		GoogleAPIKey:       value(EnvGoogleAPIKey),
 		LavalinkAddress:    value(EnvLavalinkAddress),
 		LavalinkPassword:   value(EnvLavalinkPassword),
 		LavalinkSecure:     boolean(EnvLavalinkSecure),
@@ -123,21 +108,4 @@ func boolean(key string) bool {
 	default:
 		return false
 	}
-}
-
-func baseURL(key string) string {
-	return strings.TrimRight(value(key), "/")
-}
-
-func positiveInt(key string, fallback int) int {
-	raw := value(key)
-	if raw == "" {
-		return fallback
-	}
-	parsed, err := strconv.Atoi(raw)
-	if err != nil || parsed < 1 {
-		logger.Warn("Ignoring invalid "+key, "value", raw)
-		return fallback
-	}
-	return parsed
 }

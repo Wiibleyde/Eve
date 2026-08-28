@@ -16,8 +16,8 @@ import (
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/guildconfig"
 	"Eve/internal/database/tables"
+	"Eve/internal/gemini"
 	"Eve/internal/logger"
-	"Eve/internal/ollama"
 
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
@@ -37,9 +37,8 @@ type answer struct {
 
 const (
 	lookupTimeout   = 3 * time.Second
-	generateTimeout = 90 * time.Second
+	generateTimeout = 30 * time.Second
 	typingInterval  = 8 * time.Second
-	warmupTimeout   = 5 * time.Minute
 )
 
 const (
@@ -49,26 +48,12 @@ const (
 )
 
 func Attach(client *bot.Client) {
-	if !ollama.Enabled() {
-		logger.Warn("AI: " + config.EnvOllamaURL + " is missing, mention replies are disabled")
+	if !gemini.Enabled() {
+		logger.Warn("AI: " + config.EnvGoogleAPIKey + " is missing, mention replies are disabled")
 		return
 	}
 	client.AddEventListeners(bot.NewListenerFunc(onMessageCreate))
-	go warmup()
-	logger.Info("AI: mention replies attached", "model", ollama.Default().Model())
-}
-
-func warmup() {
-	defer recoverPanic("ai warmup")
-
-	ctx, cancel := context.WithTimeout(context.Background(), warmupTimeout)
-	defer cancel()
-
-	if err := ollama.Default().Warmup(ctx); err != nil {
-		logger.Warn("AI: warmup failed, first reply will be slower", "error", err)
-		return
-	}
-	logger.Info("AI: model warmed up", "model", ollama.Default().Model())
+	logger.Info("AI: mention replies attached", "model", gemini.Model)
 }
 
 func onMessageCreate(e *events.MessageCreate) {
@@ -121,15 +106,13 @@ func onMessageCreate(e *events.MessageCreate) {
 func generate(ctx context.Context, selfID snowflake.ID, channelID snowflake.ID, author speaker, prompt string) (answer, error) {
 	now := time.Now()
 	ownerID, ownerKnown := helpers.OwnerID()
-	question := ollama.Message{Role: ollama.RoleUser, Content: author.prefix() + prompt}
 
-	conversation := append([]ollama.Message{systemMessage(selfID, ownerID, ownerKnown)}, channelHistory.messages(channelID, now)...)
-	if grounding, ok := groundingMessage(ctx, prompt); ok {
-		conversation = append(conversation, grounding)
+	chat, err := channelSessions.chatFor(ctx, channelID, now, systemInstruction(selfID, ownerID, ownerKnown))
+	if err != nil {
+		return answer{}, err
 	}
-	conversation = append(conversation, question)
 
-	raw, err := ollama.Default().Chat(ctx, conversation)
+	raw, err := chat.Send(ctx, author.prefix()+prompt)
 	if err != nil {
 		return answer{}, err
 	}
@@ -139,10 +122,7 @@ func generate(ctx context.Context, selfID snowflake.ID, channelID snowflake.ID, 
 		return answer{}, errors.New("ai: model returned an unusable answer")
 	}
 
-	channelHistory.append(channelID, now, author.id, question, ollama.Message{
-		Role:    ollama.RoleAssistant,
-		Content: content,
-	})
+	channelSessions.touch(channelID, now, author.id)
 
 	return answer{
 		content:  content,
@@ -155,7 +135,7 @@ func allowedTargets(channelID snowflake.ID, now time.Time, authorID snowflake.ID
 	if ownerKnown {
 		allowed[ownerID] = struct{}{}
 	}
-	for _, id := range channelHistory.participants(channelID, now) {
+	for _, id := range channelSessions.participants(channelID, now) {
 		allowed[id] = struct{}{}
 	}
 	return allowed
@@ -247,8 +227,8 @@ func parseBool(raw string) bool {
 }
 
 func respondError(client *bot.Client, channelID snowflake.ID, messageID snowflake.ID, err error) {
-	if errors.Is(err, ollama.ErrBusy) {
-		logger.Debug("AI: generation refused, queue is full", "channel", channelID.String())
+	if errors.Is(err, gemini.ErrRateLimited) {
+		logger.Debug("AI: generation refused, rate limited", "channel", channelID.String())
 		replyCard(client, channelID, messageID, ui.Warning("Trop de demandes", msgBusy))
 		return
 	}

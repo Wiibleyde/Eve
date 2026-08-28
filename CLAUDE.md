@@ -40,6 +40,7 @@ TWITCH_CLIENT_SECRET=...
 BLAGUE_API_TOKEN=...             # blague feature; absent = command hidden
 MOTUS_API_URL=...                # optional, overrides the word API
 MOTUS_WORDS_FILE=...             # optional, overrides the bundled word list
+GOOGLE_API_KEY=...               # AI feature; absent = mention replies disabled
 LAVALINK_ADDRESS=host:port       # music feature; absent = commands hidden
 LAVALINK_PASSWORD=...
 LAVALINK_SECURE=true             # optional, reach the node over https/wss
@@ -47,12 +48,12 @@ YTDLP_PATH=/usr/bin/yt-dlp       # optional, defaults to yt-dlp on PATH
 YTDLP_JS_RUNTIME=node            # optional, yt-dlp --js-runtimes (default: deno)
 ```
 
-Start the database and the local LLM (dev — bot itself runs on the host with `go run .`):
+Start the database and Lavalink (dev — bot itself runs on the host with `go run .`):
 ```bash
 docker compose up -d
 ```
 
-`docker compose up -d` starts postgres, ollama (published on `11434`), a one-shot `ollama-init` that pulls `OLLAMA_MODEL`, searxng (published on `8080`), and lavalink (published on `2333`). Set `OLLAMA_URL=http://localhost:11434`, `SEARXNG_URL=http://localhost:8080` and `LAVALINK_ADDRESS=localhost:2333` in `.env` for the host-native bot to reach them.
+`docker compose up -d` starts postgres and lavalink (published on `2333`). Set `LAVALINK_ADDRESS=localhost:2333` in `.env` for the host-native bot to reach it. The AI feature needs no local service — it just needs `GOOGLE_API_KEY` in `.env`.
 
 ### Production
 
@@ -154,19 +155,17 @@ Budget: 4000 characters of text and 40 components per message — truncate long 
 
 Reading text back out of a V2 message (e.g. to republish it) goes through `ui.Texts(msg.Components)`.
 
-### AI (Ollama)
+### AI (Gemini)
 
-`internal/ollama` is a thin client over Ollama's `/api/chat`, `internal/bot/features/ai` is the Discord side. `OLLAMA_URL` gates the whole thing — unset means the listener is never attached.
+`internal/gemini` is a thin wrapper over the official `google.golang.org/genai` SDK, `internal/bot/features/ai` is the Discord side. `GOOGLE_API_KEY` gates the whole thing — unset means the listener is never attached. This mirrors the old TypeScript bot's `utils/intelligence.ts`, not the CPU-bound Ollama setup it briefly replaced: `gemini-2.5-flash`, one persistent chat session per channel, and the `googleSearch` tool doing grounding provider-side instead of a hand-rolled SearXNG lookup.
 
-The model runs on CPU, so the client is deliberately restrictive: one generation at a time (`slot`), at most `MaxQueued` waiting (further calls get `ErrBusy` and a "trop de demandes" card), `num_predict` 180, `num_ctx` 2048, `num_thread` from `OLLAMA_NUM_THREADS`. `keep_alive: 24h` keeps the model resident between messages, and `Warmup` loads it at startup so the first real reply is not the one that pays for the load.
-
-`num_thread` must match the container's `cpus` limit. Ollama reads the host's core count, not the cgroup quota, so without it the model spawns more threads than it has CPU and thrashes. `OLLAMA_CPUS` (compose) and `OLLAMA_NUM_THREADS` (bot) both default to 3.
+`gemini.Client.NewChat` creates a `genai.Chat` with safety settings on `BLOCK_NONE` across all harm categories and `Tools: [{GoogleSearch: {}}]` — the model decides on its own when a question needs a web search, no local heuristic involved. The SDK owns the conversation history inside the `*genai.Chat` value; Eve never sees or stores message content herself.
 
 `ai.Attach` replies when the bot is @-mentioned or when a user replies to one of its messages, never to `@everyone`, bots, webhooks, DMs (that is `mpthreads`), or while maintenance mode is on. Generation runs in a goroutine behind a panic recovery, with a typing indicator refreshed every 8s.
 
-Context is per channel and in memory only (`history`): last 12 messages, dropped after 30 minutes idle, gone on restart. User turns are stored as `<display name> (<@id>) : <text>` so the model can tell speakers apart and mention them back.
+Context is per channel and in memory only (`sessions.go`): one `genai.Chat` per channel, dropped after 30 minutes idle, gone on restart. `sessionStore` only tracks what Eve needs beyond the SDK's own history — the channel's participant set (for the mention allow-list below) and the idle TTL. User turns are sent as `<display name> (<@id>) : <text>` so the model can tell speakers apart and mention them back.
 
-`prompt.go` builds the system prompt per request, because it embeds runtime IDs: the bot's own ID (so Eve never mentions herself) and `BOT_OWNER_ID` (the creator sentence is dropped when no owner is configured). The persona is the WALL-E scout robot — direct, warm in social settings, French, 1024 characters max — plus the seven `<:eve*:>` emojis declared in `emojis.go`. A 1B model drifts, so `num_predict` and `cleanReply`'s 1024-character truncation are the real limits, not the prompt.
+`prompt.go` builds the system instruction once per new chat session, because it embeds runtime IDs: the bot's own ID (so Eve never mentions herself) and `BOT_OWNER_ID` (the creator sentence is dropped when no owner is configured). The persona is the WALL-E scout robot — direct, warm in social settings, French, 1024 characters max — plus the seven `<:eve*:>` emojis declared in `emojis.go`. Gemini is far more capable than the old 1B local model, so `cleanReply`'s 1024-character truncation is the only hard limit left, not the prompt.
 
 **Eve's replies ping for real, and the model decides who.** That is the point (the prompt tells her to mention whoever she answers), so it is fenced in three layers rather than trusted:
 
@@ -178,22 +177,7 @@ Context is per channel and in memory only (`history`): last 12 messages, dropped
 
 Per-guild opt-out is the `ai.disabled` config key (`/config set ai-disabled`). A database outage makes the bot stay silent rather than answer unfiltered.
 
-#### Web grounding
-
-The TypeScript bot ran on `gemini-2.5-flash` with `googleSearch` grounding, where the provider ran the search loop. Ollama has no equivalent, and llama3.2:1b is too small for reliable tool calling, so `internal/search` + `grounding.go` do it by hand: no model decision, one extra HTTP call, one generation.
-
-```
-mention → needsSearch(prompt) → SearXNG /search?format=json → top 3 snippets
-        → extra system message before the question → single Chat call
-```
-
-SearXNG is self-hosted (`docker/searxng/settings.yml`, a service in both compose files) because it is the only free web search left with no API key and no quota — Brave killed its free tier in February 2026. `SEARXNG_URL` gates it: unset means the AI still answers, just from weights alone. A failed or empty search degrades the same way, logged at WARN, never blocking the reply.
-
-The mounted `settings.yml` matters: SearXNG only serves `html` by default, so `search.formats` must list `json` or every query 403s. `limiter: false` because the caller is the bot, not a browser, and the bot detector would throttle it. The instance is unpublished in prod and only reachable over the compose network, which is why `secret_key` sits in a checked-in file — nothing signs a user session on it. Publishing that port means changing the key.
-
-`needsSearch` is a French keyword and year-pattern heuristic, deliberately conservative: it misses phrasings it does not know and fires on questions the model could have answered alone. It is the honest weak point of the design — the alternative, a classifier call, doubles latency on a CPU-bound model. Tune the list in `grounding.go`.
-
-Snippets cost context, which is why `numCtx` is 4096 rather than 2048. Results are capped at 3 × 240 characters and carry the domain, not the URL, so Eve cites `go.dev` instead of pasting a link that Discord would expand into an embed.
+Gemini's own rate limiting surfaces as a `*genai.APIError` with `Code` 429 or 503; `gemini.translateError` maps both to the sentinel `gemini.ErrRateLimited`, which `respondError` turns into the "trop de demandes" card instead of a generic failure.
 
 ### Music (yt-dlp + Lavalink)
 
