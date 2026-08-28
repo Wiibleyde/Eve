@@ -40,7 +40,10 @@ type category struct {
 var categories = []category{
 	{Value: "global", Label: "Générale"},
 	{Value: "dev", Label: "Développeur"},
-	{Value: "beauf", Label: "Beauf"},
+	// {Value: "beauf", Label: "Beauf"},
+	// {Value: "dark", Label: "Dark"},
+	// {Value: "limit", Label: "Limit"},
+	// {Value: "blondes", Label: "Blondes"},
 }
 
 func categoryLabel(value string) (string, bool) {

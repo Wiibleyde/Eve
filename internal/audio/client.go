@@ -58,32 +58,32 @@ func New(userID snowflake.ID, opts ...disgolink.ConfigOpt) (*Client, error) {
 	return client, nil
 }
 
-func (c *Client) Connected() bool {
-	return c.link.BestNode() != nil
+func (client *Client) Connected() bool {
+	return client.link.BestNode() != nil
 }
 
-func (c *Client) Node() (*disgolink.Node, error) {
-	node := c.link.BestNode()
+func (client *Client) Node() (*disgolink.Node, error) {
+	node := client.link.BestNode()
 	if node == nil {
 		return nil, ErrNoNode
 	}
 	return node, nil
 }
 
-func (c *Client) Player(guildID snowflake.ID) *disgolink.Player {
-	return c.link.Player(guildID)
+func (client *Client) Player(guildID snowflake.ID) *disgolink.Player {
+	return client.link.Player(guildID)
 }
 
-func (c *Client) ExistingPlayer(guildID snowflake.ID) *disgolink.Player {
-	return c.link.ExistingPlayer(guildID)
+func (client *Client) ExistingPlayer(guildID snowflake.ID) *disgolink.Player {
+	return client.link.ExistingPlayer(guildID)
 }
 
-func (c *Client) RemovePlayer(guildID snowflake.ID) {
-	c.link.RemovePlayer(guildID)
+func (client *Client) RemovePlayer(guildID snowflake.ID) {
+	client.link.RemovePlayer(guildID)
 }
 
-func (c *Client) Load(ctx context.Context, query string, handler disgolink.TrackLoadingResultHandler) {
-	node, err := c.Node()
+func (client *Client) Load(ctx context.Context, query string, handler disgolink.TrackLoadingResultHandler) {
+	node, err := client.Node()
 	if err != nil {
 		handler.OnError(err)
 		return
@@ -91,20 +91,20 @@ func (c *Client) Load(ctx context.Context, query string, handler disgolink.Track
 	node.Rest.LoadTracksHandler(ctx, query, handler)
 }
 
-func (c *Client) OnVoiceStateUpdate(ctx context.Context, guildID snowflake.ID, channelID *snowflake.ID, sessionID string) {
-	c.link.OnVoiceStateUpdate(ctx, guildID, channelID, sessionID)
+func (client *Client) OnVoiceStateUpdate(ctx context.Context, guildID snowflake.ID, channelID *snowflake.ID, sessionID string) {
+	client.link.OnVoiceStateUpdate(ctx, guildID, channelID, sessionID)
 }
 
-func (c *Client) OnVoiceServerUpdate(ctx context.Context, guildID snowflake.ID, token string, endpoint string) {
-	c.link.OnVoiceServerUpdate(ctx, guildID, token, endpoint)
+func (client *Client) OnVoiceServerUpdate(ctx context.Context, guildID snowflake.ID, token string, endpoint string) {
+	client.link.OnVoiceServerUpdate(ctx, guildID, token, endpoint)
 }
 
-func (c *Client) Close() {
-	c.link.Close()
+func (client *Client) Close() {
+	client.link.Close()
 }
 
-func (c *Client) LoadDirect(ctx context.Context, streamURL string) (lavalink.Track, error) {
-	node, err := c.Node()
+func (client *Client) LoadDirect(ctx context.Context, streamURL string) (lavalink.Track, error) {
+	node, err := client.Node()
 	if err != nil {
 		return lavalink.Track{}, err
 	}

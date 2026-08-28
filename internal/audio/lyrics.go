@@ -55,9 +55,9 @@ type LyricsSearchResult struct {
 	Title   string `json:"title"`
 }
 
-func (c *Client) LyricsForVideo(ctx context.Context, videoID string) (*Lyrics, error) {
+func (client *Client) LyricsForVideo(ctx context.Context, videoID string) (*Lyrics, error) {
 	var payload rawLyrics
-	if err := c.request(ctx, http.MethodGet, "/v4/lyrics/"+url.PathEscape(videoID), &payload); err != nil {
+	if err := client.request(ctx, http.MethodGet, "/v4/lyrics/"+url.PathEscape(videoID), &payload); err != nil {
 		return nil, err
 	}
 
@@ -84,9 +84,9 @@ func (c *Client) LyricsForVideo(ctx context.Context, videoID string) (*Lyrics, e
 	return lyrics, nil
 }
 
-func (c *Client) SearchLyrics(ctx context.Context, query string) ([]LyricsSearchResult, error) {
+func (client *Client) SearchLyrics(ctx context.Context, query string) ([]LyricsSearchResult, error) {
 	var results []LyricsSearchResult
-	if err := c.request(ctx, http.MethodGet, "/v4/lyrics/search/"+url.PathEscape(query), &results); err != nil {
+	if err := client.request(ctx, http.MethodGet, "/v4/lyrics/search/"+url.PathEscape(query), &results); err != nil {
 		return nil, err
 	}
 	if len(results) == 0 {
@@ -116,8 +116,8 @@ func VideoID(rawURL string) string {
 	return ""
 }
 
-func (c *Client) request(ctx context.Context, method string, path string, out any) error {
-	node, err := c.Node()
+func (client *Client) request(ctx context.Context, method string, path string, out any) error {
+	node, err := client.Node()
 	if err != nil {
 		return err
 	}

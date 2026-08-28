@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"slices"
 	"strings"
 	"sync"
 
@@ -224,49 +225,49 @@ type rawEntry struct {
 	Entries    []rawEntry     `json:"entries"`
 }
 
-func (e rawEntry) isSearch() bool {
-	return strings.Contains(strings.ToLower(e.Extractor), "search")
+func (entry rawEntry) isSearch() bool {
+	return strings.Contains(strings.ToLower(entry.Extractor), "search")
 }
 
-func (e rawEntry) media() (Media, bool) {
-	uri := e.WebpageURL
+func (entry rawEntry) media() (Media, bool) {
+	uri := entry.WebpageURL
 	if uri == "" {
-		uri = e.URL
+		uri = entry.URL
 	}
-	if uri == "" && e.ID != "" {
-		uri = "https://www.youtube.com/watch?v=" + e.ID
+	if uri == "" && entry.ID != "" {
+		uri = "https://www.youtube.com/watch?v=" + entry.ID
 	}
-	if uri == "" || e.Title == "" {
+	if uri == "" || entry.Title == "" {
 		return Media{}, false
 	}
 
-	author := e.Uploader
+	author := entry.Uploader
 	if author == "" {
-		author = e.Channel
+		author = entry.Channel
 	}
 
 	var length lavalink.Duration
-	if e.Duration != nil {
-		length = lavalink.Duration(*e.Duration * float64(lavalink.Second))
+	if entry.Duration != nil {
+		length = lavalink.Duration(*entry.Duration * float64(lavalink.Second))
 	}
 
 	return Media{
-		Title:      e.Title,
+		Title:      entry.Title,
 		Author:     author,
 		URI:        uri,
-		ArtworkURL: e.artwork(),
+		ArtworkURL: entry.artwork(),
 		Length:     length,
-		IsStream:   e.IsLive || e.LiveStatus == "is_live",
+		IsStream:   entry.IsLive || entry.LiveStatus == "is_live",
 	}, true
 }
 
-func (e rawEntry) artwork() string {
-	if e.Thumbnail != "" {
-		return e.Thumbnail
+func (entry rawEntry) artwork() string {
+	if entry.Thumbnail != "" {
+		return entry.Thumbnail
 	}
-	for i := len(e.Thumbnails) - 1; i >= 0; i-- {
-		if e.Thumbnails[i].URL != "" {
-			return e.Thumbnails[i].URL
+	for _, t := range slices.Backward(entry.Thumbnails) {
+		if t.URL != "" {
+			return t.URL
 		}
 	}
 	return ""
