@@ -17,7 +17,8 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
 
 FROM alpine:3.22
 
-RUN apk add --no-cache ca-certificates tzdata \
+RUN apk add --no-cache ca-certificates tzdata python3 py3-pip nodejs \
+    && pip install --no-cache-dir --break-system-packages yt-dlp \
     && adduser -D -u 10001 eve
 
 WORKDIR /app
@@ -28,6 +29,7 @@ COPY assets /app/assets
 USER eve
 
 ENV API_PORT=3000
+ENV YTDLP_JS_RUNTIME=node
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

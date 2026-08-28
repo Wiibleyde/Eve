@@ -40,6 +40,11 @@ TWITCH_CLIENT_SECRET=...
 BLAGUE_API_TOKEN=...             # blague feature; absent = command hidden
 MOTUS_API_URL=...                # optional, overrides the word API
 MOTUS_WORDS_FILE=...             # optional, overrides the bundled word list
+LAVALINK_ADDRESS=host:port       # music feature; absent = commands hidden
+LAVALINK_PASSWORD=...
+LAVALINK_SECURE=true             # optional, reach the node over https/wss
+YTDLP_PATH=/usr/bin/yt-dlp       # optional, defaults to yt-dlp on PATH
+YTDLP_JS_RUNTIME=node            # optional, yt-dlp --js-runtimes (default: deno)
 ```
 
 Start the database and the local LLM (dev — bot itself runs on the host with `go run .`):
@@ -47,7 +52,7 @@ Start the database and the local LLM (dev — bot itself runs on the host with `
 docker compose up -d
 ```
 
-`docker compose up -d` starts postgres, ollama (published on `11434`), a one-shot `ollama-init` that pulls `OLLAMA_MODEL`, and searxng (published on `8080`). Set `OLLAMA_URL=http://localhost:11434` and `SEARXNG_URL=http://localhost:8080` in `.env` for the host-native bot to reach them.
+`docker compose up -d` starts postgres, ollama (published on `11434`), a one-shot `ollama-init` that pulls `OLLAMA_MODEL`, searxng (published on `8080`), and lavalink (published on `2333`). Set `OLLAMA_URL=http://localhost:11434`, `SEARXNG_URL=http://localhost:8080` and `LAVALINK_ADDRESS=localhost:2333` in `.env` for the host-native bot to reach them.
 
 ### Production
 
@@ -189,6 +194,36 @@ The mounted `settings.yml` matters: SearXNG only serves `html` by default, so `s
 `needsSearch` is a French keyword and year-pattern heuristic, deliberately conservative: it misses phrasings it does not know and fires on questions the model could have answered alone. It is the honest weak point of the design — the alternative, a classifier call, doubles latency on a CPU-bound model. Tune the list in `grounding.go`.
 
 Snippets cost context, which is why `numCtx` is 4096 rather than 2048. Results are capped at 3 × 240 characters and carry the domain, not the URL, so Eve cites `go.dev` instead of pasting a link that Discord would expand into an embed.
+
+### Music (yt-dlp + Lavalink)
+
+`internal/audio` is the audio backend, `internal/bot/features/music` is the Discord side. `LAVALINK_ADDRESS` gates the whole thing — unset means `music.Commands()` returns nothing and the thirteen slash commands never register.
+
+**Lavalink does not extract, it only plays.** Its `youtube-plugin` broke on this deployment (`Must find sig function from script` on WEB, `This video requires login` on ANDROID_VR), and that class of breakage recurs every time YouTube ships a new player. So extraction is `yt-dlp` (`internal/audio/ytdlp.go`) and Lavalink receives a plain `http` URL. The node keeps doing voice, opus, filters and seeking; it just never talks to YouTube.
+
+The consequence drives the whole design: **googlevideo URLs are IP-bound and expire in a few hours**, so the queue cannot hold resolved tracks. It holds `audio.Media` (title, author, URI, artwork, length) and `startPlayback` resolves a fresh stream URL through `audio.Stream` at the moment a track actually starts. `lavalink.Track` exists only long enough to be handed to `player.Update`.
+
+That also means `TrackStartEvent`/`TrackEndEvent` carry a useless `http` track titled `Unknown title`. Every card reads `guildState.current()` instead, which is why the state owns a `playing *audio.Media`.
+
+`yt-dlp` needs a JavaScript runtime for YouTube now. The image installs `nodejs` and sets `YTDLP_JS_RUNTIME=node`; unset means yt-dlp's default (deno) and a warning if it is absent. The runtime image installs yt-dlp from pip, not apk — Alpine's package was nine months stale, and a stale yt-dlp fails exactly like the plugin it replaced. It needs rebuilding periodically.
+
+`audio.New` spawns `AddNode` in a goroutine because `node.Open` retries forever until it connects. Every handler goes through `ready()`, which fails with a card when no node is connected yet.
+
+Discord never streams audio through the bot process: `bot.Client` only forwards `GuildVoiceStateUpdate` and `VoiceServerUpdate` to disgolink. That needs `gateway.IntentGuildVoiceStates`, and `cache.FlagVoiceStates` is enabled so `/play` can find the caller's voice channel — the only two entries in an otherwise empty cache config.
+
+Queue, repeat mode, history, the now-playing message ID and the lyrics thread live in `state.go`, per guild, **in memory only** — a restart drops them while the node keeps playing, so playback is orphaned until someone runs `/stop`.
+
+The now-playing message is a single card edited in place on every `TrackStartEvent`, carrying `music:back`, `music:skip`, `music:playpause`, `music:loop`. Advance is driven by `TrackEndEvent` and `Reason.MayStartNext()`. A track that fails to resolve is skipped rather than retried, so a dead URL cannot wedge the queue — and `play` never re-enters itself on `RepeatTrack` after a failure.
+
+The bot leaves after 60s idle (`leaveOnEndDelay`) or 60s alone in the channel (`leaveOnEmptyDelay`), both cancellable timers on the guild state.
+
+`/filter` cannot mirror the old discord-player list — Lavalink exposes a fixed set, so `filters.go` declares named presets over it. `/loop` has no autoplay mode: nothing in Lavalink recommends a next track.
+
+`/syncedlyrics` uses `dev.schlaubi.lyrics:lavalink` (lyrics.kt). It is **not** LavaLyrics — different route, different JSON, and **no subscribe or websocket line events**, so the bot drives the timing itself: fetch the timed lines once, then a goroutine ticks every 500ms and posts each line as `player.Position()` passes its `range.start`. It stops on context cancel, on the current track changing, or when the lines run out.
+
+Lyrics are looked up by **video ID**, not by the playing track — the node only sees an anonymous `http` URL, so the player-scoped route would always 404. `audio.VideoID` pulls the ID out of the stored `Media.URI`, and a search through `/v4/lyrics/search` is the fallback when there is no ID or no match.
+
+That fallback is where wrong lyrics come from, so `match.go` guards it. Feeding the raw YouTube title into the search returns garbage: `Clair Obscur: Expedition 33 | Lumière [Official Music Video] Sandfall Interactive` ranks *Une vie à t'aimer* (by a band called Clair Obscur) first. So the query is built from a real artist/title pair — `yt-dlp`'s `track`/`artist` tags when the video carries them, otherwise `splitArtistTitle` splitting on ` - ` / ` | ` after stripping bracketed noise — and every candidate must clear `containment` ≥ 0.75 against the expected title, both in the search result and again in the returned `track.title`. Nothing clears it, no lyrics: a wrong match is worse than none. Matching is accent- and punctuation-insensitive with filler words dropped. `match_test.go` pins the Lumière case.
 
 ### Scheduler
 

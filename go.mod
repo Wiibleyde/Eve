@@ -6,6 +6,7 @@ require (
 	entgo.io/ent v0.14.6
 	github.com/arran4/golang-ical v0.3.5
 	github.com/disgoorg/disgo v0.19.6
+	github.com/disgoorg/disgolink/v4 v4.0.0-20260522172606-c51182f6e828
 	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/fogleman/gg v1.3.0
 	github.com/gofiber/contrib/v3/swaggerui v1.0.9
@@ -16,6 +17,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/swaggest/jsonschema-go v0.3.78
 	github.com/swaggest/openapi-go v0.2.61
+	golang.org/x/text v0.40.0
 )
 
 require (
@@ -61,7 +63,6 @@ require (
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

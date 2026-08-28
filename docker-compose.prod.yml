@@ -75,6 +75,36 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  lavalink-init:
+    image: busybox:latest
+    command: ["chown", "-R", "322:322", "/plugins"]
+    volumes:
+      - lavalink_plugins:/plugins
+    restart: "no"
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    restart: unless-stopped
+    depends_on:
+      lavalink-init:
+        condition: service_completed_successfully
+    environment:
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:?LAVALINK_PASSWORD is required}
+    volumes:
+      - ./docker/lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - lavalink_plugins:/opt/Lavalink/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --header \"Authorization: ${LAVALINK_PASSWORD}\" http://localhost:2333/version"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   eve:
     build:
       context: .
@@ -87,6 +117,8 @@ services:
         condition: service_healthy
       ollama:
         condition: service_healthy
+      lavalink:
+        condition: service_healthy
     env_file:
       - .env.prod
     environment:
@@ -97,6 +129,8 @@ services:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
       OLLAMA_NUM_THREADS: ${OLLAMA_NUM_THREADS:-3}
       SEARXNG_URL: ${SEARXNG_URL:-http://searxng:8080}
+      LAVALINK_ADDRESS: ${LAVALINK_ADDRESS:-lavalink:2333}
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
     ports:
       - "${API_PUBLIC_PORT:-3000}:3000"
     logging:
@@ -108,3 +142,4 @@ services:
 volumes:
   postgres_data:
   ollama_data:
+  lavalink_plugins:

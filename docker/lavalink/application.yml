@@ -1,0 +1,50 @@
+server:
+  address: 0.0.0.0
+  port: 2333
+
+lavalink:
+  server:
+    password: "youshallnotpass"
+    sources:
+      youtube: false
+      bandcamp: true
+      soundcloud: true
+      twitch: true
+      vimeo: true
+      http: true
+      local: false
+    bufferDurationMs: 400
+    frameBufferDurationMs: 5000
+    opusEncodingQuality: 10
+    resamplingQuality: LOW
+    trackStuckThresholdMs: 10000
+    useSeekGhosting: true
+    playerUpdateInterval: 5
+    youtubePlaylistLoadLimit: 6
+    soundcloudSearchEnabled: true
+  plugins:
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.2"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+    - dependency: "dev.schlaubi.lyrics:lavalink:2.6.1"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+plugins:
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - MUSIC
+      - ANDROID_VR
+      - WEB
+      - WEBEMBEDDED
+  lyrics:
+    countryCode: fr
+
+logging:
+  level:
+    root: INFO
+    lavalink: INFO

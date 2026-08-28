@@ -12,6 +12,7 @@ import (
 	maintenancefeature "Eve/internal/bot/features/maintenance"
 	"Eve/internal/bot/features/motus"
 	"Eve/internal/bot/features/mpthreads"
+	"Eve/internal/bot/features/music"
 	"Eve/internal/bot/features/ping"
 	"Eve/internal/bot/features/presence"
 	"Eve/internal/bot/features/quiz"
@@ -33,6 +34,7 @@ import (
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
@@ -52,8 +54,10 @@ func Run(cfg *config.Config, db *database.Client) {
 				gateway.IntentGuildMessages,
 				gateway.IntentDirectMessages,
 				gateway.IntentMessageContent,
+				gateway.IntentGuildVoiceStates,
 			),
 		),
+		bot.WithCacheConfigOpts(cache.WithCaches(cache.FlagVoiceStates)),
 	)
 	if err != nil {
 		logger.Fatal("Error creating Discord client", "error", err)
@@ -71,6 +75,7 @@ func Run(cfg *config.Config, db *database.Client) {
 	loto.Register(r)
 	maintenancefeature.Register(r)
 	motus.Register(r)
+	music.Register(r)
 	ping.Register(r)
 	quiz.Register(r)
 	quote.Register(r)
@@ -80,6 +85,7 @@ func Run(cfg *config.Config, db *database.Client) {
 	r.Attach(client)
 
 	aifeature.Attach(client)
+	music.Attach(client)
 	reactions.Attach(client)
 	mpthreads.Attach(client)
 
@@ -93,6 +99,7 @@ func Run(cfg *config.Config, db *database.Client) {
 	allCommands = append(allCommands, loto.Commands...)
 	allCommands = append(allCommands, maintenancefeature.Commands()...)
 	allCommands = append(allCommands, motus.Commands...)
+	allCommands = append(allCommands, music.Commands()...)
 	allCommands = append(allCommands, ping.Commands...)
 	allCommands = append(allCommands, quiz.Commands...)
 	allCommands = append(allCommands, quote.Commands...)
@@ -105,6 +112,7 @@ func Run(cfg *config.Config, db *database.Client) {
 	client.AddEventListeners(bot.NewListenerFunc(func(e *events.Ready) {
 		logger.Info("Logged in", "user", e.User.Username)
 		schedulersOnce.Do(func() {
+			music.Start(client, e.User.ID)
 			birthday.StartScheduler(client)
 			calendar.StartScheduler(client)
 			presence.StartScheduler(client)

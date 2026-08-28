@@ -25,6 +25,11 @@ const (
 	EnvOllamaModel        = "OLLAMA_MODEL"
 	EnvOllamaThreads      = "OLLAMA_NUM_THREADS"
 	EnvSearxngURL         = "SEARXNG_URL"
+	EnvLavalinkAddress    = "LAVALINK_ADDRESS"
+	EnvLavalinkPassword   = "LAVALINK_PASSWORD"
+	EnvLavalinkSecure     = "LAVALINK_SECURE"
+	EnvYtDlpPath          = "YTDLP_PATH"
+	EnvYtDlpJSRuntime     = "YTDLP_JS_RUNTIME"
 )
 
 const (
@@ -56,6 +61,13 @@ type Config struct {
 	OllamaThreads int
 
 	SearxngURL string
+
+	LavalinkAddress  string
+	LavalinkPassword string
+	LavalinkSecure   bool
+
+	YtDlpPath      string
+	YtDlpJSRuntime string
 }
 
 var (
@@ -85,6 +97,11 @@ func load() *Config {
 		OllamaModel:        valueOr(EnvOllamaModel, DefaultOllamaModel),
 		OllamaThreads:      positiveInt(EnvOllamaThreads, DefaultOllamaThreads),
 		SearxngURL:         baseURL(EnvSearxngURL),
+		LavalinkAddress:    value(EnvLavalinkAddress),
+		LavalinkPassword:   value(EnvLavalinkPassword),
+		LavalinkSecure:     boolean(EnvLavalinkSecure),
+		YtDlpPath:          value(EnvYtDlpPath),
+		YtDlpJSRuntime:     value(EnvYtDlpJSRuntime),
 	}
 }
 
@@ -97,6 +114,15 @@ func valueOr(key string, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func boolean(key string) bool {
+	switch strings.ToLower(value(key)) {
+	case "true", "1", "yes", "on":
+		return true
+	default:
+		return false
+	}
 }
 
 func baseURL(key string) string {

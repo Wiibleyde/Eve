@@ -60,6 +60,33 @@ services:
       retries: 5
       start_period: 20s
 
+  lavalink-init:
+    image: busybox:latest
+    command: ["chown", "-R", "322:322", "/plugins"]
+    volumes:
+      - lavalink_plugins:/plugins
+    restart: "no"
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    depends_on:
+      lavalink-init:
+        condition: service_completed_successfully
+    ports:
+      - "2333:2333"
+    environment:
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:-youshallnotpass}
+    volumes:
+      - ./docker/lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - lavalink_plugins:/opt/Lavalink/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --header \"Authorization: ${LAVALINK_PASSWORD:-youshallnotpass}\" http://localhost:2333/version"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
 volumes:
   postgres_data:
   ollama_data:
+  lavalink_plugins:
