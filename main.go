@@ -16,7 +16,7 @@ func main() {
 
 	godotenv.Load()
 
-	cfg := config.Load()
+	cfg := config.Get()
 
 	botDB, err := database.Open(cfg.DatabaseURL)
 	if err != nil {

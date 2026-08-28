@@ -1,10 +1,10 @@
 package helpers
 
 import (
-	"os"
 	"strings"
 	"sync"
 
+	"Eve/internal/config"
 	"Eve/internal/logger"
 
 	"github.com/disgoorg/snowflake/v2"
@@ -27,7 +27,7 @@ func owner() (snowflake.ID, bool) {
 	ownerMu.Lock()
 	defer ownerMu.Unlock()
 	if !ownerLoaded {
-		loadOwnerLocked(os.Getenv("BOT_OWNER_ID"))
+		loadOwnerLocked(config.Get().BotOwnerID)
 	}
 	return ownerID, ownerValid
 }
@@ -42,7 +42,7 @@ func loadOwnerLocked(raw string) {
 	}
 	id, err := snowflake.Parse(raw)
 	if err != nil {
-		logger.Warn("BOT_OWNER_ID is not a valid snowflake, owner checks disabled", "value", raw, "error", err)
+		logger.Warn(config.EnvBotOwnerID+" is not a valid snowflake, owner checks disabled", "value", raw, "error", err)
 		return
 	}
 	ownerID, ownerValid = id, true

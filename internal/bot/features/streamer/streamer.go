@@ -1,19 +1,13 @@
 package streamer
 
 import (
-	"os"
-	"strings"
 	"sync"
 
+	"Eve/internal/config"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/logger"
 	"Eve/internal/twitch"
-)
-
-const (
-	EnvClientID     = "TWITCH_CLIENT_ID"
-	EnvClientSecret = "TWITCH_CLIENT_SECRET"
 )
 
 const CommandName = "streamer"
@@ -27,12 +21,11 @@ var (
 
 func helixClient() *twitch.Client {
 	clientOnce.Do(func() {
-		id := strings.TrimSpace(os.Getenv(EnvClientID))
-		secret := strings.TrimSpace(os.Getenv(EnvClientSecret))
-		if id == "" || secret == "" {
+		cfg := config.Get()
+		if cfg.TwitchClientID == "" || cfg.TwitchClientSecret == "" {
 			return
 		}
-		helix = twitch.New(id, secret)
+		helix = twitch.New(cfg.TwitchClientID, cfg.TwitchClientSecret)
 	})
 	return helix
 }
@@ -42,7 +35,7 @@ func Enabled() bool { return helixClient() != nil }
 func warnDisabled() {
 	warnOnce.Do(func() {
 		logger.Warn("Streamer feature disabled: missing Twitch credentials",
-			"env", EnvClientID+", "+EnvClientSecret,
+			"env", config.EnvTwitchClientID+", "+config.EnvTwitchClientSecret,
 		)
 	})
 }

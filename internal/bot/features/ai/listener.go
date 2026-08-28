@@ -11,6 +11,7 @@ import (
 	"Eve/internal/bot/helpers"
 	"Eve/internal/bot/maintenance"
 	"Eve/internal/bot/ui"
+	"Eve/internal/config"
 	"Eve/internal/database"
 	"Eve/internal/database/ent"
 	"Eve/internal/database/ent/guildconfig"
@@ -49,7 +50,7 @@ const (
 
 func Attach(client *bot.Client) {
 	if !ollama.Enabled() {
-		logger.Warn("AI: " + ollama.EnvURL + " is missing, mention replies are disabled")
+		logger.Warn("AI: " + config.EnvOllamaURL + " is missing, mention replies are disabled")
 		return
 	}
 	client.AddEventListeners(bot.NewListenerFunc(onMessageCreate))

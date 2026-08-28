@@ -28,7 +28,7 @@ func ensureThread(ctx context.Context, client *bot.Client, user discord.User) (s
 		return threadID, nil
 	}
 
-	cfg, ok := config()
+	cfg, ok := bridgeSettings()
 	if !ok {
 		return 0, errDisabled
 	}

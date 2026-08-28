@@ -8,25 +8,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"Eve/internal/config"
 	"Eve/internal/logger"
 )
 
 const (
-	EnvURL     = "OLLAMA_URL"
-	EnvModel   = "OLLAMA_MODEL"
-	EnvThreads = "OLLAMA_NUM_THREADS"
-)
-
-const (
-	DefaultModel   = "llama3.2:1b"
-	DefaultThreads = 3
 	RequestTimeout = 90 * time.Second
 	KeepAlive      = "24h"
 	MaxQueued      = 3
@@ -38,7 +29,7 @@ const (
 )
 
 var (
-	ErrDisabled = errors.New("ollama: " + EnvURL + " is not configured")
+	ErrDisabled = errors.New("ollama: " + config.EnvOllamaURL + " is not configured")
 	ErrBusy     = errors.New("ollama: too many pending generations")
 )
 
@@ -94,12 +85,12 @@ var (
 
 func Default() *Client {
 	defaultOnce.Do(func() {
-		baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv(EnvURL)), "/")
-		if baseURL == "" {
-			logger.Warn("Ollama disabled: " + EnvURL + " is not set")
+		cfg := config.Get()
+		if cfg.OllamaURL == "" {
+			logger.Warn("Ollama disabled: " + config.EnvOllamaURL + " is not set")
 			return
 		}
-		defaultClient = New(baseURL, modelFromEnv(), threadsFromEnv())
+		defaultClient = New(cfg.OllamaURL, cfg.OllamaModel, cfg.OllamaThreads)
 		logger.Info("Ollama configured",
 			"url", defaultClient.baseURL,
 			"model", defaultClient.model,
@@ -122,26 +113,6 @@ func New(baseURL string, model string, threads int) *Client {
 func Enabled() bool { return Default() != nil }
 
 func (client *Client) Model() string { return client.model }
-
-func modelFromEnv() string {
-	if model := strings.TrimSpace(os.Getenv(EnvModel)); model != "" {
-		return model
-	}
-	return DefaultModel
-}
-
-func threadsFromEnv() int {
-	raw := strings.TrimSpace(os.Getenv(EnvThreads))
-	if raw == "" {
-		return DefaultThreads
-	}
-	threads, err := strconv.Atoi(raw)
-	if err != nil || threads < 1 {
-		logger.Warn("Ignoring invalid "+EnvThreads, "value", raw)
-		return DefaultThreads
-	}
-	return threads
-}
 
 func (client *Client) Chat(ctx context.Context, messages []Message) (string, error) {
 	if client == nil {

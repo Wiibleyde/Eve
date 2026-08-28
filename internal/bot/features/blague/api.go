@@ -7,15 +7,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"Eve/internal/config"
 	"Eve/internal/logger"
 )
-
-const EnvToken = "BLAGUE_API_TOKEN"
 
 const RequestTimeout = 5 * time.Second
 
@@ -23,7 +21,7 @@ var baseURL = "https://www.blagues-api.fr/api"
 
 var httpClient = &http.Client{Timeout: RequestTimeout}
 
-var ErrDisabled = errors.New("blague: " + EnvToken + " is not configured")
+var ErrDisabled = errors.New("blague: " + config.EnvBlagueAPIToken + " is not configured")
 
 var ErrUnknownCategory = errors.New("blague: unknown category")
 
@@ -61,9 +59,9 @@ var (
 
 func token() string {
 	tokenOnce.Do(func() {
-		apiToken = strings.TrimSpace(os.Getenv(EnvToken))
+		apiToken = config.Get().BlagueAPIToken
 		if apiToken == "" {
-			logger.Warn("Blague feature disabled: "+EnvToken+" is not set", "command", CommandName)
+			logger.Warn("Blague feature disabled: "+config.EnvBlagueAPIToken+" is not set", "command", CommandName)
 		}
 	})
 	return apiToken

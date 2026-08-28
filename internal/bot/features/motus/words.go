@@ -14,13 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"Eve/internal/config"
 	"Eve/internal/logger"
 )
 
 const (
-	DefaultAPIURL    = "https://trouve-mot.fr/api/random"
-	EnvAPIURL        = "MOTUS_API_URL"
-	EnvWordsFile     = "MOTUS_WORDS_FILE"
 	DefaultWordsPath = "assets/motus/words.txt"
 
 	apiTimeout     = 3 * time.Second
@@ -54,7 +52,7 @@ func FallbackWords() []string {
 
 func loadFallbackWords() {
 	paths := make([]string, 0, 3)
-	if custom := strings.TrimSpace(os.Getenv(EnvWordsFile)); custom != "" {
+	if custom := config.Get().MotusWordsFile; custom != "" {
 		paths = append(paths, custom)
 	}
 	paths = append(paths, DefaultWordsPath)
@@ -126,10 +124,7 @@ func PickWord(ctx context.Context) string {
 }
 
 func fetchWordFromAPI(ctx context.Context) (string, error) {
-	url := strings.TrimSpace(os.Getenv(EnvAPIURL))
-	if url == "" {
-		url = DefaultAPIURL
-	}
+	url := config.Get().MotusAPIURL
 
 	reqCtx, cancel := context.WithTimeout(ctx, apiTimeout)
 	defer cancel()

@@ -55,7 +55,7 @@ func initWithRetry(ctx context.Context) error {
 }
 
 func onMessageCreate(e *events.MessageCreate) {
-	cfg, ok := config()
+	cfg, ok := bridgeSettings()
 	if !ok {
 		return
 	}

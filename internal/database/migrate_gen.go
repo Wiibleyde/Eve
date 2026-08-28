@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
+	"Eve/internal/config"
 	entmigrate "Eve/internal/database/ent/migrate"
 )
 
@@ -27,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	devURL := os.Getenv("DATABASE_URL")
+	devURL := config.Get().DatabaseURL
 	if devURL == "" {
 		devURL = "postgres://postgres:postgres@localhost:5432/eve?sslmode=disable"
 	}

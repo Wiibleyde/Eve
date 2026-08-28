@@ -8,15 +8,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"Eve/internal/config"
 	"Eve/internal/logger"
 )
-
-const EnvURL = "SEARXNG_URL"
 
 const (
 	RequestTimeout   = 6 * time.Second
@@ -25,7 +23,7 @@ const (
 	language         = "fr"
 )
 
-var ErrDisabled = errors.New("search: " + EnvURL + " is not configured")
+var ErrDisabled = errors.New("search: " + config.EnvSearxngURL + " is not configured")
 
 type Result struct {
 	Title   string
@@ -53,9 +51,9 @@ var (
 
 func Default() *Client {
 	defaultOnce.Do(func() {
-		baseURL := strings.TrimRight(strings.TrimSpace(os.Getenv(EnvURL)), "/")
+		baseURL := config.Get().SearxngURL
 		if baseURL == "" {
-			logger.Warn("Web search disabled: " + EnvURL + " is not set")
+			logger.Warn("Web search disabled: " + config.EnvSearxngURL + " is not set")
 			return
 		}
 		defaultClient = New(baseURL)
