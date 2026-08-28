@@ -134,8 +134,8 @@ func submit(client *bot.Client, audioClient *audio.Client, guildID snowflake.ID,
 		return ui.Error(MsgPlayFailed)
 	}
 
-	if err := startPlayback(guildID, resolution.Media[0]); err != nil {
-		logger.Error("Music: starting playback", "guild", guildID.String(), "track", resolution.Media[0].Title, "error", err)
+	play(guildID, resolution.Media[0])
+	if state.current() == nil {
 		return ui.Error(MsgPlayFailed)
 	}
 
@@ -271,9 +271,9 @@ func skip(guildID snowflake.ID) skipResult {
 		return skipQueueEnded
 	}
 
-	if err := startPlayback(guildID, next); err != nil {
-		logger.Error("Music: skipping track", "guild", guildID.String(), "error", err)
-		return skipFailed
+	play(guildID, next)
+	if state.current() == nil {
+		return skipQueueEnded
 	}
 	return skipOK
 }
@@ -330,8 +330,8 @@ func back(guildID snowflake.ID) backResult {
 	}
 	state.setCurrent(nil)
 
-	if err := startPlayback(guildID, previous); err != nil {
-		logger.Error("Music: going back", "guild", guildID.String(), "error", err)
+	play(guildID, previous)
+	if state.current() == nil {
 		return backFailed
 	}
 	return backOK

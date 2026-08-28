@@ -14,6 +14,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 var Commands = []discord.ApplicationCommandCreate{
@@ -156,9 +157,27 @@ func handleRemoveBirthday(e *events.ApplicationCommandInteractionCreate) {
 }
 
 func handleListBirthdays(e *events.ApplicationCommandInteractionCreate) {
-	ctx := context.Background()
+	if e.GuildID() == nil {
+		helpers.RespondEphemeral(e, "Cette commande n'est utilisable que sur un serveur.")
+		return
+	}
 
-	birthdays, err := database.Default.Ent().Birthday.Query().All(ctx)
+	ctx := context.Background()
+	guildID := *e.GuildID()
+
+	memberIDs, err := guildMemberIDs(e, guildID)
+	if err != nil {
+		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération des membres du serveur."))
+		return
+	}
+	if len(memberIDs) == 0 {
+		helpers.RespondEphemeral(e, "Aucun anniversaire enregistré sur ce serveur.")
+		return
+	}
+
+	birthdays, err := database.Default.Ent().Birthday.Query().
+		Where(birthday.DiscordIDIn(memberIDs...)).
+		All(ctx)
 	if err != nil {
 		helpers.RespondEphemeralCard(e, ui.Error("Erreur lors de la récupération des anniversaires."))
 		return
@@ -218,4 +237,28 @@ func handleAdminSetBirthday(e *events.ApplicationCommandInteractionCreate) {
 	}
 
 	helpers.RespondEphemeralCard(e, ui.Success(fmt.Sprintf("Anniversaire de <@%s> enregistré !", discordID)))
+}
+
+func guildMemberIDs(e *events.ApplicationCommandInteractionCreate, guildID snowflake.ID) ([]string, error) {
+	const pageSize = 1000
+
+	var (
+		ids   []string
+		after snowflake.ID
+	)
+	for {
+		members, err := e.Client().Rest.GetMembers(guildID, pageSize, after)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range members {
+			ids = append(ids, m.User.ID.String())
+		}
+		if len(members) < pageSize {
+			break
+		}
+		after = members[len(members)-1].User.ID
+	}
+
+	return ids, nil
 }
