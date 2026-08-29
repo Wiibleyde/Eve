@@ -46,6 +46,8 @@ type guildState struct {
 	history        []audio.Media
 	playing        *audio.Media
 	repeat         RepeatMode
+	autoplay       bool
+	autoplayBusy   bool
 	textChannelID  snowflake.ID
 	voiceChannelID snowflake.ID
 	nowPlayingID   snowflake.ID
@@ -174,6 +176,20 @@ func (s *guildState) popHistory() (audio.Media, bool) {
 	return track, true
 }
 
+func (s *guildState) recentHistory(limit int) []audio.Media {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if limit > len(s.history) {
+		limit = len(s.history)
+	}
+	recent := make([]audio.Media, 0, limit)
+	for i := len(s.history) - 1; i >= len(s.history)-limit; i-- {
+		recent = append(recent, s.history[i])
+	}
+	return recent
+}
+
 func (s *guildState) setCurrent(media *audio.Media) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -213,6 +229,50 @@ func (s *guildState) repeatMode() RepeatMode {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.repeat
+}
+
+func (s *guildState) toggleAutoplay() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.autoplay = !s.autoplay
+	return s.autoplay
+}
+
+func (s *guildState) autoplayEnabled() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.autoplay
+}
+
+func (s *guildState) beginAutoplay() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if !s.autoplay || s.autoplayBusy {
+		return false
+	}
+	s.autoplayBusy = true
+	return true
+}
+
+func (s *guildState) endAutoplay() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.autoplayBusy = false
+}
+
+func (s *guildState) knownTracks() []audio.Media {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	known := make([]audio.Media, 0, len(s.history)+len(s.tracks)+1)
+	known = append(known, s.history...)
+	known = append(known, s.tracks...)
+	if s.playing != nil {
+		known = append(known, *s.playing)
+	}
+	return known
 }
 
 func (s *guildState) setChannels(textChannelID snowflake.ID, voiceChannelID snowflake.ID) {

@@ -92,3 +92,23 @@ func HandleLoopButton(e *events.ComponentInteractionCreate, _ []string) {
 	refreshNowPlaying(guildID)
 	helpers.RespondEphemeralCard(e, ui.Success("Boucle : **"+mode.Label()+"**"))
 }
+
+func HandleAutoplayButton(e *events.ComponentInteractionCreate, _ []string) {
+	client, ok := ready(e)
+	if !ok {
+		return
+	}
+	guildID, ok := guildOf(e, e.GuildID())
+	if !ok {
+		return
+	}
+	if _, ok := activePlayer(e, client, guildID); !ok {
+		return
+	}
+
+	if toggleAutoplay(guildID) {
+		helpers.RespondEphemeralCard(e, ui.Success(MsgAutoplayOn))
+		return
+	}
+	helpers.RespondEphemeralCard(e, ui.Success(MsgAutoplayOff))
+}

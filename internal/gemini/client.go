@@ -105,3 +105,25 @@ func translateError(err error) error {
 	}
 	return fmt.Errorf("gemini: generating response: %w", err)
 }
+
+func (client *Client) CompleteJSON(ctx context.Context, instruction string, prompt string) (string, error) {
+	if client == nil {
+		return "", ErrDisabled
+	}
+
+	resp, err := client.genai.Models.GenerateContent(ctx, Model, genai.Text(prompt), &genai.GenerateContentConfig{
+		SystemInstruction: genai.NewContentFromText(instruction, ""),
+		SafetySettings:    safetySettings,
+		ResponseMIMEType:  "application/json",
+		Temperature:       genai.Ptr[float32](1.0),
+	})
+	if err != nil {
+		return "", translateError(err)
+	}
+
+	answer := strings.TrimSpace(resp.Text())
+	if answer == "" {
+		return "", ErrEmptyAnswer
+	}
+	return answer, nil
+}

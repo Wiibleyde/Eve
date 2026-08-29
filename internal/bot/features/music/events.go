@@ -18,6 +18,10 @@ func onTrackStart(e *disgolink.PlayerTrackStartEvent) {
 	state := stateFor(guildID)
 	state.cancelLeave()
 
+	if state.autoplayEnabled() && state.size() < autoplayThreshold {
+		go refillAutoplay(guildID)
+	}
+
 	current := state.current()
 	if current == nil {
 		return
@@ -87,9 +91,13 @@ func advance(guildID snowflake.ID) {
 }
 
 func playNext(guildID snowflake.ID) {
-	next, ok := stateFor(guildID).pop()
+	state := stateFor(guildID)
+	next, ok := state.pop()
 	if !ok {
 		scheduleIdleLeave(guildID)
+		if state.autoplayEnabled() {
+			go refillAutoplay(guildID)
+		}
 		return
 	}
 	play(guildID, next)
@@ -166,7 +174,7 @@ func publishNowPlaying(guildID snowflake.ID, media audio.Media, paused bool) {
 		}
 	}
 
-	card := nowPlayingCard(media, position, state.repeatMode(), paused, state.size())
+	card := nowPlayingCard(media, position, state.repeatMode(), paused, state.size(), state.autoplayEnabled())
 
 	if messageID := state.nowPlaying(); messageID != 0 {
 		if _, err := client.Rest.UpdateMessage(textChannelID, messageID, card.MessageUpdate()); err == nil {

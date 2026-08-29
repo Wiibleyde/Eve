@@ -34,6 +34,7 @@ const (
 	CustomIDSkip      = "music:skip"
 	CustomIDPlayPause = "music:playpause"
 	CustomIDLoop      = "music:loop"
+	CustomIDAutoplay  = "music:autoplay"
 )
 
 const (
@@ -65,6 +66,9 @@ const (
 	MsgLyricsRunning  = "Les paroles synchronisées sont déjà affichées."
 	MsgLyricsFailed   = "Impossible d'afficher les paroles synchronisées."
 	MsgThreadFailed   = "Impossible de créer le fil des paroles."
+	MsgAutoplayOn     = "Mode automatique **activé** : je choisirai la suite quand la file d'attente sera vide."
+	MsgAutoplayOff    = "Mode automatique **désactivé**."
+	MsgAutoplayEmpty  = "Je n'ai trouvé aucune musique à enchaîner automatiquement."
 )
 
 var minPosition = 1

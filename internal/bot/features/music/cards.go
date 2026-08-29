@@ -62,16 +62,22 @@ func progressBar(position lavalink.Duration, length lavalink.Duration) string {
 	return strings.Repeat("▬", filled) + "🔘" + strings.Repeat("▬", progressLength-filled-1)
 }
 
-func controlRow() []discord.InteractiveComponent {
+func controlRow(autoplay bool) []discord.InteractiveComponent {
+	sparkle := discord.NewSecondaryButton("", CustomIDAutoplay)
+	if autoplay {
+		sparkle = discord.NewSuccessButton("", CustomIDAutoplay)
+	}
+
 	return []discord.InteractiveComponent{
 		discord.NewPrimaryButton("", CustomIDBack).WithEmoji(discord.NewComponentEmoji("⏪")),
 		discord.NewPrimaryButton("", CustomIDSkip).WithEmoji(discord.NewComponentEmoji("⏩")),
 		discord.NewDangerButton("", CustomIDPlayPause).WithEmoji(discord.NewComponentEmoji("⏯️")),
 		discord.NewDangerButton("", CustomIDLoop).WithEmoji(discord.NewComponentEmoji("🔁")),
+		sparkle.WithEmoji(discord.NewComponentEmoji("✨")),
 	}
 }
 
-func nowPlayingCard(media audio.Media, position lavalink.Duration, repeat RepeatMode, paused bool, queued int) *ui.Card {
+func nowPlayingCard(media audio.Media, position lavalink.Duration, repeat RepeatMode, paused bool, queued int, autoplay bool) *ui.Card {
 	header := "🎵 Lecture en cours"
 	if paused {
 		header = "⏸️ En pause"
@@ -93,9 +99,12 @@ func nowPlayingCard(media audio.Media, position lavalink.Duration, repeat Repeat
 	if queued > 0 {
 		details += fmt.Sprintf(" • **%d** en file d'attente", queued)
 	}
+	if autoplay {
+		details += " • ✨ Mode automatique"
+	}
 	card.Divider().Subtext(details)
 
-	return card.Row(controlRow()...)
+	return card.Row(controlRow(autoplay)...)
 }
 
 func queueCard(tracks []audio.Media, current *audio.Media, repeat RepeatMode) *ui.Card {

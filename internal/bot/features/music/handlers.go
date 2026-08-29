@@ -208,7 +208,7 @@ func HandleNowPlaying(e *events.ApplicationCommandInteractionCreate) {
 		return
 	}
 
-	card := nowPlayingCard(*current, player.Position(), state.repeatMode(), player.Paused, state.size())
+	card := nowPlayingCard(*current, player.Position(), state.repeatMode(), player.Paused, state.size(), state.autoplayEnabled())
 	helpers.RespondEphemeralCard(e, card)
 }
 

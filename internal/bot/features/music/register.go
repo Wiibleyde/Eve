@@ -25,4 +25,5 @@ func Register(r *router.Router) {
 	r.OnButton(CustomIDSkip, HandleSkipButton)
 	r.OnButton(CustomIDPlayPause, HandlePlayPauseButton)
 	r.OnButton(CustomIDLoop, HandleLoopButton)
+	r.OnButton(CustomIDAutoplay, HandleAutoplayButton)
 }
