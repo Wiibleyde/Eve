@@ -14,7 +14,7 @@ import (
 	"google.golang.org/genai"
 )
 
-const Model = "gemini-2.5-flash"
+const Model = "gemini-3.7-flash"
 
 var (
 	ErrDisabled    = errors.New("gemini: " + config.EnvGoogleAPIKey + " is not configured")

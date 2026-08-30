@@ -157,7 +157,7 @@ Reading text back out of a V2 message (e.g. to republish it) goes through `ui.Te
 
 ### AI (Gemini)
 
-`internal/gemini` is a thin wrapper over the official `google.golang.org/genai` SDK, `internal/bot/features/ai` is the Discord side. `GOOGLE_API_KEY` gates the whole thing — unset means the listener is never attached. This mirrors the old TypeScript bot's `utils/intelligence.ts`, not the CPU-bound Ollama setup it briefly replaced: `gemini-2.5-flash`, one persistent chat session per channel, and the `googleSearch` tool doing grounding provider-side instead of a hand-rolled SearXNG lookup.
+`internal/gemini` is a thin wrapper over the official `google.golang.org/genai` SDK, `internal/bot/features/ai` is the Discord side. `GOOGLE_API_KEY` gates the whole thing — unset means the listener is never attached. This mirrors the old TypeScript bot's `utils/intelligence.ts`, not the CPU-bound Ollama setup it briefly replaced: `gemini-3.7-flash`, one persistent chat session per channel, and the `googleSearch` tool doing grounding provider-side instead of a hand-rolled SearXNG lookup.
 
 `gemini.Client.NewChat` creates a `genai.Chat` with safety settings on `BLOCK_NONE` across all harm categories and `Tools: [{GoogleSearch: {}}]` — the model decides on its own when a question needs a web search, no local heuristic involved. The SDK owns the conversation history inside the `*genai.Chat` value; Eve never sees or stores message content herself.
 

@@ -208,16 +208,14 @@ func resolveAll(ctx context.Context, queries []string, known map[string]bool) []
 
 	var wg sync.WaitGroup
 	for i, query := range queries {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			resolution, err := audio.Resolve(ctx, query)
 			if err != nil || len(resolution.Media) == 0 {
 				logger.Debug("Music: autoplay could not resolve suggestion", "query", query, "error", err)
 				return
 			}
 			found[i] = &resolution.Media[0]
-		}()
+		})
 	}
 	wg.Wait()
 
