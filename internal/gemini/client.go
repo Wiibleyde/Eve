@@ -14,7 +14,7 @@ import (
 	"google.golang.org/genai"
 )
 
-const Model = "gemini-3.7-flash"
+const Model = "gemini-2.5-flash"
 
 var (
 	ErrDisabled    = errors.New("gemini: " + config.EnvGoogleAPIKey + " is not configured")
@@ -99,11 +99,20 @@ func (chat *Chat) Send(ctx context.Context, message string) (string, error) {
 }
 
 func translateError(err error) error {
-	var apiErr *genai.APIError
-	if errors.As(err, &apiErr) && (apiErr.Code == http.StatusTooManyRequests || apiErr.Code == http.StatusServiceUnavailable) {
-		return fmt.Errorf("%w: %s", ErrRateLimited, apiErr.Message)
+	if code, message, ok := apiError(err); ok && (code == http.StatusTooManyRequests || code == http.StatusServiceUnavailable) {
+		return fmt.Errorf("%w: %s", ErrRateLimited, message)
 	}
 	return fmt.Errorf("gemini: generating response: %w", err)
+}
+
+func apiError(err error) (int, string, bool) {
+	if byValue, ok := errors.AsType[genai.APIError](err); ok {
+		return byValue.Code, byValue.Message, true
+	}
+	if byPointer, ok := errors.AsType[*genai.APIError](err); ok {
+		return byPointer.Code, byPointer.Message, true
+	}
+	return 0, "", false
 }
 
 func (client *Client) CompleteJSON(ctx context.Context, instruction string, prompt string) (string, error) {

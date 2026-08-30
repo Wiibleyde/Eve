@@ -3,6 +3,7 @@ package gemini
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"google.golang.org/genai"
@@ -23,7 +24,7 @@ func TestNilChatSendReturnsErrDisabled(t *testing.T) {
 }
 
 func TestTranslateErrorMapsTooManyRequests(t *testing.T) {
-	err := translateError(&genai.APIError{Code: 429, Message: "quota exceeded"})
+	err := translateError(genai.APIError{Code: 429, Message: "quota exceeded"})
 	if !errors.Is(err, ErrRateLimited) {
 		t.Errorf("error = %v, want it to wrap ErrRateLimited", err)
 	}
@@ -44,5 +45,19 @@ func TestTranslateErrorPassesThroughOtherErrors(t *testing.T) {
 	}
 	if !errors.Is(err, original) {
 		t.Errorf("error = %v, want it to wrap the original error", err)
+	}
+}
+
+func TestTranslateErrorRateLimitedPointer(t *testing.T) {
+	err := translateError(&genai.APIError{Code: 429, Message: "quota exceeded"})
+	if !errors.Is(err, ErrRateLimited) {
+		t.Errorf("error = %v, want it to wrap ErrRateLimited", err)
+	}
+}
+
+func TestTranslateErrorRateLimitedWrapped(t *testing.T) {
+	err := translateError(fmt.Errorf("sending message: %w", genai.APIError{Code: 429, Message: "quota exceeded"}))
+	if !errors.Is(err, ErrRateLimited) {
+		t.Errorf("error = %v, want it to wrap ErrRateLimited", err)
 	}
 }
