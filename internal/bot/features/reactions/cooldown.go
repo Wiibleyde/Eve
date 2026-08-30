@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-const cooldownWindow = 30 * time.Second
+const cooldownWindow = 1 * time.Second
 
 var cooldowns = newCooldownMap(cooldownWindow)
 

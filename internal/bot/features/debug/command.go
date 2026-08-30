@@ -29,9 +29,9 @@ const (
 	msgMissingPerm = "Je n'ai pas la permission **Gérer les rôles**. " +
 		"Accordez-la moi et placez mon rôle au-dessus du rôle « " + RoleName + " » pour que je puisse vous l'attribuer."
 
-	msgEscalated = "Le rôle « " + RoleName + " » possède des permissions alors qu'il ne devrait en avoir aucune. " +
+	msgEscalated = "Le rôle « " + RoleName + " » possède la permission **Administrateur** alors qu'il ne devrait avoir aucune permission. " +
 		"Par sécurité, je refuse de l'attribuer. Retirez-lui toutes ses permissions (ou supprimez-le, il sera recréé automatiquement)."
-	msgEscalatedNote = "⚠️ Ce rôle avait des permissions alors qu'il ne devrait en avoir aucune : " +
+	msgEscalatedNote = "⚠️ Ce rôle avait la permission **Administrateur** alors qu'il ne devrait avoir aucune permission : " +
 		"vérifiez qui l'a modifié avant de le réutiliser."
 
 	msgEnabledFmt      = "Vous êtes maintenant en mode debug sur le serveur %s"
@@ -91,9 +91,9 @@ func HandleCommand(e *events.ApplicationCommandInteractionCreate) {
 
 	hasRole := slices.Contains(member.RoleIDs, role.ID)
 
-	escalated := role.Permissions != discord.PermissionsNone
+	escalated := role.Permissions.Has(discord.PermissionAdministrator)
 	if escalated {
-		logger.Warn("Debug: managed role has permissions",
+		logger.Warn("Debug: managed role has administrator permission",
 			"guild", guildID.String(),
 			"role", role.ID.String(),
 			"permissions", role.Permissions.String(),
