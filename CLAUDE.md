@@ -17,10 +17,6 @@ Generated code under `internal/database/ent/` is exempt — ent writes its own c
 
 When a piece of logic feels like it needs a comment to be understood, rename it or extract it until it doesn't.
 
-## Pull requests
-
-Never put the Claude session link (`https://claude.ai/code/session_...`) in a pull request description.
-
 ## Commands
 
 ```bash
