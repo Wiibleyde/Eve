@@ -191,8 +191,9 @@ func (p *poller) handleOffline(ctx context.Context, row *ent.Stream) {
 		return
 	}
 
-	p.endNotification(ctx, row, st)
-	delete(p.states, row.ID)
+	if p.endNotification(ctx, row, st) {
+		delete(p.states, row.ID)
+	}
 }
 
 func (p *poller) startNotification(ctx context.Context, row *ent.Stream, s twitch.Stream, st *trackState) {
@@ -264,17 +265,21 @@ func shouldEdit(st *trackState, s twitch.Stream, now time.Time) bool {
 	return now.Sub(st.lastEdit) >= ViewerEditInterval
 }
 
-func (p *poller) endNotification(ctx context.Context, row *ent.Stream, st *trackState) {
+func (p *poller) endNotification(ctx context.Context, row *ent.Stream, st *trackState) bool {
 	if row.MessageID == "" {
-		return
+		return true
 	}
 
 	user, hasUser := p.userInfo(ctx, row.TwitchUserID)
-	p.editMessage(ctx, row, endedCard(st, row.TwitchLogin, user, hasUser))
+	if err := retireNotification(p.client.Rest, row, endedCard(st, row.TwitchLogin, user, hasUser)); err != nil {
+		logger.Error("Retiring Twitch live notification, will retry",
+			"guild", row.GuildID, "login", row.TwitchLogin, "error", err)
+		return false
+	}
 
 	if err := entClient().Stream.UpdateOneID(row.ID).ClearMessageID().Exec(ctx); err != nil {
 		logger.Error("Clearing live notification message ID", "guild", row.GuildID, "login", row.TwitchLogin, "error", err)
-		return
+		return false
 	}
 	row.MessageID = ""
 	if st != nil {
@@ -282,6 +287,31 @@ func (p *poller) endNotification(ctx context.Context, row *ent.Stream, st *track
 	}
 
 	logger.Info("Twitch stream ended", "guild", row.GuildID, "login", row.TwitchLogin)
+	return true
+}
+
+func retireNotification(client rest.Rest, row *ent.Stream, ended *ui.Card) error {
+	channelID, err := snowflake.Parse(row.ChannelID)
+	if err != nil {
+		return fmt.Errorf("invalid notification channel ID %q: %w", row.ChannelID, err)
+	}
+	messageID, err := snowflake.Parse(row.MessageID)
+	if err != nil {
+		return fmt.Errorf("invalid notification message ID %q: %w", row.MessageID, err)
+	}
+
+	_, editErr := client.UpdateMessage(channelID, messageID, ended.MessageUpdate())
+	if editErr == nil || isNotFound(editErr) {
+		return nil
+	}
+
+	logger.Warn("Replacing live notification failed, deleting it instead",
+		"guild", row.GuildID, "login", row.TwitchLogin, "error", editErr)
+	deleteErr := client.DeleteMessage(channelID, messageID)
+	if deleteErr == nil || isNotFound(deleteErr) {
+		return nil
+	}
+	return errors.Join(editErr, deleteErr)
 }
 
 func (p *poller) editMessage(ctx context.Context, row *ent.Stream, card *ui.Card) bool {
@@ -382,20 +412,7 @@ func closeNotifications(client *bot.Client, rows ...*ent.Stream) {
 }
 
 func closeNotification(client *bot.Client, row *ent.Stream) {
-	channelID, err := snowflake.Parse(row.ChannelID)
-	if err != nil {
-		logger.Error("Invalid notification channel ID", "guild", row.GuildID, "channel", row.ChannelID, "error", err)
-		return
-	}
-	messageID, err := snowflake.Parse(row.MessageID)
-	if err != nil {
-		logger.Error("Invalid notification message ID", "guild", row.GuildID, "message", row.MessageID, "error", err)
-		return
-	}
-
-	_, err = client.Rest.UpdateMessage(channelID, messageID,
-		endedCard(nil, row.TwitchLogin, twitch.User{}, false).MessageUpdate())
-	if err != nil && !isNotFound(err) {
+	if err := retireNotification(client.Rest, row, endedCard(nil, row.TwitchLogin, twitch.User{}, false)); err != nil {
 		logger.Error("Closing Twitch live notification",
 			"guild", row.GuildID, "login", row.TwitchLogin, "error", err)
 		return
