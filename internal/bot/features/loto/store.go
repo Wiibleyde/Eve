@@ -21,6 +21,10 @@ var (
 	errNameTaken       = errors.New("loto: player name already used")
 	errNoTickets       = errors.New("loto: no ticket to remove")
 	errDrawAlreadyDone = errors.New("loto: draw already performed")
+	errGameClosed      = errors.New("loto: game is no longer active")
+	errPrizeNotFound   = errors.New("loto: prize not found")
+	errPrizeLimit      = errors.New("loto: prize limit reached")
+	errLastPrize       = errors.New("loto: cannot delete the last prize")
 )
 
 type snapshot struct {
@@ -319,4 +323,148 @@ func applyDraw(ctx context.Context, gameID string, assignments []assignment) err
 
 func deleteGame(ctx context.Context, gameID string) error {
 	return client().LotoGame.DeleteOneID(gameID).Exec(ctx)
+}
+
+func prizeByID(ctx context.Context, gameID, prizeID string) (*ent.LotoPrize, error) {
+	prize, err := client().LotoPrize.Query().
+		Where(lotoprize.ID(prizeID), lotoprize.GameID(gameID)).
+		Only(ctx)
+	if ent.IsNotFound(err) {
+		return nil, errPrizeNotFound
+	}
+	return prize, err
+}
+
+func addPrize(ctx context.Context, gameID, label string, rank int) error {
+	return mutatePrizes(ctx, gameID, func(tx *ent.Tx, prizes []*ent.LotoPrize) ([]*ent.LotoPrize, error) {
+		if len(prizes) >= maxPrizeCount {
+			return nil, errPrizeLimit
+		}
+		created, err := tx.LotoPrize.Create().
+			SetID(uuid.NewString()).
+			SetGameID(gameID).
+			SetLabel(label).
+			SetPosition(nextFreePosition(prizes)).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		prizes = append(prizes, created)
+		if rank == 0 {
+			return prizes, nil
+		}
+		return moveToRank(prizes, len(prizes)-1, rank), nil
+	})
+}
+
+func updatePrize(ctx context.Context, gameID, prizeID, label string, rank int) error {
+	return mutatePrizes(ctx, gameID, func(tx *ent.Tx, prizes []*ent.LotoPrize) ([]*ent.LotoPrize, error) {
+		index := prizeIndex(prizes, prizeID)
+		if index < 0 {
+			return nil, errPrizeNotFound
+		}
+		if err := tx.LotoPrize.UpdateOneID(prizeID).SetLabel(label).Exec(ctx); err != nil {
+			return nil, err
+		}
+		if rank == 0 {
+			return prizes, nil
+		}
+		return moveToRank(prizes, index, rank), nil
+	})
+}
+
+func deletePrize(ctx context.Context, gameID, prizeID string) error {
+	return mutatePrizes(ctx, gameID, func(tx *ent.Tx, prizes []*ent.LotoPrize) ([]*ent.LotoPrize, error) {
+		index := prizeIndex(prizes, prizeID)
+		if index < 0 {
+			return nil, errPrizeNotFound
+		}
+		if len(prizes) <= 1 {
+			return nil, errLastPrize
+		}
+		if err := tx.LotoPrize.DeleteOneID(prizeID).Exec(ctx); err != nil {
+			return nil, err
+		}
+		return append(prizes[:index], prizes[index+1:]...), nil
+	})
+}
+
+func mutatePrizes(ctx context.Context, gameID string, mutate func(tx *ent.Tx, prizes []*ent.LotoPrize) ([]*ent.LotoPrize, error)) error {
+	tx, err := client().Tx(ctx)
+	if err != nil {
+		return err
+	}
+
+	open, err := tx.LotoGame.Query().
+		Where(lotogame.ID(gameID), lotogame.Active(true)).
+		Exist(ctx)
+	if err != nil {
+		return rollback(tx, err)
+	}
+	if !open {
+		return rollback(tx, errGameClosed)
+	}
+
+	prizes, err := tx.LotoPrize.Query().
+		Where(lotoprize.GameID(gameID)).
+		Order(ent.Asc(lotoprize.FieldPosition)).
+		All(ctx)
+	if err != nil {
+		return rollback(tx, err)
+	}
+
+	ordered, err := mutate(tx, prizes)
+	if err != nil {
+		return rollback(tx, err)
+	}
+	if err := renumberPrizes(ctx, tx, ordered); err != nil {
+		return rollback(tx, err)
+	}
+	return tx.Commit()
+}
+
+func renumberPrizes(ctx context.Context, tx *ent.Tx, ordered []*ent.LotoPrize) error {
+	moved := make([]int, 0, len(ordered))
+	for i, prize := range ordered {
+		if prize.Position == i {
+			continue
+		}
+		if err := tx.LotoPrize.UpdateOneID(prize.ID).SetPosition(-(i + 1)).Exec(ctx); err != nil {
+			return err
+		}
+		moved = append(moved, i)
+	}
+	for _, i := range moved {
+		if err := tx.LotoPrize.UpdateOneID(ordered[i].ID).SetPosition(i).Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func nextFreePosition(prizes []*ent.LotoPrize) int {
+	next := 0
+	for _, prize := range prizes {
+		next = max(next, prize.Position+1)
+	}
+	return next
+}
+
+func prizeIndex(prizes []*ent.LotoPrize, prizeID string) int {
+	for i, prize := range prizes {
+		if prize.ID == prizeID {
+			return i
+		}
+	}
+	return -1
+}
+
+func moveToRank(prizes []*ent.LotoPrize, from, rank int) []*ent.LotoPrize {
+	to := min(max(rank, 1), len(prizes)) - 1
+	if from == to {
+		return prizes
+	}
+	moving := prizes[from]
+	rest := append(append([]*ent.LotoPrize{}, prizes[:from]...), prizes[from+1:]...)
+	return append(rest[:to], append([]*ent.LotoPrize{moving}, rest[to:]...)...)
 }

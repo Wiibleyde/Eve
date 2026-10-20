@@ -197,6 +197,8 @@ func actionButtons(gameID string) []discord.InteractiveComponent {
 			WithEmoji(discord.NewComponentEmoji("🗑️")),
 		discord.NewSecondaryButton("Corriger un nom", router.BuildCustomID(buttonEditPlayer, gameID)).
 			WithEmoji(discord.NewComponentEmoji("✏️")),
+		discord.NewSecondaryButton("Gérer les lots", router.BuildCustomID(buttonPrizes, gameID)).
+			WithEmoji(discord.NewComponentEmoji("🎁")),
 		discord.NewDangerButton("Tirer au sort", router.BuildCustomID(buttonDraw, gameID)).
 			WithEmoji(discord.NewComponentEmoji("🎲")),
 	}

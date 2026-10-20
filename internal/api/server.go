@@ -68,7 +68,7 @@ func routes(status controllers.StatusController, loto controllers.LotoController
 		},
 		{
 			path: "/api/v1/loto/stats", handler: loto.GetStats, tag: "loto", id: "getLotoStats",
-			summary: "Per-game loto statistics plus aggregated totals, newest first",
+			summary: "Per-game loto statistics, prizes included, plus aggregated totals, newest first",
 			query:   statsQuery{},
 			responses: append([]apiResponse{
 				{http.StatusOK, controllers.LotoStatsResponse{}, "Statistics for the matching games, empty when nothing matches"},
