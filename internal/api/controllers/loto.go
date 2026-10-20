@@ -21,16 +21,26 @@ type LotoController struct{}
 const lotoMaxWinnersLimit = 500
 
 type LotoGameStats struct {
-	ID           string    `json:"id"`
-	GuildID      string    `json:"guildId" description:"Discord guild snowflake ID." example:"1091918939407908944"`
-	Name         string    `json:"name"`
-	Active       bool      `json:"active" description:"Whether the game is still running."`
-	TicketPrice  int       `json:"ticketPrice" description:"Price of a single ticket."`
-	TicketsSold  int       `json:"ticketsSold"`
-	Pot          int       `json:"pot" description:"ticketsSold multiplied by ticketPrice."`
-	PlayersCount int       `json:"playersCount"`
-	PrizesCount  int       `json:"prizesCount"`
-	CreatedAt    time.Time `json:"createdAt"`
+	ID           string          `json:"id"`
+	GuildID      string          `json:"guildId" description:"Discord guild snowflake ID." example:"1091918939407908944"`
+	Name         string          `json:"name"`
+	Active       bool            `json:"active" description:"Whether the game is still running."`
+	TicketPrice  int             `json:"ticketPrice" description:"Price of a single ticket."`
+	TicketsSold  int             `json:"ticketsSold"`
+	Pot          int             `json:"pot" description:"ticketsSold multiplied by ticketPrice."`
+	PlayersCount int             `json:"playersCount"`
+	PrizesCount  int             `json:"prizesCount"`
+	Prizes       []LotoGamePrize `json:"prizes" nullable:"false" description:"Prizes of the game in draw order."`
+	CreatedAt    time.Time       `json:"createdAt"`
+}
+
+type LotoGamePrize struct {
+	ID                  string     `json:"id"`
+	Position            int        `json:"position" description:"Zero-based draw order within the game. The bot displays it as #position+1." minimum:"0"`
+	Label               string     `json:"label"`
+	WinnerName          *string    `json:"winnerName" description:"Null until the prize is drawn. Inconnu when the winning player record could not be resolved."`
+	WinningTicketNumber *int       `json:"winningTicketNumber" description:"Null until the prize is drawn."`
+	DrawnAt             *time.Time `json:"drawnAt" description:"Null until the prize is drawn."`
 }
 
 type LotoStatsTotals struct {
@@ -108,14 +118,18 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 		logger.Error("api: counting loto players", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
-	prizesPerGame, err := lotoCountPrizesPerGame(ctx, db, ids)
+	prizesPerGame, err := lotoPrizesPerGame(ctx, db, ids)
 	if err != nil {
-		logger.Error("api: counting loto prizes", "error", err)
+		logger.Error("api: loading loto prizes", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(APIError{Error: "internal server error"})
 	}
 
 	for _, g := range games {
 		sold := ticketsPerGame[g.ID]
+		prizes := prizesPerGame[g.ID]
+		if prizes == nil {
+			prizes = []LotoGamePrize{}
+		}
 		stats := LotoGameStats{
 			ID:           g.ID,
 			GuildID:      g.GuildID,
@@ -125,7 +139,8 @@ func (LotoController) GetStats(c fiber.Ctx) error {
 			TicketsSold:  sold,
 			Pot:          sold * g.TicketPrice,
 			PlayersCount: playersPerGame[g.ID],
-			PrizesCount:  prizesPerGame[g.ID],
+			PrizesCount:  len(prizes),
+			Prizes:       prizes,
 			CreatedAt:    g.CreatedAt,
 		}
 		response.Games = append(response.Games, stats)
@@ -285,17 +300,63 @@ func lotoCountPlayersPerGame(ctx context.Context, db *ent.Client, gameIDs []stri
 	return counts, nil
 }
 
-func lotoCountPrizesPerGame(ctx context.Context, db *ent.Client, gameIDs []string) (map[string]int, error) {
+func lotoPrizesPerGame(ctx context.Context, db *ent.Client, gameIDs []string) (map[string][]LotoGamePrize, error) {
 	prizes, err := db.LotoPrize.Query().
 		Where(lotoprize.GameIDIn(gameIDs...)).
-		Select(lotoprize.FieldGameID).
-		Strings(ctx)
+		Order(ent.Asc(lotoprize.FieldPosition)).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	counts := make(map[string]int, len(gameIDs))
-	for _, id := range prizes {
-		counts[id]++
+
+	winnerNames, err := lotoWinnerNames(ctx, db, prizes)
+	if err != nil {
+		return nil, err
 	}
-	return counts, nil
+
+	byGame := make(map[string][]LotoGamePrize, len(gameIDs))
+	for _, p := range prizes {
+		prize := LotoGamePrize{
+			ID:       p.ID,
+			Position: p.Position,
+			Label:    p.Label,
+		}
+		if p.WinnerPlayerID != "" {
+			name := winnerNames[p.WinnerPlayerID]
+			if name == "" {
+				name = "Inconnu"
+			}
+			ticket := p.WinningTicketNumber
+			prize.WinnerName = &name
+			prize.WinningTicketNumber = &ticket
+		}
+		if !p.DrawnAt.IsZero() {
+			drawnAt := p.DrawnAt
+			prize.DrawnAt = &drawnAt
+		}
+		byGame[p.GameID] = append(byGame[p.GameID], prize)
+	}
+	return byGame, nil
+}
+
+func lotoWinnerNames(ctx context.Context, db *ent.Client, prizes []*ent.LotoPrize) (map[string]string, error) {
+	playerIDs := make([]string, 0, len(prizes))
+	for _, p := range prizes {
+		if p.WinnerPlayerID != "" {
+			playerIDs = append(playerIDs, p.WinnerPlayerID)
+		}
+	}
+	names := make(map[string]string, len(playerIDs))
+	if len(playerIDs) == 0 {
+		return names, nil
+	}
+
+	players, err := db.LotoPlayer.Query().Where(lotoplayer.IDIn(playerIDs...)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range players {
+		names[p.ID] = p.Name
+	}
+	return names, nil
 }
