@@ -187,7 +187,7 @@ func openPrizeModal(e *events.ComponentInteractionCreate, customID, title, label
 
 	modal := discord.NewModalCreate(customID, title).
 		AddLabel("Intitulé du lot", labelInput).
-		AddLabel("Position dans le tirage (1 = premier lot tiré)", rankInput)
+		AddLabel("Position dans le tirage (1 = premier tiré)", rankInput)
 
 	if err := e.Modal(modal); err != nil {
 		logger.Error("loto: opening prize modal", "error", err)
