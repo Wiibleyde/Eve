@@ -196,6 +196,14 @@ func (c *Card) MessageUpdate() discord.MessageUpdate {
 	return update
 }
 
+func (c *Card) TextLength() int {
+	length := 0
+	for _, text := range Texts(c.Components()) {
+		length += len(text)
+	}
+	return length
+}
+
 func NoMentions() *discord.AllowedMentions {
 	return &discord.AllowedMentions{Parse: []discord.AllowedMentionType{}}
 }

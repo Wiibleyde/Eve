@@ -13,9 +13,11 @@ import (
 )
 
 const (
-	maxBodyLength    = 2000
-	maxSectionLength = 900
-	maxListedPlayers = 50
+	maxSectionLength    = 900
+	maxListedPlayers    = 50
+	cardTextReserve     = 200
+	cardTextBudget      = ui.MaxText - cardTextReserve
+	announceChunkLength = 3000
 )
 
 const lotoColor = 0x9B59B6
@@ -63,6 +65,13 @@ func (s *snapshot) pot() int {
 }
 
 func buildCard(s *snapshot) *ui.Card {
+	budget := cardTextBudget - renderCard(s, nil, nil).TextLength()
+	prizes := fitLines(prizeLines(s), len(s.prizes), budget, hiddenPrizes)
+	players := fitLines(playerLines(s), len(s.leaderboard()), budget-joinedLength(prizes), hiddenPlayers)
+	return renderCard(s, players, prizes)
+}
+
+func renderCard(s *snapshot, players, prizes []string) *ui.Card {
 	game := s.game
 
 	card := ui.New().
@@ -100,23 +109,15 @@ func buildCard(s *snapshot) *ui.Card {
 	}
 
 	card.Divider().Heading("👥 Participants")
-	board := s.leaderboard()
-	if len(board) == 0 {
+	if len(s.tickets) == 0 {
 		card.Text("Aucun ticket vendu pour le moment.")
 	} else {
-		if len(board) > maxListedPlayers {
-			board = board[:maxListedPlayers]
-		}
-		lines := make([]string, 0, len(board))
-		for _, entry := range board {
-			lines = append(lines, fmt.Sprintf("- %s (%d)", entry.name, entry.count))
-		}
-		card.Text(truncate(strings.Join(lines, "\n"), maxBodyLength))
+		card.Text(strings.Join(players, "\n"))
 	}
 
 	if len(s.prizes) > 0 {
 		card.Divider().Heading("🎁 Gains")
-		for _, chunk := range chunkLines(prizeLines(s), maxSectionLength) {
+		for _, chunk := range chunkLines(prizes, maxSectionLength) {
 			card.Text(chunk)
 		}
 	}
@@ -135,6 +136,47 @@ func buildCard(s *snapshot) *ui.Card {
 		footerParts = append(footerParts, fmt.Sprintf("Limite achat : %d", game.MaxTicketsPerPurchase))
 	}
 	return card.Footer(strings.Join(footerParts, " · "))
+}
+
+func playerLines(s *snapshot) []string {
+	board := s.leaderboard()
+	if len(board) > maxListedPlayers {
+		board = board[:maxListedPlayers]
+	}
+	lines := make([]string, 0, len(board))
+	for _, entry := range board {
+		lines = append(lines, fmt.Sprintf("- %s (%d)", entry.name, entry.count))
+	}
+	return lines
+}
+
+func hiddenPlayers(hidden int) string {
+	return fmt.Sprintf("-# … et %d autre(s) participant(s)", hidden)
+}
+
+func hiddenPrizes(hidden int) string {
+	return fmt.Sprintf("-# … et %d autre(s) gain(s)", hidden)
+}
+
+func fitLines(lines []string, total, budget int, overflow func(hidden int) string) []string {
+	if total == len(lines) && joinedLength(lines) <= budget {
+		return lines
+	}
+	for kept := min(len(lines), total-1); kept >= 0; kept-- {
+		fitted := append(lines[:kept:kept], overflow(total-kept))
+		if joinedLength(fitted) <= budget {
+			return fitted
+		}
+	}
+	return nil
+}
+
+func joinedLength(lines []string) int {
+	length := 0
+	for _, line := range lines {
+		length += len(line) + 1
+	}
+	return length
 }
 
 func prizeLines(s *snapshot) []string {

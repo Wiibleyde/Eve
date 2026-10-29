@@ -266,6 +266,11 @@ func respondPrizeError(r helpers.EphemeralResponder, gameID string, err error) {
 }
 
 func prizeMenuCard(s *snapshot, selectedID, notice string) *ui.Card {
+	budget := cardTextBudget - renderPrizeMenu(s, selectedID, notice, nil).TextLength()
+	return renderPrizeMenu(s, selectedID, notice, fitLines(prizeLines(s), len(s.prizes), budget, hiddenPrizes))
+}
+
+func renderPrizeMenu(s *snapshot, selectedID, notice string, prizes []string) *ui.Card {
 	card := ui.New().
 		Accent(lotoColor).
 		Titlef("🎁 Lots du loto : %s", s.game.Name)
@@ -277,7 +282,7 @@ func prizeMenuCard(s *snapshot, selectedID, notice string) *ui.Card {
 	if len(s.prizes) == 0 {
 		card.Text("Aucun lot configuré.")
 	} else {
-		for _, chunk := range chunkLines(prizeLines(s), maxSectionLength) {
+		for _, chunk := range chunkLines(prizes, maxSectionLength) {
 			card.Text(chunk)
 		}
 	}

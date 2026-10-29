@@ -285,18 +285,22 @@ func announceDraw(client *bot.Client, snap *snapshot) {
 		return
 	}
 
-	card := ui.New().
-		Accent(0xFFD700).
-		Titlef("🎉 Résultats du loto : %s", snap.game.Name).
-		Text(truncate(strings.Join(winnerLines(snap), "\n"), maxBodyLength)).
-		Divider().
-		Fields(
-			ui.Field{Name: "Tickets vendus", Value: fmt.Sprintf("**%d**", len(snap.tickets)), Inline: true},
-			ui.Field{Name: "Cagnotte totale", Value: fmt.Sprintf("**%d$**", snap.pot()), Inline: true},
-		)
-
-	if _, err := client.Rest.CreateMessage(channelID, card.MessageCreate()); err != nil {
-		logger.Error("loto: announcing draw", "game", snap.game.ID, "error", err)
+	chunks := chunkLines(winnerLines(snap), announceChunkLength)
+	for i, chunk := range chunks {
+		card := ui.New().
+			Accent(0xFFD700).
+			Titlef("🎉 Résultats du loto : %s", snap.game.Name).
+			Text(chunk)
+		if i == len(chunks)-1 {
+			card.Divider().Fields(
+				ui.Field{Name: "Tickets vendus", Value: fmt.Sprintf("**%d**", len(snap.tickets)), Inline: true},
+				ui.Field{Name: "Cagnotte totale", Value: fmt.Sprintf("**%d$**", snap.pot()), Inline: true},
+			)
+		}
+		if _, err := client.Rest.CreateMessage(channelID, card.MessageCreate()); err != nil {
+			logger.Error("loto: announcing draw", "game", snap.game.ID, "part", i+1, "error", err)
+			return
+		}
 	}
 }
 
