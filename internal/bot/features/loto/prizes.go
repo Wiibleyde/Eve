@@ -17,7 +17,10 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-const maxSelectLabelLength = 100
+const (
+	maxSelectLabelLength = 100
+	maxSelectOptions     = 25
+)
 
 func HandlePrizesButton(e *events.ComponentInteractionCreate, args []string) {
 	game, ok := requireActiveGame(e, args)
@@ -279,7 +282,10 @@ func prizeMenuCard(s *snapshot, selectedID, notice string) *ui.Card {
 		}
 	}
 
-	card.Divider().Row(prizeSelect(s, selectedID))
+	card.Divider()
+	for _, menu := range prizeSelects(s, selectedID) {
+		card.Row(menu)
+	}
 
 	if index := prizeIndex(s.prizes, selectedID); index >= 0 {
 		prize := s.prizes[index]
@@ -297,7 +303,7 @@ func prizeMenuCard(s *snapshot, selectedID, notice string) *ui.Card {
 	return card.Subtextf("%d/%d lots · Choisissez un lot à modifier ou ajoutez-en un.", len(s.prizes), maxPrizeCount)
 }
 
-func prizeSelect(s *snapshot, selectedID string) discord.StringSelectMenuComponent {
+func prizeSelects(s *snapshot, selectedID string) []discord.InteractiveComponent {
 	options := make([]discord.StringSelectMenuOption, 0, len(s.prizes)+1)
 	for i, prize := range s.prizes {
 		options = append(options, discord.NewStringSelectMenuOption(
@@ -309,5 +315,13 @@ func prizeSelect(s *snapshot, selectedID string) discord.StringSelectMenuCompone
 		options = append(options, discord.NewStringSelectMenuOption("Ajouter un lot", prizeAddValue).
 			WithEmoji(discord.NewComponentEmoji("➕")))
 	}
-	return discord.NewStringSelectMenu(router.BuildCustomID(selectPrize, s.game.ID), "Choisir un lot…", options...)
+
+	menus := make([]discord.InteractiveComponent, 0, len(options)/maxSelectOptions+1)
+	for start := 0; start < len(options); start += maxSelectOptions {
+		end := min(start+maxSelectOptions, len(options))
+		menus = append(menus, discord.NewStringSelectMenu(
+			router.BuildCustomID(selectPrize, s.game.ID, strconv.Itoa(len(menus))),
+			"Choisir un lot…", options[start:end]...))
+	}
+	return menus
 }

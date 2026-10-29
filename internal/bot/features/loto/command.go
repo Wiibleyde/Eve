@@ -18,7 +18,8 @@ const (
 	maxGameNameLength   = 50
 	maxPlayerNameLength = 50
 	maxPrizeLabelLen    = 255
-	maxPrizeCount       = 10
+	maxPrizeCount       = 30
+	maxCommandOptions   = 25
 	defaultTicketPrice  = 500
 	maxCooldownMinutes  = 10080
 	maxTicketsPerBuy    = 1000
@@ -76,7 +77,7 @@ func createOptions() []discord.ApplicationCommandOption {
 		},
 	}
 
-	for i := 2; i <= maxPrizeCount; i++ {
+	for i := 2; len(opts) < maxCommandOptions; i++ {
 		opts = append(opts, discord.ApplicationCommandOptionString{
 			Name:        fmt.Sprintf("prize%d", i),
 			Description: fmt.Sprintf("Gain n°%d (optionnel)", i),
