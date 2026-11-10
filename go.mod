@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	entgo.io/ent v0.14.6
 	github.com/arran4/golang-ical v0.3.6
-	github.com/disgoorg/disgo v0.19.6
+	github.com/disgoorg/disgo v0.20.0
 	github.com/disgoorg/disgolink/v4 v4.0.0-20260901174616-89f7a7fecb6e
 	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/fogleman/gg v1.3.0

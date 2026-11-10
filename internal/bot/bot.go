@@ -107,24 +107,19 @@ func Run(cfg *config.Config, db *database.Client) {
 	allCommands = append(allCommands, talk.Commands()...)
 	allCommands = append(allCommands, userinfo.Commands...)
 
-	var schedulersOnce sync.Once
+	var startupOnce sync.Once
 
 	client.AddEventListeners(bot.NewListenerFunc(func(e *events.Ready) {
 		logger.Info("Logged in", "user", e.User.Username)
-		schedulersOnce.Do(func() {
+		startupOnce.Do(func() {
 			music.Start(client, e.User.ID)
 			birthday.StartScheduler(client)
 			calendar.StartScheduler(client)
 			presence.StartScheduler(client)
 			quiz.StartScheduler(client)
 			streamer.StartPoller(client)
+			go registerCommands(client, e.Application.ID, allCommands, e.Guilds)
 		})
-		if _, err := client.Rest.SetGlobalCommands(e.Application.ID, allCommands); err != nil {
-			logger.Error("Error registering commands", "error", err)
-		} else {
-			logger.Info("Commands registered", "count", len(allCommands))
-		}
-		go clearGuildCommands(client, e.Application.ID, e.Guilds)
 	}))
 
 	ctx := context.Background()
@@ -139,6 +134,15 @@ func Run(cfg *config.Config, db *database.Client) {
 	<-sc
 
 	logger.Info("Shutting down...")
+}
+
+func registerCommands(client *bot.Client, appID snowflake.ID, commands []discord.ApplicationCommandCreate, guilds []discord.UnavailableGuild) {
+	if _, err := client.Rest.SetGlobalCommands(appID, commands); err != nil {
+		logger.Error("Error registering commands", "error", err)
+	} else {
+		logger.Info("Commands registered", "count", len(commands))
+	}
+	clearGuildCommands(client, appID, guilds)
 }
 
 func clearGuildCommands(client *bot.Client, appID snowflake.ID, guilds []discord.UnavailableGuild) {
